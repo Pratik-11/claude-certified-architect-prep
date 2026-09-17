@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 3: Claude Code Configuration & Workflows | Claude Certified Architect Guide</title>
+<style>
+  :root {
+    --nav-h: 52px;
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1b1f27;
+    --border: #252a35;
+    --accent: #6f9ceb;
+    --accent-warm: #e8b84b;
+    --accent2: #61c99b;
+    --accent3: #e86b5f;
+    --accent4: #b57bee;
+    --text: #e8e6e0;
+    --text-dim: #8891a4;
+    --text-muted: #4a5366;
+    --mono: 'Cascadia Code','Fira Code','JetBrains Mono','SF Mono','Menlo','Consolas',monospace;
+    --serif: 'Palatino Linotype','Book Antiqua','Georgia','Cambria',serif;
+    --sans: -apple-system,'BlinkMacSystemFont','Segoe UI','Helvetica Neue','Arial',sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top: calc(var(--nav-h) + 65px); }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.7; min-height:100vh; padding-top: var(--nav-h); }
+
+  /* HEADER */
+  .header { border-bottom:1px solid var(--border); padding:1.1rem 3rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:var(--nav-h); background:rgba(13,15,18,0.95); backdrop-filter:blur(12px); z-index:100; height:65px; }
+  .header-left { display:flex; align-items:center; gap:1.2rem; }
+  .badge { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; padding:4px 10px; border-radius:4px; border:1px solid; }
+  .badge-domain { color:var(--accent4); border-color:rgba(181,123,238,.3); background:rgba(181,123,238,.06); }
+  .badge-weight { color:var(--accent-warm); border-color:rgba(232,184,75,.3); background:rgba(232,184,75,.06); }
+  .header h1 { font-family:var(--serif); font-size:1.05rem; font-weight:300; color:var(--text-dim); }
+  .header h1 strong { color:var(--text); font-weight:600; }
+  .progress-dots { display:flex; gap:4px; align-items:center; }
+  .progress-bar { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--border); }
+  .dot.done { background:var(--accent2); }
+
+  /* LAYOUT */
+  .layout { display:grid; grid-template-columns:250px 1fr; min-height:calc(100vh - 65px); }
+
+  /* SIDEBAR */
+  .sidebar { border-right:1px solid var(--border); padding:2rem 0; position:sticky; top:calc(var(--nav-h) + 65px); height:calc(100vh - var(--nav-h) - 65px); overflow-y:auto; }
+  .sidebar-section { padding:0 1.5rem; margin-bottom:1.75rem; }
+  .sidebar-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.75rem; }
+  .sidebar-nav a { display:block; padding:6px 10px; border-radius:4px; color:var(--text-muted); text-decoration:none; font-size:13px; transition:all .15s; border-left:2px solid transparent; line-height:1.4; }
+  .sidebar-nav a:hover { color:var(--text); background:var(--surface); }
+  .sidebar-nav a.active { color:var(--accent4); border-left-color:var(--accent4); background:rgba(181,123,238,.05); }
+  .ts-badge { display:inline-block; font-family:var(--mono); font-size:9px; padding:1px 5px; border-radius:3px; margin-right:4px; vertical-align:middle; background:rgba(181,123,238,.1); color:var(--accent4); border:1px solid rgba(181,123,238,.2); }
+
+  /* MAIN */
+  .main { padding:3rem 4rem 5rem; max-width:860px; }
+
+  /* HERO */
+  .domain-hero { margin-bottom:3.5rem; padding-bottom:3rem; border-bottom:1px solid var(--border); }
+  .task-meta { display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .domain-hero h2 { font-family:var(--serif); font-size:2.4rem; font-weight:800; line-height:1.15; color:var(--text); margin-bottom:1rem; }
+  .domain-hero h2 em { font-style:italic; color:var(--accent4); }
+  .domain-hero p { font-size:15px; color:var(--text-dim); max-width:620px; line-height:1.75; margin-bottom:.75rem; }
+
+  /* TS DIVIDER */
+  .ts-divider { display:flex; align-items:center; gap:1rem; margin:4rem 0 2.5rem; }
+  .ts-divider-line { flex:1; height:1px; background:var(--border); }
+  .ts-divider-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+
+  /* SECTION */
+  .section { margin-bottom:3rem; }
+  .section-title { font-family:var(--serif); font-size:1.3rem; font-weight:600; color:var(--text); margin-bottom:1.25rem; display:flex; align-items:center; gap:.75rem; }
+  .section-title::before { content:''; display:inline-block; width:4px; height:1.3rem; background:var(--accent4); border-radius:2px; flex-shrink:0; }
+  .section-title.blue::before   { background:var(--accent); }
+  .section-title.green::before  { background:var(--accent2); }
+  .section-title.red::before    { background:var(--accent3); }
+  .section-title.gold::before   { background:var(--accent-warm); }
+
+  /* TS TITLE BLOCK */
+  .ts-title-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.5rem 1.75rem; margin-bottom:2rem; }
+  .ts-title-block .ts-number { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent4); margin-bottom:.5rem; }
+  .ts-title-block h3 { font-family:var(--serif); font-size:1.5rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:.75rem; }
+  .ts-title-block .ts-desc { font-size:14px; color:var(--text-dim); line-height:1.75; }
+
+  p { color:var(--text-dim); margin-bottom:1rem; line-height:1.8; }
+  p strong { color:var(--text); font-weight:500; }
+
+  /* KNOWLEDGE CARDS */
+  .knowledge-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.25rem; }
+  .k-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1.25rem; }
+  .k-card-icon { font-size:1.3rem; margin-bottom:.6rem; }
+  .k-card h4 { font-size:13px; font-weight:500; color:var(--text); margin-bottom:.5rem; }
+  .k-card p { font-size:13px; margin:0; color:var(--text-dim); }
+
+  /* SKILL LIST */
+  .skill-list { list-style:none; margin-top:1rem; }
+  .skill-list li { display:flex; gap:.75rem; align-items:flex-start; padding:.65rem 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text-dim); }
+  .skill-list li:last-child { border-bottom:none; }
+  .skill-list li::before { content:'→'; color:var(--accent4); font-family:var(--mono); flex-shrink:0; margin-top:1px; }
+
+  /* CODE BLOCKS */
+  .code-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin:1.25rem 0; }
+  .code-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .code-label { font-family:var(--mono); font-size:11px; color:var(--text-muted); letter-spacing:.05em; }
+  .code-tag { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:3px; font-weight:500; }
+  .tag-bad     { color:var(--accent3); background:rgba(232,107,95,.1);  border:1px solid rgba(232,107,95,.25); }
+  .tag-good    { color:var(--accent2); background:rgba(97,201,155,.1);  border:1px solid rgba(97,201,155,.25); }
+  .tag-neutral { color:var(--accent);  background:rgba(111,156,235,.1); border:1px solid rgba(111,156,235,.25); }
+  .tag-purple  { color:var(--accent4); background:rgba(181,123,238,.1); border:1px solid rgba(181,123,238,.25); }
+  pre { padding:1.25rem 1.5rem; font-family:var(--mono); font-size:12.5px; line-height:1.7; color:var(--text-dim); overflow-x:auto; white-space:pre; }
+  .hl-key     { color:var(--accent4); }
+  .hl-str     { color:var(--accent2); }
+  .hl-comment { color:var(--text-muted); font-style:italic; }
+  .hl-warn    { color:var(--accent3); }
+  .hl-ok      { color:var(--accent2); }
+  .hl-num     { color:var(--accent-warm); }
+  .hl-fn      { color:var(--accent); }
+  .hl-field   { color:var(--accent-warm); }
+
+  /* CALLOUT */
+  .callout { border-radius:8px; padding:1.1rem 1.4rem; margin:1.25rem 0; display:flex; gap:1rem; align-items:flex-start; }
+  .callout-warn    { background:rgba(232,184,75,.07);  border:1px solid rgba(232,184,75,.2); }
+  .callout-danger  { background:rgba(232,107,95,.07);  border:1px solid rgba(232,107,95,.2); }
+  .callout-info    { background:rgba(111,156,235,.07); border:1px solid rgba(111,156,235,.2); }
+  .callout-success { background:rgba(97,201,155,.07);  border:1px solid rgba(97,201,155,.2); }
+  .callout-purple  { background:rgba(181,123,238,.07); border:1px solid rgba(181,123,238,.2); }
+  .callout-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+  .callout-body { font-size:13.5px; color:var(--text-dim); line-height:1.7; }
+  .callout-body strong { color:var(--text); }
+
+  /* COMPARISON */
+  .comparison { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.25rem 0; }
+  .compare-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .compare-header { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; }
+  .compare-header.bad  { background:rgba(232,107,95,.06); color:var(--accent3); }
+  .compare-header.good { background:rgba(97,201,155,.06); color:var(--accent2); }
+  .compare-body { padding:1rem 1.25rem; font-family:var(--mono); font-size:12px; line-height:1.65; color:var(--text-dim); }
+
+  /* TRAP TABLE */
+  .trap-table { width:100%; border-collapse:collapse; margin:1.25rem 0; font-size:13px; }
+  .trap-table th { text-align:left; padding:10px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border); }
+  .trap-table td { padding:11px 14px; border-bottom:1px solid rgba(37,42,53,.5); vertical-align:top; line-height:1.6; }
+  .trap-table tr:last-child td { border-bottom:none; }
+  .trap-table .col-trap    { color:var(--accent3); font-family:var(--mono); font-size:12px; }
+  .trap-table .col-correct { color:var(--accent2); font-size:13px; }
+  .trap-table .col-why     { color:var(--text-dim); font-size:12px; }
+
+  /* FILE TREE */
+  .file-tree { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1.25rem 1.5rem; font-family:var(--mono); font-size:12.5px; line-height:1.9; color:var(--text-dim); margin:1.25rem 0; }
+  .file-tree .dir  { color:var(--accent4); }
+  .file-tree .file { color:var(--text-dim); }
+  .file-tree .note { color:var(--text-muted); font-style:italic; }
+  .file-tree .important { color:var(--accent-warm); }
+
+  /* TASK BOX */
+  .task-box { background:var(--surface); border:1px solid rgba(181,123,238,.35); border-radius:10px; padding:1.75rem; margin:1.5rem 0; }
+  .task-box-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
+  .task-number { width:28px; height:28px; background:rgba(181,123,238,.15); border:1px solid rgba(181,123,238,.35); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; color:var(--accent4); flex-shrink:0; }
+  .task-box-header h3 { font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--accent4); }
+  .task-steps { list-style:none; counter-reset:task-counter; }
+  .task-steps li { counter-increment:task-counter; display:flex; gap:.85rem; padding:.55rem 0; font-size:14px; color:var(--text-dim); align-items:flex-start; }
+  .task-steps li::before { content:counter(task-counter); font-family:var(--mono); font-size:10px; color:var(--text-muted); background:var(--surface2); border:1px solid var(--border); width:20px; height:20px; border-radius:3px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+
+  /* EXAM QUESTION */
+  .exam-question { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin:1.5rem 0; }
+  .exam-header { background:var(--surface2); padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .exam-q-label { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent4); }
+  .exam-scenario { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+  .exam-body { padding:1.5rem 1.75rem; }
+  .exam-stem { font-size:14px; color:var(--text); line-height:1.75; margin-bottom:1.25rem; }
+  .exam-options { list-style:none; display:flex; flex-direction:column; gap:.65rem; }
+  .exam-option { display:flex; gap:.85rem; padding:.85rem 1.1rem; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text-dim); cursor:pointer; transition:all .15s; align-items:flex-start; }
+  .exam-option:hover { border-color:var(--accent4); color:var(--text); background:rgba(181,123,238,.04); }
+  .exam-option.correct { border-color:var(--accent2); background:rgba(97,201,155,.06); color:var(--text); }
+  .exam-option.wrong   { border-color:rgba(232,107,95,.4); background:rgba(232,107,95,.04); }
+  .option-letter { font-family:var(--mono); font-size:11px; color:var(--text-muted); flex-shrink:0; margin-top:1px; }
+  .exam-option.correct .option-letter { color:var(--accent2); }
+  .exam-option.wrong   .option-letter { color:var(--accent3); }
+  .exam-reveal { display:none; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border); }
+  .exam-reveal.visible { display:block; }
+  .reveal-label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent2); margin-bottom:.5rem; }
+  .reveal-text { font-size:13.5px; color:var(--text-dim); line-height:1.75; }
+  .reveal-text strong { color:var(--text); }
+  .show-answer-btn { margin-top:1.1rem; background:none; border:1px solid var(--border); color:var(--text-muted); font-family:var(--mono); font-size:11px; padding:7px 14px; border-radius:5px; cursor:pointer; transition:all .15s; }
+  .show-answer-btn:hover { border-color:var(--accent4); color:var(--accent4); }
+
+  code { font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--accent4); }
+
+  /* FOOTER */
+  .footer { margin-top:4rem; padding-top:2rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .footer-meta { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .next-btn { display:flex; align-items:center; gap:.5rem; background:rgba(181,123,238,.1); border:1px solid rgba(181,123,238,.3); color:var(--accent4); font-family:var(--mono); font-size:12px; padding:10px 18px; border-radius:6px; cursor:pointer; text-decoration:none; transition:all .15s; }
+  .next-btn:hover { background:rgba(181,123,238,.18); }
+
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── TOP NAV ── */
+.top-nav { position:fixed; top:0; left:0; right:0; height:var(--nav-h); background:rgba(13,15,18,0.97); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); z-index:300; display:flex; align-items:center; }
+.top-nav-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 1.5rem; display:flex; align-items:center; gap:1.5rem; }
+.nav-brand { font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#4ade80; text-decoration:none; white-space:nowrap; flex-shrink:0; }
+.nav-links { display:flex; align-items:center; gap:0.25rem; flex-wrap:nowrap; margin-left:auto; }
+.nav-links a { font-family:var(--mono); font-size:11px; color:#4a5366; text-decoration:none; padding:5px 10px; border-radius:4px; transition:color 0.15s,background 0.15s; white-space:nowrap; letter-spacing:0.06em; }
+.nav-links a:hover { color:#e8e9eb; background:rgba(255,255,255,0.06); }
+.nav-links a.nav-active { color:#e8e9eb; background:rgba(255,255,255,0.08); }
+.nav-exam-btn { background:rgba(74,222,128,0.1) !important; border:1px solid rgba(74,222,128,0.3) !important; color:#4ade80 !important; }
+.nav-exam-btn:hover { background:rgba(74,222,128,0.2) !important; }
+.nav-hamburger { display:none; background:none; border:none; color:#8a8d94; font-size:18px; cursor:pointer; margin-left:auto; padding:4px 8px; }
+@media (max-width:720px) {
+  .nav-hamburger { display:block; }
+  .nav-links { display:none; position:absolute; top:var(--nav-h); left:0; right:0; background:rgba(13,15,18,0.98); flex-direction:column; padding:0.75rem 1rem; gap:0.25rem; border-bottom:1px solid #252a35; }
+  .nav-links.open { display:flex; }
+  .nav-links a { width:100%; }
+}
+</style>
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+<noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="./index.html" class="nav-brand">Claude Architect</a>
+    <a href="https://moisesprat.dev" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:10px;color:var(--text2);text-decoration:none;border-left:1px solid var(--border2);padding-left:1rem;margin-left:0.25rem;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">Guide by Moises Prat</a>
+    <button class="nav-hamburger" onclick="toggleNav()">&#9776;</button>
+    <div class="nav-links" id="nav-links">
+      <a href="./index.html">Home</a>
+      <a href="./domain1.html">Domain 1</a>
+      <a href="./domain2.html">Domain 2</a>
+      <a href="./domain3.html">Domain 3</a>
+      <a href="./domain4.html">Domain 4</a>
+      <a href="./domain5.html">Domain 5</a>
+      <a href="./progress.html">Progress</a>
+      <a href="./exam.html" class="nav-exam-btn">Exam</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="badge badge-domain">Domain 3</span>
+    <span class="badge badge-weight">20% of exam</span>
+    <h1><strong>Claude Code Configuration & Workflows</strong> — Complete Lesson</h1>
+  </div>
+  <div class="progress-bar">
+    <span>Domain progress</span>
+    <div class="progress-dots">
+      <div class="dot done" title="3.1 CLAUDE.md Hierarchy"></div>
+      <div class="dot done" title="3.2 Slash Commands & Skills"></div>
+      <div class="dot done" title="3.3 Path-Specific Rules"></div>
+      <div class="dot done" title="3.4 Plan Mode vs Direct Execution"></div>
+      <div class="dot done" title="3.5 Iterative Refinement"></div>
+      <div class="dot done" title="3.6 CI/CD Integration"></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Domain 3 Overview</div>
+    <nav class="sidebar-nav"><a href="#domain-overview">Introduction</a></nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 3.1</div>
+    <nav class="sidebar-nav">
+      <a href="#ts31-concept"><span class="ts-badge">3.1</span> Core Concept</a>
+      <a href="#ts31-hierarchy"><span class="ts-badge">3.1</span> Config Hierarchy</a>
+      <a href="#ts31-modular"><span class="ts-badge">3.1</span> Modular Organisation</a>
+      <a href="#ts31-traps"><span class="ts-badge">3.1</span> Exam Traps</a>
+      <a href="#ts31-task"><span class="ts-badge">3.1</span> Implementation Task</a>
+      <a href="#ts31-questions"><span class="ts-badge">3.1</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 3.2</div>
+    <nav class="sidebar-nav">
+      <a href="#ts32-concept"><span class="ts-badge">3.2</span> Core Concept</a>
+      <a href="#ts32-commands"><span class="ts-badge">3.2</span> Slash Commands</a>
+      <a href="#ts32-skills"><span class="ts-badge">3.2</span> Skills & Frontmatter</a>
+      <a href="#ts32-traps"><span class="ts-badge">3.2</span> Exam Traps</a>
+      <a href="#ts32-task"><span class="ts-badge">3.2</span> Implementation Task</a>
+      <a href="#ts32-questions"><span class="ts-badge">3.2</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 3.3</div>
+    <nav class="sidebar-nav">
+      <a href="#ts33-concept"><span class="ts-badge">3.3</span> Core Concept</a>
+      <a href="#ts33-patterns"><span class="ts-badge">3.3</span> Glob Patterns</a>
+      <a href="#ts33-traps"><span class="ts-badge">3.3</span> Exam Traps</a>
+      <a href="#ts33-task"><span class="ts-badge">3.3</span> Implementation Task</a>
+      <a href="#ts33-questions"><span class="ts-badge">3.3</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 3.4</div>
+    <nav class="sidebar-nav">
+      <a href="#ts34-concept"><span class="ts-badge">3.4</span> Core Concept</a>
+      <a href="#ts34-decision"><span class="ts-badge">3.4</span> Decision Framework</a>
+      <a href="#ts34-explore"><span class="ts-badge">3.4</span> Explore Subagent</a>
+      <a href="#ts34-traps"><span class="ts-badge">3.4</span> Exam Traps</a>
+      <a href="#ts34-task"><span class="ts-badge">3.4</span> Implementation Task</a>
+      <a href="#ts34-questions"><span class="ts-badge">3.4</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 3.5</div>
+    <nav class="sidebar-nav">
+      <a href="#ts35-concept"><span class="ts-badge">3.5</span> Core Concept</a>
+      <a href="#ts35-techniques"><span class="ts-badge">3.5</span> Refinement Techniques</a>
+      <a href="#ts35-traps"><span class="ts-badge">3.5</span> Exam Traps</a>
+      <a href="#ts35-task"><span class="ts-badge">3.5</span> Implementation Task</a>
+      <a href="#ts35-questions"><span class="ts-badge">3.5</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 3.6</div>
+    <nav class="sidebar-nav">
+      <a href="#ts36-concept"><span class="ts-badge">3.6</span> Core Concept</a>
+      <a href="#ts36-flags"><span class="ts-badge">3.6</span> CLI Flags</a>
+      <a href="#ts36-batches"><span class="ts-badge">3.6</span> Batch vs Real-time</a>
+      <a href="#ts36-traps"><span class="ts-badge">3.6</span> Exam Traps</a>
+      <a href="#ts36-task"><span class="ts-badge">3.6</span> Implementation Task</a>
+      <a href="#ts36-questions"><span class="ts-badge">3.6</span> Exam Questions</a>
+    </nav>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="domain-hero" id="domain-overview">
+    <div class="task-meta">
+      <span class="badge badge-domain">Domain 3</span>
+      <span class="badge badge-weight">20% of exam · 6 Task Statements</span>
+    </div>
+    <h2>Claude Code Configuration<br>&amp; <em>Workflows</em></h2>
+    <p>Domain 3 is the hands-on configuration domain. It tests whether you know exactly where to put a <code>CLAUDE.md</code> file so team members receive it, which frontmatter keys control skill isolation, and which CLI flag prevents CI pipeline hangs. The exam rewards precision — knowing the right answer often means knowing the exact file path or the exact flag name.</p>
+    <p>This domain maps primarily to <strong>Scenario 2 (Code Generation with Claude Code)</strong> and <strong>Scenario 5 (CI/CD Integration)</strong>. Both appear in all four scenario slots the exam presents, making Domain 3 knowledge reliably tested.</p>
+  </div>
+
+
+  <!-- ═══════════════════════════ TS 3.1 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 3.1</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts31">
+    <div class="ts-number">Task Statement 3.1</div>
+    <h3>Configure CLAUDE.md files with appropriate hierarchy, scoping, and modular organisation</h3>
+    <div class="ts-desc">Three levels of configuration, each with different scope and shareability. Getting them wrong means teammates don't receive instructions — or personal preferences leak into team workflows.</div>
+  </div>
+
+  <section class="section" id="ts31-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Claude Code reads <code>CLAUDE.md</code> files from multiple locations and merges them into a single instruction set. The <strong>level at which you place a file determines who receives it</strong> — and whether it travels with the codebase via version control.</p>
+    <div class="callout callout-purple">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> If a new team member clones the repo and doesn't receive certain instructions, those instructions are in <code>~/.claude/CLAUDE.md</code> (user-level) instead of the project-level file. User-level config is never committed to version control — it exists only on the original developer's machine.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts31-hierarchy">
+    <h3 class="section-title blue">Configuration Hierarchy</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">👤</div>
+        <h4>User-Level — <code>~/.claude/CLAUDE.md</code></h4>
+        <p>Personal preferences. Never committed to version control. Applies only on that developer's machine. Use for personal shortcuts, preferred styles not enforced team-wide.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📁</div>
+        <h4>Project-Level — <code>.claude/CLAUDE.md</code> or root <code>CLAUDE.md</code></h4>
+        <p>Shared team standards. Committed to version control. Received by every developer who clones the repo. This is where coding conventions, testing standards, and architecture rules belong.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📂</div>
+        <h4>Directory-Level — <code>src/payments/CLAUDE.md</code></h4>
+        <p>Subdirectory-specific instructions. Applies when Claude is working in that directory. Use for package-specific conventions that don't apply to the whole project.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔍</div>
+        <h4><code>/memory</code> Command</h4>
+        <p>Verify which memory files are currently loaded. Use to diagnose why instructions are inconsistent across sessions — check which CLAUDE.md files Claude actually sees.</p>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:1.5rem;">
+      <div class="code-header">
+        <span class="code-label">Project structure — correct config placement</span>
+        <span class="code-tag tag-good">TEAM-SHARED</span>
+      </div>
+      <pre><div class="file-tree"><span class="dir">my-project/</span>
+├── <span class="important">CLAUDE.md</span>                   <span class="note"># ← project-level, committed to git</span>
+├── <span class="dir">.claude/</span>
+│   ├── <span class="important">CLAUDE.md</span>               <span class="note"># ← alternative project-level location</span>
+│   ├── <span class="dir">rules/</span>
+│   │   ├── <span class="file">testing.md</span>          <span class="note"># ← topic-specific rules</span>
+│   │   ├── <span class="file">api-conventions.md</span>
+│   │   └── <span class="file">deployment.md</span>
+│   ├── <span class="dir">commands/</span>               <span class="note"># ← project-scoped slash commands</span>
+│   └── <span class="dir">skills/</span>                 <span class="note"># ← project-scoped skills</span>
+└── <span class="dir">src/</span>
+    └── <span class="dir">payments/</span>
+        └── <span class="file">CLAUDE.md</span>           <span class="note"># ← directory-level, payments only</span>
+
+<span class="hl-warn">~/.claude/CLAUDE.md</span>             <span class="note"># ← user-level, NEVER committed</span></div></pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts31-modular">
+    <h3 class="section-title green">Modular Organisation with @import</h3>
+    <p>Large <code>CLAUDE.md</code> files become hard to maintain. The <code>@import</code> syntax lets you split into focused topic files and include only what's relevant per package.</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">CLAUDE.md — using @import for modular organisation</span>
+        <span class="code-tag tag-neutral">MODULAR PATTERN</span>
+      </div>
+      <pre><span class="hl-comment"># Project Root CLAUDE.md</span>
+
+<span class="hl-comment">## Universal Standards</span>
+All code must be TypeScript strict mode.
+All API endpoints require input validation.
+
+<span class="hl-comment">## Imported Standards</span>
+<span class="hl-str">@import .claude/rules/testing.md</span>
+<span class="hl-str">@import .claude/rules/api-conventions.md</span>
+
+<span class="hl-comment">---</span>
+<span class="hl-comment"># src/payments/CLAUDE.md  (directory-level, payments team)</span>
+
+<span class="hl-comment">## Payment Service Standards</span>
+Always use idempotency keys for payment calls.
+Never log raw card numbers or CVV values.
+
+<span class="hl-comment">## Payment-Specific Imports</span>
+<span class="hl-str">@import ../../.claude/rules/pci-compliance.md</span></pre>
+    </div>
+    <ul class="skill-list">
+      <li>Use <code>.claude/rules/</code> directory for topic-specific files as an alternative to a single large <code>CLAUDE.md</code></li>
+      <li>Use <code>@import</code> to selectively include relevant standards per package — a payments package imports PCI rules, a frontend package imports UI conventions</li>
+      <li>Diagnose "teammate not receiving instructions" by checking whether the file is at user-level vs project-level</li>
+      <li>Use <code>/memory</code> command to verify exactly which CLAUDE.md files are loaded in the current session</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts31-traps">
+    <h3 class="section-title red">Exam Traps for Task 3.1</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">New team member not receiving instructions → check project CLAUDE.md</td>
+          <td class="col-why">If teammates don't receive instructions that work on your machine, the instructions are in <code>~/.claude/CLAUDE.md</code>, not version-controlled project-level</td>
+          <td class="col-correct">Move shared instructions to <code>.claude/CLAUDE.md</code> or root <code>CLAUDE.md</code> and commit</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Use a single monolithic CLAUDE.md for all rules</td>
+          <td class="col-why">Becomes unmaintainable; loads irrelevant rules into every session context; harder for maintainers to own their sections</td>
+          <td class="col-correct">Split into <code>.claude/rules/*.md</code> files; use <code>@import</code> to compose per-context</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Place personal API key preference rules in project CLAUDE.md</td>
+          <td class="col-why">Personal preferences leak to all teammates via version control — conflicts with team standards</td>
+          <td class="col-correct">Personal preferences go in <code>~/.claude/CLAUDE.md</code>; team standards go in project-level</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts31-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T1</div>
+        <h3>Build and Verify a Complete CLAUDE.md Hierarchy</h3>
+      </div>
+      <p style="font-size:13.5px; margin-bottom:1.25rem;">Create all three config levels, verify inheritance, and deliberately break sharing to confirm the diagnostic path.</p>
+      <ul class="task-steps">
+        <li>Create project-level <code>CLAUDE.md</code> with 3 universal rules; commit to git</li>
+        <li>Create <code>~/.claude/CLAUDE.md</code> with 2 personal rules; verify only you see them</li>
+        <li>Create <code>src/payments/CLAUDE.md</code> with payment-specific rules; verify they load only when working in that directory</li>
+        <li>Split the project CLAUDE.md into 3 <code>.claude/rules/*.md</code> files using <code>@import</code> — test that all rules still load</li>
+        <li>Run <code>/memory</code> command; verify the output matches exactly which files you expect to be loaded</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts31-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 3.1</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 3.1</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A senior developer configures Claude Code with detailed TypeScript conventions and test coverage requirements. When a new team member joins and starts using Claude Code on the same project, they report that Claude is not following any of the configured conventions. What is the most likely cause?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q31a')"><span class="option-letter">A</span>The new team member's Claude Code installation has a different version that doesn't support CLAUDE.md</li>
+          <li class="exam-option" onclick="pick(this,true,'q31a')"><span class="option-letter">B</span>The developer placed the configuration in <code>~/.claude/CLAUDE.md</code> (user-level), which is not committed to version control and does not exist on the new team member's machine</li>
+          <li class="exam-option" onclick="pick(this,false,'q31a')"><span class="option-letter">C</span>The CLAUDE.md file uses @import syntax which requires a special Claude Code extension to work</li>
+          <li class="exam-option" onclick="pick(this,false,'q31a')"><span class="option-letter">D</span>Directory-level CLAUDE.md files are not inherited by subdirectories — the new member must create one in each folder they work in</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r31a')">Show explanation</button>
+        <div class="exam-reveal" id="r31a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> User-level configuration (<code>~/.claude/CLAUDE.md</code>) lives only on the developer's own machine and is never committed to version control. The fix: move the instructions to project-level (<code>.claude/CLAUDE.md</code> or root <code>CLAUDE.md</code>) and commit. <strong>A is wrong:</strong> CLAUDE.md support is universal across Claude Code versions. <strong>C is wrong:</strong> <code>@import</code> is a native CLAUDE.md feature. <strong>D is wrong</strong> on two counts: first, it misidentifies the root cause — the problem is that the file lives at user-level and was never committed, not a subdirectory inheritance issue. Second, D's premise is itself false: a project-level CLAUDE.md <em>does</em> apply across all subdirectories within the project — there is no need to create one in each folder.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 3.1</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team has a single <code>CLAUDE.md</code> with 800 lines covering TypeScript standards, testing conventions, PCI compliance rules, infrastructure deployment guidelines, and frontend UI patterns. Different team members own different sections but regularly overwrite each other's changes. What is the best restructuring approach?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q31b')"><span class="option-letter">A</span>Create a separate CLAUDE.md in each subdirectory so each team owns their own file independently</li>
+          <li class="exam-option" onclick="pick(this,true,'q31b')"><span class="option-letter">B</span>Split the monolithic file into focused topic files in <code>.claude/rules/</code> (e.g., testing.md, pci-compliance.md, deployment.md) and use <code>@import</code> in the root CLAUDE.md to compose them</li>
+          <li class="exam-option" onclick="pick(this,false,'q31b')"><span class="option-letter">C</span>Use Git branch protection so only designated owners can edit the CLAUDE.md file</li>
+          <li class="exam-option" onclick="pick(this,false,'q31b')"><span class="option-letter">D</span>Move non-critical conventions to user-level <code>~/.claude/CLAUDE.md</code> files to reduce the shared file size</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r31b')">Show explanation</button>
+        <div class="exam-reveal" id="r31b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Splitting into <code>.claude/rules/*.md</code> files with <code>@import</code> gives each team ownership of their file while keeping everything version-controlled and composable. <strong>A would work</strong> for directory-scoped rules but doesn't help when conventions span multiple directories (e.g., PCI rules apply to multiple packages). <strong>C addresses access control</strong>, not maintainability — conflicts still occur. <strong>D is wrong:</strong> Moving shared conventions to user-level means they won't reach teammates at all.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 3.1</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A company deploys Claude Code with three configuration layers: user-level (<code>~/.claude/CLAUDE.md</code>), project-level (root <code>CLAUDE.md</code>), and <code>src/payments/CLAUDE.md</code> with PCI-DSS rules. A developer working in <code>src/payments/</code> reports the PCI-DSS rules are active, but their personal preferences from <code>~/.claude/CLAUDE.md</code> are absent. What is the most accurate diagnosis?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q31c')"><span class="option-letter">A</span>This is a bug — all three CLAUDE.md layers should always be active simultaneously regardless of working directory</li>
+          <li class="exam-option" onclick="pick(this,false,'q31c')"><span class="option-letter">B</span>The project-level CLAUDE.md is blocking the user-level file through an override mechanism</li>
+          <li class="exam-option" onclick="pick(this,true,'q31c')"><span class="option-letter">C</span>All three layers should be active simultaneously (user + project + directory-specific all stack), so if user preferences are absent while the directory-specific file works, the user-level file itself has an issue — likely a syntax error or misconfigured path</li>
+          <li class="exam-option" onclick="pick(this,false,'q31c')"><span class="option-letter">D</span>Directory-specific CLAUDE.md files replace parent-level configurations — the <code>src/payments/CLAUDE.md</code> is replacing both the project and user levels</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r31c')">Show explanation</button>
+        <div class="exam-reveal" id="r31c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> The CLAUDE.md hierarchy stacks: user-level + project-level + directory-specific all apply simultaneously. If PCI-DSS rules work but user preferences don't, the hierarchy itself is functioning correctly — the user-level file has a problem (syntax error, wrong path, empty file). The debugging focus should be on the user-level config, not the hierarchy. <strong>A is wrong:</strong> The behavior isn't a bug — it's pointing to an issue with the user-level file. <strong>B is wrong:</strong> CLAUDE.md files have no override mechanism; all layers are additive. <strong>D is wrong:</strong> Directory-specific files add to the configuration stack, they don't replace parent levels.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 3.2 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 3.2</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts32">
+    <div class="ts-number">Task Statement 3.2</div>
+    <h3>Create and configure custom slash commands and skills</h3>
+    <div class="ts-desc">Commands and skills extend Claude Code with on-demand workflows. Skills support YAML frontmatter that controls isolation, tool access, and argument prompting — and the exam tests which frontmatter key does what.</div>
+  </div>
+
+  <section class="section" id="ts32-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Custom slash commands are Markdown templates stored as files — they can be shared team-wide or kept personal. <strong>Skills</strong> are more powerful: they run in their own context and support frontmatter configuration that controls isolation, tool access, and how they prompt for arguments.</p>
+    <div class="callout callout-purple">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> <code>context: fork</code> is the key that prevents skill output from polluting the main conversation. When a skill does verbose exploration or generates a lot of intermediate reasoning, it runs in an isolated sub-agent context and returns only the summary. Without it, all that output becomes part of the main session's context window.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts32-commands">
+    <h3 class="section-title blue">Slash Commands: Scoping</h3>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header good">Project-Scoped (Team)</div>
+        <div class="compare-body">
+Location:
+<span class="hl-ok">.claude/commands/review.md</span>
+
+Scope: shared via version control
+All team members get the command
+Invoke: /project:review
+
+Best for: standard team workflows,
+code review templates, release
+checklists, deployment commands
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header bad">User-Scoped (Personal)</div>
+        <div class="compare-body">
+Location:
+<span class="hl-warn">~/.claude/commands/my-review.md</span>
+
+Scope: personal only
+Not in version control
+Invoke: /user:my-review
+
+Best for: personal shortcuts,
+experimental workflows,
+commands not ready for team use
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts32-skills">
+    <h3 class="section-title green">Skills: Frontmatter Configuration</h3>
+    <p>Skills use YAML frontmatter at the top of the <code>SKILL.md</code> file. Four frontmatter keys the exam tests:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">.claude/skills/architecture-review/SKILL.md — full frontmatter</span>
+        <span class="code-tag tag-purple">SKILL CONFIG</span>
+      </div>
+      <pre><span class="hl-comment">---</span>
+<span class="hl-field">name</span>: <span class="hl-str">architecture-review</span>
+<span class="hl-field">description</span>: <span class="hl-str">Reviews system architecture and returns a focused summary</span>
+<span class="hl-field">context</span>: <span class="hl-str">fork</span>          <span class="hl-comment"># ← runs in isolated subagent context</span>
+<span class="hl-field">allowed-tools</span>:           <span class="hl-comment"># ← restricts which tools can run</span>
+  - <span class="hl-str">read_file</span>
+  - <span class="hl-str">search_code</span>
+  - <span class="hl-str">Grep</span>
+<span class="hl-field">argument-hint</span>: <span class="hl-str">"path/to/module"</span>  <span class="hl-comment"># ← prompts for arg if missing</span>
+<span class="hl-comment">---</span>
+
+Review the architecture of the module at <span class="hl-str">{{args}}</span>.
+
+Analyse:
+1. Dependency structure and circular imports
+2. Public API surface — is it minimal?
+3. Separation of concerns violations
+
+Return a concise summary with top 3 findings.</pre>
+    </div>
+
+    <div class="knowledge-grid" style="margin-top:1.25rem;">
+      <div class="k-card">
+        <div class="k-card-icon">🔀</div>
+        <h4><code>context: fork</code></h4>
+        <p>Runs the skill in an isolated sub-agent. Verbose output stays in the fork and doesn't accumulate in the main conversation. The skill returns only a summary to the main session. <strong>Use for: exploration, brainstorming, verbose analysis.</strong></p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔒</div>
+        <h4><code>allowed-tools</code></h4>
+        <p>Restricts which tools the skill can invoke. A write-only skill can be locked to <code>Write</code> and <code>Edit</code> only — preventing it from running destructive <code>Bash</code> commands accidentally. Principle of least privilege for skills.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">💬</div>
+        <h4><code>argument-hint</code></h4>
+        <p>When a developer invokes the skill without providing arguments, Claude Code shows this hint and asks for the missing parameter. Prevents skills from running against the wrong target.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">👤</div>
+        <h4>Personal Variants</h4>
+        <p>Create personal skill variants in <code>~/.claude/skills/</code> with different names. They won't conflict with or affect team skills — teammates see only what's in <code>.claude/skills/</code>.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:1.25rem;">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>Skills vs CLAUDE.md:</strong> CLAUDE.md is always loaded and applies universally to every interaction. Skills are invoked on-demand for specific task types. Use CLAUDE.md for universal standards (coding style, testing requirements). Use skills for on-demand workflows (architecture review, migration planning, performance audit).</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts32-traps">
+    <h3 class="section-title red">Exam Traps for Task 3.2</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use a skill without <code>context: fork</code> for verbose codebase exploration</td>
+          <td class="col-why">All exploration output accumulates in the main conversation's context window — quickly exhausting available tokens and degrading subsequent responses</td>
+          <td class="col-correct">Add <code>context: fork</code> so verbose discovery runs in isolation; only the summary returns to the main session</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Share a personal experimental slash command by putting it in .claude/commands/</td>
+          <td class="col-why">Anything in <code>.claude/commands/</code> is committed to version control and shared with all teammates</td>
+          <td class="col-correct">Personal/experimental commands go in <code>~/.claude/commands/</code>; team-ready commands go in <code>.claude/commands/</code></td>
+        </tr>
+        <tr>
+          <td class="col-trap">Omit <code>allowed-tools</code> from a skill that should only write files</td>
+          <td class="col-why">Without tool restrictions, the skill can invoke any available tool — including destructive Bash commands</td>
+          <td class="col-correct">Specify <code>allowed-tools: [Write, Edit]</code> to restrict to safe file operations</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts32-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T2</div>
+        <h3>Build 3 Skills with Different Frontmatter Configurations</h3>
+      </div>
+      <p style="font-size:13.5px; margin-bottom:1.25rem;">Demonstrate each key frontmatter option and verify its effect.</p>
+      <ul class="task-steps">
+        <li>Create a project slash command at <code>.claude/commands/pr-review.md</code>; verify it appears for all team members via git</li>
+        <li>Create a skill with <code>context: fork</code> for codebase analysis; run it and confirm that verbose exploration output does NOT appear in main conversation history</li>
+        <li>Create a skill with <code>allowed-tools: [Write, Edit]</code>; attempt to call <code>Bash</code> from within the skill and confirm it is blocked</li>
+        <li>Create a skill with <code>argument-hint: "path/to/target"</code>; invoke it without arguments and verify the hint prompt appears</li>
+        <li>Create a personal variant of a team skill in <code>~/.claude/skills/</code> with a different name; confirm teammates cannot see it</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts32-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 3.2</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 3.2</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer creates a <code>codebase-audit</code> skill that reads all source files, generates detailed intermediate analysis for each, and produces a final summary. After running it, they notice that all the intermediate file-by-file analysis has been added to the main conversation and subsequent Claude responses are much slower and less focused. What single frontmatter change would fix this?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q32a')"><span class="option-letter">A</span>Add <code>allowed-tools: [Read]</code> to restrict which files the skill can access</li>
+          <li class="exam-option" onclick="pick(this,true,'q32a')"><span class="option-letter">B</span>Add <code>context: fork</code> so the skill runs in an isolated sub-agent context, keeping verbose output out of the main conversation</li>
+          <li class="exam-option" onclick="pick(this,false,'q32a')"><span class="option-letter">C</span>Move the skill to <code>~/.claude/skills/</code> so it runs in user scope rather than project scope</li>
+          <li class="exam-option" onclick="pick(this,false,'q32a')"><span class="option-letter">D</span>Add <code>argument-hint: "compact"</code> to tell the skill to produce more concise output</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r32a')">Show explanation</button>
+        <div class="exam-reveal" id="r32a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> <code>context: fork</code> is the exact mechanism for isolating verbose skill output. The skill runs in a sub-agent context — all intermediate output stays there — and only the final summary is returned to the main conversation. <strong>A</strong> restricts tool access, not output verbosity. <strong>C</strong> changes sharing scope, not execution context. <strong>D is invented</strong> — <code>argument-hint</code> prompts for missing arguments, it has no effect on output verbosity.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 3.2</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team wants to create a <code>generate-migration</code> skill that should write SQL migration files but must never execute them via Bash. How should they configure the skill frontmatter?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q32b')"><span class="option-letter">A</span>Add to the skill's Markdown body: "Do not run any Bash commands. Only write files."</li>
+          <li class="exam-option" onclick="pick(this,true,'q32b')"><span class="option-letter">B</span>Add <code>allowed-tools: [Write, Edit]</code> to the SKILL.md frontmatter to restrict execution to file write operations only</li>
+          <li class="exam-option" onclick="pick(this,false,'q32b')"><span class="option-letter">C</span>Add <code>context: fork</code> so that any Bash commands run in isolation and cannot affect the main project</li>
+          <li class="exam-option" onclick="pick(this,false,'q32b')"><span class="option-letter">D</span>Place the skill in <code>~/.claude/skills/</code> so it runs with reduced permissions by default</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r32b')">Show explanation</button>
+        <div class="exam-reveal" id="r32b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> <code>allowed-tools</code> is the frontmatter key for tool restriction. Specifying only <code>[Write, Edit]</code> prevents the skill from invoking Bash regardless of any instructions in the skill body. <strong>A is probabilistic</strong> — a prompt instruction can be bypassed. <strong>C is wrong:</strong> <code>context: fork</code> isolates context accumulation, not tool permissions — Bash would still run if allowed. <strong>D is wrong:</strong> User-scoped vs project-scoped affects sharing, not tool permissions.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 3.2</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team creates a <code>/deploy</code> skill that reads infrastructure config, generates a deployment plan, and executes it via Bash. A junior developer accidentally deployed to production (the config file referenced the wrong target). The team wants to add a structural safeguard that prevents execution without explicit plan review. Which approach provides the most reliable safeguard?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q32c')"><span class="option-letter">A</span>Add to the skill's Markdown body: "Always confirm the target environment with the user before executing any deployment commands"</li>
+          <li class="exam-option" onclick="pick(this,true,'q32c')"><span class="option-letter">B</span>Split into two skills: <code>/deploy-plan</code> (uses <code>allowed-tools: [Read, Glob]</code> — generates and displays the plan, no execution) and <code>/deploy-execute</code> (uses <code>allowed-tools: [Bash]</code> — runs the approved plan). The developer must explicitly invoke both and review the plan between steps</li>
+          <li class="exam-option" onclick="pick(this,false,'q32c')"><span class="option-letter">C</span>Add <code>context: fork</code> to the skill so deployment commands run in an isolated subagent context that cannot affect the main environment</li>
+          <li class="exam-option" onclick="pick(this,false,'q32c')"><span class="option-letter">D</span>Add <code>argument-hint: "environment"</code> to require the developer to specify the target environment explicitly before the skill runs</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r32c')">Show explanation</button>
+        <div class="exam-reveal" id="r32c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Splitting into two skills creates a structural gate: <code>/deploy-plan</code> physically cannot execute (no Bash access), and <code>/deploy-execute</code> requires an explicit second invocation after review. The developer is forced by the tool design to pause and review. <strong>A is wrong:</strong> A prompt-based confirmation is what already exists implicitly — the developer who ran <code>/deploy</code> presumably intended to deploy; a confirmation prompt doesn't prevent a wrong config file being used. <strong>C is wrong:</strong> <code>context: fork</code> isolates conversation context, but the Bash commands still execute and affect the actual infrastructure. <strong>D is wrong:</strong> An environment argument doesn't prevent the junior developer from passing the wrong environment name — the config file was already selecting the wrong target.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 3.3 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 3.3</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts33">
+    <div class="ts-number">Task Statement 3.3</div>
+    <h3>Apply path-specific rules for conditional convention loading</h3>
+    <div class="ts-desc">Rules that only load when needed. Path-specific rules eliminate token waste from loading frontend conventions when editing backend files — and they solve the cross-directory convention problem that directory-level CLAUDE.md files can't.</div>
+  </div>
+
+  <section class="section" id="ts33-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Files in <code>.claude/rules/</code> support YAML frontmatter with a <code>paths</code> field. When a <code>paths</code> field is present, the rules load <strong>only when Claude is editing files matching those glob patterns</strong>. This conditional loading reduces irrelevant context and token usage.</p>
+    <div class="callout callout-purple">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Key Advantage:</strong> Test conventions apply to test files regardless of which directory they live in. If your test files are spread across <code>src/</code>, <code>lib/</code>, and <code>packages/</code>, a single path-specific rule with pattern <code>**/*.test.tsx</code> covers all of them. A subdirectory CLAUDE.md can only cover files in its own directory.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts33-patterns">
+    <h3 class="section-title blue">Glob Patterns and Rule Files</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">.claude/rules/testing.md — path-specific rule with YAML frontmatter</span>
+        <span class="code-tag tag-purple">PATH-SCOPED RULE</span>
+      </div>
+      <pre><span class="hl-comment">---</span>
+<span class="hl-field">paths</span>:
+  - <span class="hl-str">"**/*.test.tsx"</span>       <span class="hl-comment"># all test files, any directory</span>
+  - <span class="hl-str">"**/*.spec.ts"</span>        <span class="hl-comment"># all spec files, any directory</span>
+  - <span class="hl-str">"tests/**/*"</span>          <span class="hl-comment"># anything in a tests/ directory</span>
+<span class="hl-comment">---</span>
+
+<span class="hl-comment">## Testing Standards</span>
+Always use React Testing Library, not Enzyme.
+Test user behaviour, not implementation details.
+Mock external API calls using msw.
+Each test file must have at least one edge-case test.
+Snapshot tests require an inline comment explaining intent.</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">.claude/rules/terraform.md — infrastructure rules</span>
+          <span class="code-tag tag-purple">PATH-SCOPED RULE</span>
+        </div>
+        <pre><span class="hl-comment">---</span>
+<span class="hl-field">paths</span>:
+  - <span class="hl-str">"terraform/**/*"</span>     <span class="hl-comment"># all terraform files</span>
+  - <span class="hl-str">"**/*.tf"</span>             <span class="hl-comment"># any .tf file anywhere</span>
+<span class="hl-comment">---</span>
+
+<span class="hl-comment">## Terraform Standards</span>
+All resources require name, environment, and team tags.
+Never hardcode AWS account IDs — use data sources.
+Remote state must use S3 backend with DynamoDB lock table.</pre>
+      </div>
+
+    <div class="comparison" style="margin-top:1.25rem;">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Directory-Level CLAUDE.md (Limited)</div>
+        <div class="compare-body">
+src/components/CLAUDE.md
+  → applies to src/components/ only
+
+Problem: test files are in:
+<span class="hl-warn">  src/components/__tests__/</span>
+<span class="hl-warn">  src/hooks/__tests__/</span>
+<span class="hl-warn">  packages/ui/tests/</span>
+
+Need 3 separate CLAUDE.md files.
+Conventions drift between locations.
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Path-Specific Rule (Universal)</div>
+        <div class="compare-body">
+.claude/rules/testing.md
+paths: ["**/*.test.tsx"]
+
+Applies to ALL test files:
+<span class="hl-ok">  src/components/__tests__/</span>
+<span class="hl-ok">  src/hooks/__tests__/</span>
+<span class="hl-ok">  packages/ui/tests/</span>
+
+One rule. Zero drift. Consistent.
+        </div>
+      </div>
+    </div>
+    <ul class="skill-list">
+      <li>Use path-specific rules for conventions that apply to a <strong>file type</strong> across directories (test files, migration files, infrastructure files)</li>
+      <li>Use directory-level CLAUDE.md for conventions that apply to a <strong>domain or service</strong> (payments service, admin panel) regardless of file type</li>
+      <li>Path rules reduce token usage by loading only when editing matching files — infrastructure rules don't load during frontend work</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts33-traps">
+    <h3 class="section-title red">Exam Traps for Task 3.3</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use directory CLAUDE.md to enforce test conventions spread across multiple directories</td>
+          <td class="col-why">A directory-level file only covers its own directory — test files in sibling or parent directories won't receive the rules</td>
+          <td class="col-correct">Use a path-specific rule with <code>**/*.test.tsx</code> glob — applies everywhere the pattern matches</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Load all rules in the root CLAUDE.md regardless of what file is being edited</td>
+          <td class="col-why">Infrastructure, payment, and frontend conventions all load for every file — wastes tokens and introduces irrelevant instructions</td>
+          <td class="col-correct">Use path-scoped rules with <code>paths:</code> frontmatter — each rule loads only when relevant</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts33-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T3</div>
+        <h3>Create Path-Scoped Rules and Verify Conditional Loading</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Create <code>.claude/rules/testing.md</code> with <code>paths: ["**/*.test.tsx", "**/*.spec.ts"]</code> and 3 testing conventions</li>
+        <li>Create <code>.claude/rules/terraform.md</code> with <code>paths: ["terraform/**/*", "**/*.tf"]</code> and 2 Terraform rules</li>
+        <li>Open a regular TypeScript source file — verify neither testing nor terraform rules are loaded</li>
+        <li>Open a test file — verify testing rules load; verify terraform rules do NOT load</li>
+        <li>Open a <code>.tf</code> file — verify terraform rules load; verify testing rules do NOT load</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts33-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 3.3</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 3.3</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team wants to enforce React Testing Library conventions for all test files. Test files are scattered across <code>src/</code>, <code>packages/</code>, and <code>lib/</code>. Which configuration approach correctly applies the conventions to all test files regardless of location?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q33a')"><span class="option-letter">A</span>Create a <code>CLAUDE.md</code> in <code>src/</code> covering all test conventions — the conventions will cascade to subdirectories and sibling packages</li>
+          <li class="exam-option" onclick="pick(this,false,'q33a')"><span class="option-letter">B</span>Create a separate <code>CLAUDE.md</code> in each directory that contains test files: <code>src/</code>, <code>packages/</code>, and <code>lib/</code></li>
+          <li class="exam-option" onclick="pick(this,true,'q33a')"><span class="option-letter">C</span>Create <code>.claude/rules/testing.md</code> with <code>paths: ["**/*.test.tsx", "**/*.spec.ts"]</code> — the rule loads for all matching files regardless of directory</li>
+          <li class="exam-option" onclick="pick(this,false,'q33a')"><span class="option-letter">D</span>Add testing conventions to the root <code>CLAUDE.md</code> so they are always available in every file context</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r33a')">Show explanation</button>
+        <div class="exam-reveal" id="r33a">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Path-specific rules with glob patterns apply to all matching files across the entire codebase — regardless of directory. This is the explicit advantage of path-scoped rules over directory-level CLAUDE.md files. <strong>A is wrong:</strong> CLAUDE.md files don't cascade to sibling or parent directories. <strong>B works but creates drift</strong> — three copies of the same rules that can diverge over time. <strong>D works but wastes tokens</strong> — testing conventions load even when editing backend files with no tests.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 3.3</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team manages a monorepo with 3 services: a Node.js API (<code>src/api/</code>), a Python ML pipeline (<code>src/ml/</code>), and a React frontend (<code>src/frontend/</code>). Each service has conflicting conventions (Python uses snake_case, JS uses camelCase). A single root CLAUDE.md with all conventions causes Claude to apply Python conventions to TypeScript files. What is the cleanest solution?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q33b')"><span class="option-letter">A</span>Create a CLAUDE.md in each service directory that redefines all conventions for that service, replacing the root CLAUDE.md for those paths</li>
+          <li class="exam-option" onclick="pick(this,true,'q33b')"><span class="option-letter">B</span>Create service-specific rules files in <code>.claude/rules/</code> with <code>paths:</code> arrays (e.g., <code>paths: ["src/api/**", "src/api/**/*.ts"]</code>) so each convention set activates only for matching file paths</li>
+          <li class="exam-option" onclick="pick(this,false,'q33b')"><span class="option-letter">C</span>Add explicit scope markers to the root CLAUDE.md using headings like "For files in src/api/: use these rules" and "For files in src/ml/: use these rules"</li>
+          <li class="exam-option" onclick="pick(this,false,'q33b')"><span class="option-letter">D</span>Remove the root CLAUDE.md and rely only on per-directory CLAUDE.md files in each service subdirectory</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r33b')">Show explanation</button>
+        <div class="exam-reveal" id="r33b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Path-scoped rules in <code>.claude/rules/</code> are the designed mechanism for exactly this use case — each convention set loads only when Claude is editing files in the matching path, keeping shared conventions in the root CLAUDE.md and service-specific ones scoped. <strong>A would work technically</strong> but requires duplicating any shared conventions (git commit format, security guidelines) across 3 files and becomes a maintenance burden as services change. <strong>C is wrong:</strong> Plain text headings in CLAUDE.md are not a real scoping syntax — Claude reads the entire file for context regardless of headings, applying all conventions to all files. <strong>D loses all shared conventions</strong> — project-wide rules that apply everywhere (security policies, commit standards) have no home without a root CLAUDE.md.</div>
+        </div>
+      </div>
+    </div>
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 3.3</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A security team wants OWASP input validation rules to apply when Claude edits files handling user input, but not when editing utility functions, tests, or configuration files. The security rules currently live in the root CLAUDE.md and apply everywhere, causing false alarms when editing test files. Which configuration change correctly scopes the security rules?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q33c')"><span class="option-letter">A</span>Move the security rules from root CLAUDE.md to a CLAUDE.md placed in each directory that handles user input</li>
+          <li class="exam-option" onclick="pick(this,false,'q33c')"><span class="option-letter">B</span>Add a comment block in root CLAUDE.md: "The following rules apply only to files handling user input — use judgment to determine applicability"</li>
+          <li class="exam-option" onclick="pick(this,false,'q33c')"><span class="option-letter">C</span>Move the security rules out of CLAUDE.md entirely and inject them via a custom slash command that developers invoke only when working on user-facing code</li>
+          <li class="exam-option" onclick="pick(this,true,'q33c')"><span class="option-letter">D</span>Create <code>.claude/rules/security-validation.md</code> with <code>paths: ["src/handlers/**", "src/controllers/**", "src/api/**"]</code> — the security rules load only when Claude is editing files in user-input-handling paths</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r33c')">Show explanation</button>
+        <div class="exam-reveal" id="r33c">
+          <div class="reveal-label">Correct: D</div>
+          <div class="reveal-text"><strong>D is correct.</strong> Path-scoped rules in <code>.claude/rules/</code> activate exactly when editing matching files and are silent otherwise — this is the mechanism designed for conditional convention loading. <strong>A requires maintenance work</strong>: adding a new handler directory means creating another CLAUDE.md in that directory, and any shared conventions must be duplicated. <strong>B doesn't scope the rules</strong> — the security rules still load for all files; only the model is being asked to apply judgment, which was already failing (test file false alarms). <strong>C breaks discoverability</strong> — rules that require manual invocation are easily forgotten and create inconsistent application. Path-scoped rules are automatic and reliable.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 3.4 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 3.4</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts34">
+    <div class="ts-number">Task Statement 3.4</div>
+    <h3>Determine when to use plan mode vs direct execution</h3>
+    <div class="ts-desc">Plan mode is not for every task — it's for tasks where the cost of wrong assumptions is high. The exam tests whether you can classify tasks correctly and whether you know what the Explore subagent is for.</div>
+  </div>
+
+  <section class="section" id="ts34-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Plan mode lets Claude explore a codebase and propose an approach before making any changes. It prevents costly rework on complex tasks where choosing the wrong implementation approach means undoing a lot of work. <strong>Direct execution</strong> is appropriate when the task is well-scoped, the correct approach is clear, and the change is small.</p>
+    <div class="callout callout-purple">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Decision Rule:</strong> If the task involves multiple valid approaches with different architecture implications, or touches many files, or requires discovering unknown dependencies first — use plan mode. If the task has a clear correct solution and touches one or two files — use direct execution.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts34-decision">
+    <h3 class="section-title blue">Decision Framework</h3>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header good">✓ Plan Mode — Use When:</div>
+        <div class="compare-body">
+<span class="hl-ok">Architectural implications</span>
+→ microservice restructuring
+→ library migration (45+ files)
+→ database schema redesign
+
+<span class="hl-ok">Multiple valid approaches exist</span>
+→ choosing between 2 integration
+  patterns with different infra needs
+→ picking testing strategy
+
+<span class="hl-ok">Unknown scope</span>
+→ "add comprehensive tests"
+→ "refactor auth module"
+→ open-ended investigations
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Direct Execution — Use When:</div>
+        <div class="compare-body">
+<span class="hl-ok">Clear, scoped change</span>
+→ single-file bug fix with
+  clear stack trace
+→ add a date validation check
+→ fix a typo in error message
+
+<span class="hl-ok">One correct approach</span>
+→ add null check before access
+→ rename a variable
+→ update a dependency version
+
+<span class="hl-ok">Well-understood change</span>
+→ add rate limiting to one endpoint
+→ update one config value
+        </div>
+      </div>
+    </div>
+    <ul class="skill-list">
+      <li>Use plan mode for exploration, then switch to direct execution once the approach is confirmed — the combination is more powerful than either alone</li>
+      <li>Plan mode prevents "costly rework" — the exam phrase for situations where the wrong initial approach would require undoing many changes</li>
+      <li>Direct execution is fine for well-understood, single-file, clearly-scoped tasks — plan mode would add overhead without benefit</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts34-explore">
+    <h3 class="section-title green">The Explore Subagent</h3>
+    <p>During a multi-phase task, the <strong>Explore subagent</strong> isolates verbose discovery output. Rather than flooding the main session with file-by-file analysis, the Explore subagent does the discovery and returns a structured summary. This preserves context window space for the implementation phase.</p>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🔍</div>
+        <h4>What It Solves</h4>
+        <p>Multi-phase tasks (explore → plan → implement) generate huge amounts of discovery output. Without isolation, the exploration phase exhausts the context window before implementation begins.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📋</div>
+        <h4>What It Returns</h4>
+        <p>A structured summary of findings — not the raw exploration. The implementation phase starts with a clean context containing only what matters: the summary and the implementation plan.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚡</div>
+        <h4>When to Use It</h4>
+        <p>Any task with a discovery phase that generates more than a few pages of intermediate output: codebase mapping, dependency tracing, test gap analysis, legacy system exploration.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔗</div>
+        <h4>Relationship to <code>context: fork</code></h4>
+        <p>The Explore subagent is the same isolation concept as <code>context: fork</code> in skills — both run in a separate context and return summaries. Explore is the plan mode variant; fork is the skill variant.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts34-traps">
+    <h3 class="section-title red">Exam Traps for Task 3.4</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use plan mode for a single-file bug fix with a clear stack trace</td>
+          <td class="col-why">Adds unnecessary overhead — exploration and planning phases add latency for a task where the correct fix is already clear</td>
+          <td class="col-correct">Direct execution; plan mode is for architectural decisions and multi-file changes with multiple valid approaches</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Use direct execution for a library migration affecting 45+ files</td>
+          <td class="col-why">Without planning, Claude may choose an incompatible migration path — discovering the incompatibility after making 30 changes that must be reverted</td>
+          <td class="col-correct">Plan mode first: explore affected files, identify approach options, confirm the plan before any changes are made</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Run exploration and implementation in the same session without Explore subagent</td>
+          <td class="col-why">Verbose discovery output fills the context window — implementation phase has reduced capacity and may produce lower-quality output</td>
+          <td class="col-correct">Use Explore subagent for discovery; implementation phase starts with a clean context plus the exploration summary</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts34-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T4</div>
+        <h3>Classify and Execute 4 Tasks with Appropriate Mode</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Task A: "Fix null pointer exception in payment processor — stack trace shows line 47 of payments.ts" → Direct execution. Do it. Note time taken.</li>
+        <li>Task B: "Migrate from axios to fetch across the entire codebase" → Plan mode. Observe the exploration output and proposed approach before approving.</li>
+        <li>Task C: "Add comprehensive integration tests to the authentication module" → Plan mode with Explore subagent. Note that context is clean for implementation.</li>
+        <li>Task D: "Add input validation to the createUser endpoint" → Direct execution. Note that planning would add overhead with no benefit.</li>
+        <li>Reflect: what signals in the task description indicate plan mode vs direct execution? Write 3 heuristics.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts34-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 3.4</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 3.4</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer asks Claude Code to migrate a legacy monolith to microservices. The codebase has 12 interconnected modules, and there are three valid decomposition strategies with different infrastructure implications. Which workflow approach is correct?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q34a')"><span class="option-letter">A</span>Direct execution — start with the most commonly used module and extract it first; iterate from there</li>
+          <li class="exam-option" onclick="pick(this,false,'q34a')"><span class="option-letter">B</span>Direct execution with a system prompt rule: "Prefer domain-driven decomposition patterns"</li>
+          <li class="exam-option" onclick="pick(this,true,'q34a')"><span class="option-letter">C</span>Plan mode — explore dependencies, present the three strategy options with their trade-offs, and wait for the developer to confirm the approach before making changes</li>
+          <li class="exam-option" onclick="pick(this,false,'q34a')"><span class="option-letter">D</span>Direct execution using a skill with <code>allowed-tools: [Read]</code> to prevent accidental writes during exploration</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r34a')">Show explanation</button>
+        <div class="exam-reveal" id="r34a">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Multiple valid approaches with different infrastructure implications is the canonical signal for plan mode. The developer needs to see the options and trade-offs before Claude commits to a strategy — choosing wrong means undoing many changes. <strong>A is risky:</strong> starting without a plan may lock in a decomposition that conflicts with infrastructure constraints discovered later. <strong>B</strong> adds a preference but doesn't prevent costly rework from the wrong architectural choice. <strong>D</strong> is a creative workaround but doesn't provide the planning and approval workflow that plan mode is designed for.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 3.4</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">During a large codebase analysis task, the context window is being exhausted by file-by-file discovery output before implementation even begins. What is the correct fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q34b')"><span class="option-letter">A</span>Use a model with a larger context window to accommodate the full exploration output</li>
+          <li class="exam-option" onclick="pick(this,true,'q34b')"><span class="option-letter">B</span>Use the Explore subagent to isolate verbose discovery output and have it return a structured summary to the main session, preserving context for implementation</li>
+          <li class="exam-option" onclick="pick(this,false,'q34b')"><span class="option-letter">C</span>Run /compact after the exploration phase to compress the conversation before implementation</li>
+          <li class="exam-option" onclick="pick(this,false,'q34b')"><span class="option-letter">D</span>Split the task into two separate Claude Code sessions: one for exploration, one for implementation</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r34b')">Show explanation</button>
+        <div class="exam-reveal" id="r34b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The Explore subagent is the designed solution for this exact problem. It runs discovery in isolation, keeps verbose output out of the main context, and returns only a structured summary. <strong>A</strong> delays the problem but doesn't solve it — larger context windows still fill up on large codebases. <strong>C</strong> uses /compact which compresses existing context but loses precision in the process; the Explore pattern prevents accumulation rather than compressing after. <strong>D would work</strong> but is manual and error-prone — the Explore subagent automates the isolation pattern.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 3.4</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer is refactoring a payment processing service: modifying 3 core transaction functions, updating 2 database query patterns, adjusting error handling in 6 edge cases, and adding new logging. They ask Claude Code to start immediately. Claude writes 40 lines into <code>transaction.ts</code>, then asks which error handling pattern to use. The developer realizes this foundational choice affects all previous edits. What workflow would have prevented the rework?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q34c')"><span class="option-letter">A</span>Direct execution with a more specific initial prompt enumerating all 40+ changes so Claude has full context before starting</li>
+          <li class="exam-option" onclick="pick(this,true,'q34c')"><span class="option-letter">B</span>Plan mode: explore the codebase, identify error handling style as a foundational decision, present the approach options to the developer, and execute only after foundational choices are confirmed</li>
+          <li class="exam-option" onclick="pick(this,false,'q34c')"><span class="option-letter">C</span>Direct execution with a rollback strategy — use git to undo changes if the foundational decision turns out to be wrong</li>
+          <li class="exam-option" onclick="pick(this,false,'q34c')"><span class="option-letter">D</span>Direct execution with smaller incremental commits so mistakes are easier to identify and revert individually</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r34c')">Show explanation</button>
+        <div class="exam-reveal" id="r34c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Plan mode exists for exactly this scenario: identifying foundational decisions (like error handling patterns) that must be resolved before any code is written, because they constrain all subsequent work. Plan mode surfaces the dependency — Claude asks about error handling <em>before</em> writing any code, not after 40 lines. <strong>A makes the same mistake:</strong> even with a 200-line detailed prompt, Claude would write the 40 lines before encountering the error handling choice — the dependency only becomes visible during exploration. <strong>C and D are recovery strategies</strong>, not prevention strategies — they accept that rework will happen and try to minimize its cost rather than eliminating it.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 3.5 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 3.5</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts35">
+    <div class="ts-number">Task Statement 3.5</div>
+    <h3>Apply iterative refinement techniques for progressive improvement</h3>
+    <div class="ts-desc">Knowing how to communicate expected transformations precisely, how to guide Claude with failing tests rather than prose, and when to provide all issues at once vs sequentially — these are the precision skills that separate production-grade outputs from first drafts.</div>
+  </div>
+
+  <section class="section" id="ts35-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>When Claude's output is inconsistent with what you want, the problem is often <strong>underspecified expectations</strong>. Iterative refinement is about progressive specification: start with what you have, identify exactly where the gap is, and communicate the correction with enough precision that Claude can generalise it to novel cases.</p>
+  </section>
+
+  <section class="section" id="ts35-techniques">
+    <h3 class="section-title blue">Refinement Techniques</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">📐</div>
+        <h4>Concrete Input/Output Examples</h4>
+        <p>When prose descriptions produce inconsistent transformations, provide 2–3 concrete input/output pairs. Shows the <em>shape</em> of the expected transformation rather than describing it in words. Most effective for format and structure.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🧪</div>
+        <h4>Test-Driven Iteration</h4>
+        <p>Write test suites first covering expected behaviour, edge cases, and performance. Then iterate by sharing failing tests — Claude has an unambiguous signal about what needs to change. Eliminates interpretation gaps.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🎤</div>
+        <h4>Interview Pattern</h4>
+        <p>Ask Claude to surface design considerations <em>before</em> implementing. Claude asks questions about cache invalidation strategies, failure modes, and unknown edge cases. Use for unfamiliar domains where you may not know what you don't know.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📦</div>
+        <h4>Batch vs Sequential Fixes</h4>
+        <p>When issues <strong>interact</strong> (fixing one changes what another should be), provide all fixes in a single message. When issues are <strong>independent</strong>, fix them sequentially so each fix can be validated before the next.</p>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:1.25rem;">
+      <div class="code-header">
+        <span class="code-label">Concrete input/output example — clarifying transformation requirements</span>
+        <span class="code-tag tag-neutral">EFFECTIVE SPECIFICATION</span>
+      </div>
+      <pre><span class="hl-comment"># Instead of: "Format the dates consistently"</span>
+<span class="hl-warn"># → Too vague. Claude will pick a format arbitrarily.</span>
+
+<span class="hl-comment"># Do this: provide concrete input/output pairs</span>
+<span class="hl-str">"""
+The transformation should work like this:
+
+Input:  { "created": "2024-01-15T14:30:00Z" }
+Output: { "created": "Jan 15, 2024 at 2:30 PM UTC" }
+
+Input:  { "created": 1705329000 }
+Output: { "created": "Jan 15, 2024 at 2:30 PM UTC" }
+
+Input:  { "created": null }
+Output: { "created": "Unknown" }
+
+Apply this transformation to all date fields in the response.
+"""</span></pre>
+    </div>
+
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Interacting Issues → Wrong Approach</div>
+        <div class="compare-body">
+Fix 1 message: "Change the return type
+  from string to number"
+
+Fix 2 message: "Update the error handler
+  to match the new return type"
+
+Problem: Fix 2 depends on Fix 1.
+<span class="hl-warn">Sending them separately may
+produce a contradictory intermediate
+state that confuses Claude.</span>
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Interacting Issues → Batch Fix</div>
+        <div class="compare-body">
+Single message:
+<span class="hl-ok">"Make two related changes:
+1. Change return type: string → number
+2. Update error handler to return -1
+   instead of empty string on failure
+
+Both changes interact — the error
+handler must match the new type."</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts35-traps">
+    <h3 class="section-title red">Exam Traps for Task 3.5</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Describe transformation requirements in prose when they produce inconsistent results</td>
+          <td class="col-why">Prose descriptions are interpreted differently in different contexts — Claude generalises based on examples, not instructions</td>
+          <td class="col-correct">Provide 2–3 concrete input/output pairs that demonstrate the exact transformation including edge cases</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Send interacting bugs one at a time for sequential fixing</td>
+          <td class="col-why">Each fix changes the codebase state — the second bug's fix may be invalidated by the first, or the intermediate state may cause new errors</td>
+          <td class="col-correct">Provide all interacting issues in a single message; sequential iteration is correct only for independent issues</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Implement first, then write tests to verify</td>
+          <td class="col-why">Tests written after implementation often over-fit to the implementation rather than specifying the intended behaviour; edge cases are missed</td>
+          <td class="col-correct">Write test suite first covering expected behaviour and edge cases; iterate by sharing failing tests</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts35-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T5</div>
+        <h3>Practice All Four Refinement Techniques</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Find a transformation task where prose produces inconsistent output; replace with 3 concrete input/output examples; measure consistency improvement</li>
+        <li>Write a test suite for a feature before implementing; share failing tests with Claude iteratively until all pass</li>
+        <li>Use the interview pattern for an unfamiliar domain (e.g., "implement a distributed lock"); observe which design questions Claude surfaces that you hadn't considered</li>
+        <li>Identify 2 interacting bugs in a codebase; fix them in a single message; compare to fixing sequentially and observe the intermediate state problem</li>
+        <li>Document your personal refinement heuristics: when would you reach for each of the four techniques?</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts35-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 3.5</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 3.5</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer asks Claude to "format all API responses consistently." Claude produces different formats on different files — sometimes camelCase, sometimes snake_case, sometimes nested, sometimes flat. What is the most effective way to communicate the expected transformation?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q35a')"><span class="option-letter">A</span>Add to CLAUDE.md: "Always use camelCase for API responses with flat structure"</li>
+          <li class="exam-option" onclick="pick(this,false,'q35a')"><span class="option-letter">B</span>Ask Claude to review the inconsistent outputs and self-critique before producing the next response</li>
+          <li class="exam-option" onclick="pick(this,true,'q35a')"><span class="option-letter">C</span>Provide 2–3 concrete before/after examples showing the exact input structure and the expected output structure, including how edge cases like null values should be handled</li>
+          <li class="exam-option" onclick="pick(this,false,'q35a')"><span class="option-letter">D</span>Run the transformation three times and use majority-voting to determine the correct format</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r35a')">Show explanation</button>
+        <div class="exam-reveal" id="r35a">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Concrete input/output examples are the most effective specification technique when prose produces inconsistent results. They show the exact shape of the expected transformation and enable Claude to generalise correctly to novel inputs. <strong>A may help</strong> for new sessions but doesn't address the ambiguity — "flat" and "camelCase" are still underspecified. <strong>B</strong> (self-critique) is a useful multi-pass technique but doesn't solve underspecified requirements — Claude still doesn't know the exact format. <strong>D</strong> is never a correct approach — three inconsistent outputs don't produce one correct one.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 3.5</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team uses Claude Code to refactor an authentication module. After the first attempt, the output has the right structure but uses a deprecated JWT library. After being told "use jose instead of jsonwebtoken," the second attempt uses jose but loses the multi-tenant <code>tenant_id</code> claim. By the third attempt, a different required field is missing. Each iteration fixes one issue and introduces another. What is the fundamental problem and correct fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q35b')"><span class="option-letter">A</span>The task is too complex for Claude Code — split it into smaller individual sub-tasks for each function</li>
+          <li class="exam-option" onclick="pick(this,true,'q35b')"><span class="option-letter">B</span>Each correction prompt is too narrow and doesn't define what "correct" looks like holistically. Define a complete acceptance checklist before any iteration (required library, all JWT claims, error handling patterns, test coverage) and validate each attempt against the full checklist, not just the most recent correction</li>
+          <li class="exam-option" onclick="pick(this,false,'q35b')"><span class="option-letter">C</span>Switch to a model with stronger memory to retain all previous corrections across iterations without losing context</li>
+          <li class="exam-option" onclick="pick(this,false,'q35b')"><span class="option-letter">D</span>Run the refactor 3 times in parallel with different prompts and use the version that passes the most automated tests</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r35b')">Show explanation</button>
+        <div class="exam-reveal" id="r35b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The iterative regression pattern — fix one thing, break another — happens when success criteria are partial. Each narrow correction creates a new blind spot. A complete acceptance checklist defined before iteration begins means each attempt is evaluated against <em>all</em> requirements, not just the latest complaint. <strong>A is wrong:</strong> The problem isn't task complexity but incomplete success criteria — even smaller sub-tasks will regress without a full definition of done. <strong>C is wrong:</strong> All corrections were provided in the conversation history; the model has access to them. The issue is synthesizing them into a complete picture, not memory loss. <strong>D is wrong:</strong> Parallel runs with different prompts may all produce the same regressions if none of them has a complete specification.</div>
+        </div>
+      </div>
+    </div>
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 3.5</span>
+        <span class="exam-scenario">Code Generation with Claude Code</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer asks Claude Code to generate a REST API endpoint. After the first draft (good happy path, no input validation), 6 sequential correction prompts later the endpoint is no longer clearly better than the original draft. Which iterative refinement approach would have been most efficient?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q35c')"><span class="option-letter">A</span>Write the complete specification in the initial prompt to eliminate the need for iterative correction entirely</li>
+          <li class="exam-option" onclick="pick(this,false,'q35c')"><span class="option-letter">B</span>Accept the first draft and manually fix the known issues — treat Claude's output as a starting point, not a finished product</li>
+          <li class="exam-option" onclick="pick(this,true,'q35c')"><span class="option-letter">C</span>After the first draft, evaluate it against a pre-defined rubric (input validation, error codes, response schema, auth, logging), identify all gaps simultaneously, and issue one comprehensive correction prompt rather than 6 sequential single-issue corrections</li>
+          <li class="exam-option" onclick="pick(this,false,'q35c')"><span class="option-letter">D</span>Use <code>/compact</code> after each iteration to prevent context accumulation from degrading response quality in later rounds</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r35c')">Show explanation</button>
+        <div class="exam-reveal" id="r35c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Evaluating the draft against a complete rubric and issuing one comprehensive correction prevents the regression cycle: fixing validation doesn't disturb error codes when both are specified simultaneously. Sequential single-issue corrections introduce blind spots with each pass. <strong>A is ideal but often not possible</strong> — many specification details only become clear once you see a draft. Complete upfront specification is good practice but doesn't help when you're already iterating. <strong>B discards the iterative benefit</strong> — Claude can produce correct code with the right guidance, so abandoning to manual editing throws away that capability. <strong>D addresses context management</strong>, not correction quality — <code>/compact</code> doesn't change what you ask for, only how much history is retained.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 3.6 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 3.6</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts36">
+    <div class="ts-number">Task Statement 3.6</div>
+    <h3>Integrate Claude Code into CI/CD pipelines</h3>
+    <div class="ts-desc">CI/CD is non-interactive by definition. One missing flag causes an infinite hang. The exam tests the exact CLI flag for non-interactive mode, the correct output format for inline PR comments, and the important trade-off between real-time and batch processing APIs.</div>
+  </div>
+
+  <section class="section" id="ts36-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Claude Code is designed for interactive use by default — it waits for user input when it needs clarification. In CI pipelines, there is no user. Without the correct flag, the pipeline hangs indefinitely waiting for input that will never come.</p>
+    <div class="callout callout-purple">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The -p Flag:</strong> The <code>-p</code> (or <code>--print</code>) flag runs Claude Code in non-interactive mode — it processes the prompt, outputs to stdout, and exits without waiting for user input. This is the exam answer whenever a CI/CD pipeline hangs. No other flag, environment variable, or Unix workaround is correct.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts36-flags">
+    <h3 class="section-title blue">CI/CD CLI Flags</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">bash — correct Claude Code CI/CD invocation</span>
+        <span class="code-tag tag-good">CI PATTERN</span>
+      </div>
+      <pre><span class="hl-comment"># ✓ Non-interactive: process and exit</span>
+claude <span class="hl-fn">-p</span> <span class="hl-str">"Analyze this pull request for security issues"</span>
+
+<span class="hl-comment"># ✓ Structured JSON output for automated parsing</span>
+claude <span class="hl-fn">-p</span> <span class="hl-str">"Review for security issues"</span> \
+  <span class="hl-fn">--output-format</span> json \
+  <span class="hl-fn">--json-schema</span> review-schema.json
+
+<span class="hl-comment"># Result: machine-parseable JSON for inline PR comments</span>
+<span class="hl-comment"># {</span>
+<span class="hl-comment">#   "findings": [</span>
+<span class="hl-comment">#     {"file": "auth.ts", "line": 42, "severity": "high", "message": "..."},</span>
+<span class="hl-comment">#   ]</span>
+<span class="hl-comment"># }</span>
+
+<span class="hl-comment"># ✗ WRONG — hangs waiting for interactive input</span>
+<span class="hl-warn">claude "Analyze this pull request for security issues"</span></pre>
+    </div>
+
+    <div class="knowledge-grid" style="margin-top:1.25rem;">
+      <div class="k-card">
+        <div class="k-card-icon">🚀</div>
+        <h4><code>-p</code> / <code>--print</code></h4>
+        <p>Non-interactive mode. Processes the prompt, writes output to stdout, and exits. <strong>Required for all CI/CD usage.</strong> Without it, the pipeline hangs indefinitely.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📊</div>
+        <h4><code>--output-format json</code></h4>
+        <p>Forces structured JSON output. Combine with <code>--json-schema</code> to enforce a specific schema. Enables automated posting as inline PR comments without text parsing.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔄</div>
+        <h4>Re-run Deduplication</h4>
+        <p>When re-running a review after new commits, include prior review findings in context and instruct Claude to report only <strong>new or still-unaddressed issues</strong>. Prevents duplicate comments on the same PR.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🧪</div>
+        <h4>Test Generation Context</h4>
+        <p>Provide existing test files in context so generated tests don't duplicate existing scenarios. Document available fixtures in CLAUDE.md to improve test quality and avoid low-value test output.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts36-batches">
+    <h3 class="section-title green">Batch API vs Real-Time: The Critical Trade-off</h3>
+    <p>The <strong>Message Batches API</strong> offers 50% cost savings but with up to 24-hour processing time and no guaranteed latency SLA. The exam tests whether you know which workflows can tolerate async processing and which cannot.</p>
+
+    <div class="callout callout-warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>The Exam Scenario (Official Q11):</strong> A team wants to switch both (1) a blocking pre-merge check and (2) an overnight technical debt report to the Batch API for cost savings. The correct answer: Batch only for the overnight report. Pre-merge checks block developers and require real-time completion — the Batch API's non-deterministic latency makes it unsuitable for blocking workflows.</div>
+    </div>
+
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header good">✓ Batch API — Appropriate Uses</div>
+        <div class="compare-body">
+<span class="hl-ok">Overnight technical debt reports</span>
+<span class="hl-ok">Weekly codebase quality analysis</span>
+<span class="hl-ok">Bulk document processing</span>
+<span class="hl-ok">Non-blocking background analysis</span>
+<span class="hl-ok">Reports reviewed the next morning</span>
+
+Processing time: up to 24 hours
+Cost saving: 50%
+SLA: none
+Results: correlate by custom_id
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Batch API — Wrong Uses</div>
+        <div class="compare-body">
+<span class="hl-warn">Pre-merge checks (developer waits)</span>
+<span class="hl-warn">Real-time review feedback</span>
+<span class="hl-warn">Any blocking pipeline gate</span>
+<span class="hl-warn">Latency-sensitive workflows</span>
+<span class="hl-warn">SLA-bound operations</span>
+
+Why: "often faster" is not
+acceptable for blocking workflows.
+No guaranteed completion time.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>Session Context Isolation:</strong> The same Claude session that generated code is less effective at reviewing its own changes. For code review in CI, use an independent review instance — it brings fresh perspective without the bias of having written the code.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts36-traps">
+    <h3 class="section-title red">Exam Traps for Task 3.6</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Pipeline hangs → set <code>CLAUDE_HEADLESS=true</code></td>
+          <td class="col-why">This environment variable does not exist. It's a plausible-sounding distractor.</td>
+          <td class="col-correct">Use <code>-p</code> flag: <code>claude -p "prompt"</code></td>
+        </tr>
+        <tr>
+          <td class="col-trap">Pipeline hangs → redirect stdin from <code>/dev/null</code></td>
+          <td class="col-why">A Unix workaround that doesn't address Claude Code's interactive mode design — behaviour is undefined and unreliable</td>
+          <td class="col-correct">Use <code>-p</code> flag — the documented, supported non-interactive mode</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Switch blocking pre-merge checks to Batch API for cost savings</td>
+          <td class="col-why">Batch API has up to 24h processing time with no SLA — developers cannot wait for pre-merge feedback to complete</td>
+          <td class="col-correct">Keep pre-merge real-time; use Batch only for non-blocking workflows like overnight reports</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Re-run code review without prior findings in context</td>
+          <td class="col-why">Claude re-flags the same issues as new, creating duplicate PR comments on issues already identified</td>
+          <td class="col-correct">Include prior review findings in context; instruct Claude to report only new or still-unaddressed issues</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts36-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T6</div>
+        <h3>Build a Complete CI/CD Review Pipeline</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Write a CI pipeline step that invokes Claude Code with <code>-p</code> flag — verify the job exits automatically without hanging</li>
+        <li>Add <code>--output-format json --json-schema</code> flags; parse the JSON output and post findings as inline PR comments</li>
+        <li>Implement deduplication: include prior findings in context on re-runs; verify only new issues are posted</li>
+        <li>Implement test generation: provide existing test files in context; verify no duplicate test scenarios are suggested</li>
+        <li>Design the cost split: identify which pipeline steps can use Batch API (overnight) vs which must stay real-time (blocking gates)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts36-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 3.6</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 3.6</span>
+        <span class="exam-scenario">Claude Code for CI/CD</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A pipeline script runs <code>claude "Analyze this pull request for security issues"</code> but the CI job hangs indefinitely. Logs indicate Claude Code is waiting for interactive input. What is the correct fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,true,'q36a')"><span class="option-letter">A</span>Add the <code>-p</code> flag: <code>claude -p "Analyze this pull request for security issues"</code></li>
+          <li class="exam-option" onclick="pick(this,false,'q36a')"><span class="option-letter">B</span>Set the environment variable <code>CLAUDE_HEADLESS=true</code> before running the command</li>
+          <li class="exam-option" onclick="pick(this,false,'q36a')"><span class="option-letter">C</span>Redirect stdin from <code>/dev/null</code>: <code>claude "..." &lt; /dev/null</code></li>
+          <li class="exam-option" onclick="pick(this,false,'q36a')"><span class="option-letter">D</span>Add the <code>--batch</code> flag: <code>claude --batch "..."</code></li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r36a')">Show explanation</button>
+        <div class="exam-reveal" id="r36a">
+          <div class="reveal-label">Correct: A</div>
+          <div class="reveal-text"><strong>A is correct.</strong> This is the official exam question Q10. The <code>-p</code> (or <code>--print</code>) flag is the documented, supported mechanism for non-interactive CI/CD usage. It processes the prompt, outputs to stdout, and exits cleanly. <strong>B is wrong:</strong> <code>CLAUDE_HEADLESS</code> is not a real environment variable — it's a plausible-sounding distractor. <strong>C is wrong:</strong> stdin redirection is a Unix workaround that doesn't properly address Claude Code's interactive mode — behaviour is unreliable. <strong>D is wrong:</strong> <code>--batch</code> is not a valid Claude Code flag.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 3.6</span>
+        <span class="exam-scenario">Claude Code for CI/CD</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team has two automated Claude workflows: (1) a blocking pre-merge security check that developers wait for before merging, and (2) a technical debt report generated overnight for the next morning's standup. Their manager proposes switching both to the Message Batches API for 50% cost savings. How should you respond?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,true,'q36b')"><span class="option-letter">A</span>Use batch processing only for the overnight technical debt report; keep real-time calls for pre-merge checks — batch has up to 24h latency with no SLA, which is incompatible with blocking developer workflows</li>
+          <li class="exam-option" onclick="pick(this,false,'q36b')"><span class="option-letter">B</span>Switch both to batch processing with status polling to check for completion every few minutes</li>
+          <li class="exam-option" onclick="pick(this,false,'q36b')"><span class="option-letter">C</span>Keep real-time calls for both — batch results cannot be correlated to their original requests</li>
+          <li class="exam-option" onclick="pick(this,false,'q36b')"><span class="option-letter">D</span>Switch both to batch with a 30-minute timeout fallback to real-time if batches don't complete in time</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r36b')">Show explanation</button>
+        <div class="exam-reveal" id="r36b">
+          <div class="reveal-label">Correct: A</div>
+          <div class="reveal-text"><strong>A is correct.</strong> This is the official exam question Q11. Match each API to its appropriate use case: batch for non-blocking async workloads, real-time for latency-sensitive blocking workflows. <strong>B is wrong:</strong> status polling doesn't change the up-to-24h completion time — developers cannot wait that long to merge. <strong>C is wrong</strong> for two reasons: its claim that batch results cannot be correlated is false — the Batch API uses <code>custom_id</code> fields for exactly that purpose. More importantly, its conclusion to "keep real-time for both" is unnecessarily conservative: the overnight report has no latency requirement and is a textbook batch use case. <strong>D adds unnecessary complexity</strong> — the simpler correct solution is not switching the blocking workflow to batch at all.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 3.6</span>
+        <span class="exam-scenario">Claude Code for CI/CD</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team runs a nightly security audit: <code>claude -p "Audit $(git diff HEAD~7) for security issues"</code>. After a library update introduces 14 new files, the diff exceeds 80,000 tokens and the audit begins timing out. The team wants to maintain comprehensive weekly coverage while fixing the timeout. What is the correct architectural approach?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q36c')"><span class="option-letter">A</span>Increase the CI pipeline timeout from 5 minutes to 30 minutes to accommodate larger weekly diffs</li>
+          <li class="exam-option" onclick="pick(this,false,'q36c')"><span class="option-letter">B</span>Switch from <code>HEAD~7</code> to <code>HEAD~1</code> to limit the audit to the most recent day's changes</li>
+          <li class="exam-option" onclick="pick(this,true,'q36c')"><span class="option-letter">C</span>Add a pre-processing step that splits the diff into per-file or per-component chunks, then run parallel <code>claude -p</code> audit calls on each chunk, aggregating findings in a final step</li>
+          <li class="exam-option" onclick="pick(this,false,'q36c')"><span class="option-letter">D</span>Switch from <code>claude -p</code> to the Message Batches API so the large diff can be processed asynchronously without a pipeline timeout</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r36c')">Show explanation</button>
+        <div class="exam-reveal" id="r36c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Chunking + parallel processing is the correct pattern for large inputs in CI: each chunk fits in context, parallel calls restore the original latency (or better), and comprehensive coverage is maintained. <strong>A doesn't fix the root cause</strong> — extending the timeout means the next library update will push past it again. Timeouts compound without architectural change. <strong>B reduces coverage</strong> — auditing only the most recent day's changes means a vulnerability introduced Monday isn't caught until Monday night, not the weekly nightly run. The team explicitly wants to maintain weekly comprehensive coverage. <strong>D is wrong:</strong> The Batch API is designed for batch workloads (thousands of independent requests), not for a single large CI audit. It also has the same context limit per request — a single 80,000-token call fails whether submitted synchronously or via the Batch API.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-meta">Domain 3 · All 6 Task Statements · Claude Certified Architect – Foundations</div>
+    <a class="next-btn" href="#">Next: Domain 4 — Prompt Engineering & Structured Output →</a>
+  </div>
+
+</main>
+</div>
+
+<script>
+  const _DOMAIN = 3;
+  function saEvent(name, meta) {
+    if (typeof window.sa_event === 'function') window.sa_event(name, meta);
+  }
+  function _taskFromId(id) {
+    const m = id.match(/^[qr](\d)(\d)/);
+    return m ? m[1] + '.' + m[2] : id;
+  }
+
+  function pick(el, correct, qid) {
+    const parent = el.closest('.exam-options');
+    parent.querySelectorAll('.exam-option').forEach(o => o.classList.remove('correct','wrong'));
+    el.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      parent.querySelectorAll('.exam-option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true,')) {
+          o.classList.add('correct');
+        }
+      });
+    }
+    const reveal = el.closest('.exam-body').querySelector('.exam-reveal');
+    if (reveal) reveal.classList.add('visible');
+    saEvent('domain_question_answered', { domain: _DOMAIN, task: _taskFromId(qid), qid: qid, correct: correct ? 'yes' : 'no' });
+  }
+
+  function showReveal(id) {
+    document.getElementById(id).classList.add('visible');
+    saEvent('domain_explanation_viewed', { domain: _DOMAIN, task: _taskFromId(id) });
+  }
+
+  saEvent('domain_opened', { domain: _DOMAIN });
+
+  // Active sidebar highlighting
+  const allSections = document.querySelectorAll('[id]');
+  const allLinks = document.querySelectorAll('.sidebar-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    allLinks.forEach(l => {
+      l.classList.remove('active');
+      const href = l.getAttribute('href');
+      if (href && href === '#' + current) l.classList.add('active');
+    });
+  }, { passive: true });
+</script>
+<script>
+function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
+(function(){
+  var p=location.pathname.split('/').pop()||'index.html';
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    if(a.getAttribute('href').split('/').pop()===p) a.classList.add('nav-active');
+  });
+})();
+</script>
+</body>
+</html>

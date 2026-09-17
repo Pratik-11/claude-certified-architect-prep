@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 1: Agentic Architecture & Orchestration | Claude Certified Architect Guide</title>
+<!-- Self-contained: no external resources required -->
+<style>
+  :root {
+    --nav-h: 52px;
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1b1f27;
+    --border: #252a35;
+    --accent: #6f9ceb;
+    --accent-warm: #e8b84b;
+    --accent2: #61c99b;
+    --accent3: #e86b5f;
+    --accent4: #b57bee;
+    --text: #e8e6e0;
+    --text-dim: #8891a4;
+    --text-muted: #4a5366;
+    --mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    --serif: 'Palatino Linotype', 'Book Antiqua', 'Palatino', 'Georgia', 'Cambria', serif;
+    --sans: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 65px); }
+
+  body {
+    padding-top: var(--nav-h);
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.1rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: var(--nav-h);
+    background: rgba(13,15,18,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    height: 65px;
+  }
+  .header-left { display: flex; align-items: center; gap: 1.2rem; }
+  .badge {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 4px; border: 1px solid;
+  }
+  .badge-domain { color: var(--accent); border-color: rgba(111,156,235,0.3); background: rgba(111,156,235,0.06); }
+  .badge-weight { color: var(--accent-warm); border-color: rgba(232,184,75,0.3); background: rgba(232,184,75,0.06); }
+  .header h1 { font-family: var(--serif); font-size: 1.05rem; font-weight: 300; color: var(--text-dim); }
+  .header h1 strong { color: var(--text); font-weight: 600; }
+  .progress-bar { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .progress-dots { display: flex; gap: 4px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+  .dot.done { background: var(--accent2); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+    position: sticky;
+    top: calc(var(--nav-h) + 65px);
+    height: calc(100vh - var(--nav-h) - 65px);
+    overflow-y: auto;
+  }
+  .sidebar-section { padding: 0 1.5rem; margin-bottom: 1.75rem; }
+  .sidebar-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;
+  }
+  .sidebar-nav a {
+    display: block; padding: 6px 10px; border-radius: 4px;
+    color: var(--text-muted); text-decoration: none; font-size: 13px;
+    transition: all 0.15s; border-left: 2px solid transparent;
+    line-height: 1.4;
+  }
+  .sidebar-nav a:hover { color: var(--text); background: var(--surface); }
+  .sidebar-nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(111,156,235,0.05); }
+  .sidebar-nav a .ts-badge {
+    display: inline-block; font-family: var(--mono); font-size: 9px;
+    padding: 1px 5px; border-radius: 3px; margin-right: 4px; vertical-align: middle;
+    background: rgba(111,156,235,0.1); color: var(--accent); border: 1px solid rgba(111,156,235,0.2);
+  }
+
+  /* ── MAIN ── */
+  .main { padding: 3rem 4rem 5rem; max-width: 860px; }
+
+  /* ── DOMAIN HERO ── */
+  .domain-hero { margin-bottom: 3.5rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); }
+  .task-meta { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .domain-hero h2 { font-family: var(--serif); font-size: 2.4rem; font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 1rem; }
+  .domain-hero h2 em { font-style: italic; color: var(--accent); }
+  .domain-hero p { font-size: 15px; color: var(--text-dim); max-width: 620px; line-height: 1.75; margin-bottom: 0.75rem; }
+
+  /* ── TS DIVIDERS ── */
+  .ts-divider { display: flex; align-items: center; gap: 1rem; margin: 4rem 0 2.5rem; }
+  .ts-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .ts-divider-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+  }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 3rem; }
+  .section-title {
+    font-family: var(--serif); font-size: 1.3rem; font-weight: 600;
+    color: var(--text); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .section-title::before {
+    content: ''; display: inline-block; width: 4px; height: 1.3rem;
+    background: var(--accent); border-radius: 2px; flex-shrink: 0;
+  }
+  .section-title.gold::before   { background: var(--accent-warm); }
+  .section-title.green::before  { background: var(--accent2); }
+  .section-title.red::before    { background: var(--accent3); }
+  .section-title.purple::before { background: var(--accent4); }
+
+  /* ── TS TITLE BLOCK ── */
+  .ts-title-block {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem 1.75rem; margin-bottom: 2rem;
+  }
+  .ts-title-block .ts-number {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem;
+  }
+  .ts-title-block h3 { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 0.75rem; }
+  .ts-title-block .ts-desc { font-size: 14px; color: var(--text-dim); line-height: 1.75; }
+
+  p { color: var(--text-dim); margin-bottom: 1rem; line-height: 1.8; }
+  p strong { color: var(--text); font-weight: 500; }
+
+  /* ── KNOWLEDGE CARDS ── */
+  .knowledge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
+  .k-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+  .k-card-icon { font-size: 1.3rem; margin-bottom: 0.6rem; }
+  .k-card h4 { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; }
+  .k-card p { font-size: 13px; margin: 0; color: var(--text-dim); }
+
+  /* ── SKILL LIST ── */
+  .skill-list { list-style: none; margin-top: 1rem; }
+  .skill-list li {
+    display: flex; gap: 0.75rem; align-items: flex-start;
+    padding: 0.65rem 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; color: var(--text-dim);
+  }
+  .skill-list li:last-child { border-bottom: none; }
+  .skill-list li::before { content: '→'; color: var(--accent); font-family: var(--mono); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1.25rem 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.05em; }
+  .code-tag { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 3px; font-weight: 500; }
+  .tag-bad     { color: var(--accent3); background: rgba(232,107,95,0.1);  border: 1px solid rgba(232,107,95,0.25); }
+  .tag-good    { color: var(--accent2); background: rgba(97,201,155,0.1);  border: 1px solid rgba(97,201,155,0.25); }
+  .tag-neutral { color: var(--accent);  background: rgba(111,156,235,0.1); border: 1px solid rgba(111,156,235,0.25); }
+  pre { padding: 1.25rem 1.5rem; font-family: var(--mono); font-size: 12.5px; line-height: 1.7; color: var(--text-dim); overflow-x: auto; white-space: pre; }
+  .hl-key     { color: var(--accent); }
+  .hl-str     { color: var(--accent2); }
+  .hl-comment { color: var(--text-muted); font-style: italic; }
+  .hl-warn    { color: var(--accent3); }
+  .hl-ok      { color: var(--accent2); }
+  .hl-num     { color: var(--accent-warm); }
+  .hl-fn      { color: #c792ea; }
+
+  /* ── CALLOUT ── */
+  .callout { border-radius: 8px; padding: 1.1rem 1.4rem; margin: 1.25rem 0; display: flex; gap: 1rem; align-items: flex-start; }
+  .callout-warn    { background: rgba(232,184,75,0.07);  border: 1px solid rgba(232,184,75,0.2); }
+  .callout-danger  { background: rgba(232,107,95,0.07);  border: 1px solid rgba(232,107,95,0.2); }
+  .callout-info    { background: rgba(111,156,235,0.07); border: 1px solid rgba(111,156,235,0.2); }
+  .callout-success { background: rgba(97,201,155,0.07);  border: 1px solid rgba(97,201,155,0.2); }
+  .callout-purple  { background: rgba(181,123,238,0.07); border: 1px solid rgba(181,123,238,0.2); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { font-size: 13.5px; color: var(--text-dim); line-height: 1.7; }
+  .callout-body strong { color: var(--text); }
+
+  /* ── COMPARISON ── */
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
+  .compare-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .compare-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; }
+  .compare-header.bad  { background: rgba(232,107,95,0.06); color: var(--accent3); }
+  .compare-header.good { background: rgba(97,201,155,0.06); color: var(--accent2); }
+  .compare-body { padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--text-dim); }
+
+  /* ── TRAP TABLE ── */
+  .trap-table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 13px; }
+  .trap-table th { text-align: left; padding: 10px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  .trap-table td { padding: 11px 14px; border-bottom: 1px solid rgba(37,42,53,0.5); vertical-align: top; line-height: 1.6; }
+  .trap-table tr:last-child td { border-bottom: none; }
+  .trap-table .col-trap    { color: var(--accent3); font-family: var(--mono); font-size: 12px; }
+  .trap-table .col-correct { color: var(--accent2); font-size: 13px; }
+  .trap-table .col-why     { color: var(--text-dim); font-size: 12px; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 1.25rem 0; }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-bottom: none;
+    font-size: 13.5px; color: var(--text-dim);
+  }
+  .flow-step:first-child { border-radius: 8px 8px 0 0; }
+  .flow-step:last-child  { border-bottom: 1px solid var(--border); border-radius: 0 0 8px 8px; }
+  .flow-step.highlight { background: rgba(111,156,235,0.05); border-left: 3px solid var(--accent); }
+  .flow-step.danger    { background: rgba(232,107,95,0.05);  border-left: 3px solid var(--accent3); }
+  .flow-step.success   { background: rgba(97,201,155,0.05);  border-left: 3px solid var(--accent2); }
+  .flow-num {
+    font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+    background: var(--surface2); border: 1px solid var(--border);
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .flow-arrow {
+    height: 18px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 12px; padding-left: 2.75rem;
+    font-family: var(--mono);
+  }
+
+  /* ── TASK BOX ── */
+  .task-box { background: var(--surface); border: 1px solid rgba(111,156,235,0.35); border-radius: 10px; padding: 1.75rem; margin: 1.5rem 0; }
+  .task-box-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+  .task-number {
+    width: 28px; height: 28px;
+    background: rgba(111,156,235,0.15); border: 1px solid rgba(111,156,235,0.35);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; color: var(--accent); flex-shrink: 0;
+  }
+  .task-box-header h3 { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--accent); }
+  .task-steps { list-style: none; counter-reset: task-counter; }
+  .task-steps li {
+    counter-increment: task-counter; display: flex; gap: 0.85rem;
+    padding: 0.55rem 0; font-size: 14px; color: var(--text-dim); align-items: flex-start;
+  }
+  .task-steps li::before {
+    content: counter(task-counter); font-family: var(--mono); font-size: 10px;
+    color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border);
+    width: 20px; height: 20px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* ── EXAM QUESTION ── */
+  .exam-question { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 1.5rem 0; }
+  .exam-header { background: var(--surface2); padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .exam-q-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .exam-scenario { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+  .exam-body { padding: 1.5rem 1.75rem; }
+  .exam-stem { font-size: 14px; color: var(--text); line-height: 1.75; margin-bottom: 1.25rem; }
+  .exam-options { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+  .exam-option {
+    display: flex; gap: 0.85rem; padding: 0.85rem 1.1rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; color: var(--text-dim); cursor: pointer;
+    transition: all 0.15s; align-items: flex-start;
+  }
+  .exam-option:hover { border-color: var(--accent); color: var(--text); background: rgba(111,156,235,0.04); }
+  .exam-option.correct { border-color: var(--accent2); background: rgba(97,201,155,0.06); color: var(--text); }
+  .exam-option.wrong   { border-color: rgba(232,107,95,0.4); background: rgba(232,107,95,0.04); }
+  .option-letter { font-family: var(--mono); font-size: 11px; color: var(--text-muted); flex-shrink: 0; margin-top: 1px; }
+  .exam-option.correct .option-letter { color: var(--accent2); }
+  .exam-option.wrong   .option-letter { color: var(--accent3); }
+  .exam-reveal { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .exam-reveal.visible { display: block; }
+  .reveal-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); margin-bottom: 0.5rem; }
+  .reveal-text { font-size: 13.5px; color: var(--text-dim); line-height: 1.75; }
+  .reveal-text strong { color: var(--text); }
+  .show-answer-btn {
+    margin-top: 1.1rem; background: none; border: 1px solid var(--border);
+    color: var(--text-muted); font-family: var(--mono); font-size: 11px;
+    padding: 7px 14px; border-radius: 5px; cursor: pointer; transition: all 0.15s;
+  }
+  .show-answer-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  code {
+    font-family: var(--mono); font-size: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 3px; color: var(--accent);
+  }
+
+  /* ── FOOTER ── */
+  .footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .footer-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .next-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(111,156,235,0.1); border: 1px solid rgba(111,156,235,0.3);
+    color: var(--accent); font-family: var(--mono); font-size: 12px;
+    padding: 10px 18px; border-radius: 6px; cursor: pointer;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .next-btn:hover { background: rgba(111,156,235,0.18); }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── TOP NAV ── */
+.top-nav { position:fixed; top:0; left:0; right:0; height:var(--nav-h); background:rgba(13,15,18,0.97); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); z-index:300; display:flex; align-items:center; }
+.top-nav-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 1.5rem; display:flex; align-items:center; gap:1.5rem; }
+.nav-brand { font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#4ade80; text-decoration:none; white-space:nowrap; flex-shrink:0; }
+.nav-links { display:flex; align-items:center; gap:0.25rem; flex-wrap:nowrap; margin-left:auto; }
+.nav-links a { font-family:var(--mono); font-size:11px; color:#4a5366; text-decoration:none; padding:5px 10px; border-radius:4px; transition:color 0.15s,background 0.15s; white-space:nowrap; letter-spacing:0.06em; }
+.nav-links a:hover { color:#e8e9eb; background:rgba(255,255,255,0.06); }
+.nav-links a.nav-active { color:#e8e9eb; background:rgba(255,255,255,0.08); }
+.nav-exam-btn { background:rgba(74,222,128,0.1) !important; border:1px solid rgba(74,222,128,0.3) !important; color:#4ade80 !important; }
+.nav-exam-btn:hover { background:rgba(74,222,128,0.2) !important; }
+.nav-hamburger { display:none; background:none; border:none; color:#8a8d94; font-size:18px; cursor:pointer; margin-left:auto; padding:4px 8px; }
+@media (max-width:720px) {
+  .nav-hamburger { display:block; }
+  .nav-links { display:none; position:absolute; top:var(--nav-h); left:0; right:0; background:rgba(13,15,18,0.98); flex-direction:column; padding:0.75rem 1rem; gap:0.25rem; border-bottom:1px solid #252a35; }
+  .nav-links.open { display:flex; }
+  .nav-links a { width:100%; }
+}
+</style>
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+<noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="./index.html" class="nav-brand">Claude Architect</a>
+    <a href="https://moisesprat.dev" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:10px;color:var(--text2);text-decoration:none;border-left:1px solid var(--border2);padding-left:1rem;margin-left:0.25rem;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">Guide by Moises Prat</a>
+    <button class="nav-hamburger" onclick="toggleNav()">&#9776;</button>
+    <div class="nav-links" id="nav-links">
+      <a href="./index.html">Home</a>
+      <a href="./domain1.html">Domain 1</a>
+      <a href="./domain2.html">Domain 2</a>
+      <a href="./domain3.html">Domain 3</a>
+      <a href="./domain4.html">Domain 4</a>
+      <a href="./domain5.html">Domain 5</a>
+      <a href="./progress.html">Progress</a>
+      <a href="./exam.html" class="nav-exam-btn">Exam</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="badge badge-domain">Domain 1</span>
+    <span class="badge badge-weight">27% of exam</span>
+    <h1><strong>Agentic Architecture & Orchestration</strong> — Complete Lesson</h1>
+  </div>
+  <div class="progress-bar">
+    <span>Domain progress</span>
+    <div class="progress-dots">
+      <div class="dot done" title="1.1 Agentic Loops"></div>
+      <div class="dot done" title="1.2 Multi-Agent Orchestration"></div>
+      <div class="dot done" title="1.3 Subagent Spawning"></div>
+      <div class="dot done" title="1.4 Enforcement & Handoff"></div>
+      <div class="dot done" title="1.5 SDK Hooks"></div>
+      <div class="dot done" title="1.6 Task Decomposition"></div>
+      <div class="dot done" title="1.7 Session Management"></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Domain 1 Overview</div>
+      <nav class="sidebar-nav">
+        <a href="#domain-overview">Introduction</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.1</div>
+      <nav class="sidebar-nav">
+        <a href="#ts11-concept"><span class="ts-badge">1.1</span> Core Concept</a>
+        <a href="#ts11-lifecycle"><span class="ts-badge">1.1</span> Loop Lifecycle</a>
+        <a href="#ts11-code"><span class="ts-badge">1.1</span> Implementation</a>
+        <a href="#ts11-antipatterns"><span class="ts-badge">1.1</span> Anti-Patterns</a>
+        <a href="#ts11-traps"><span class="ts-badge">1.1</span> Exam Traps</a>
+        <a href="#ts11-task"><span class="ts-badge">1.1</span> Implementation Task</a>
+        <a href="#ts11-questions"><span class="ts-badge">1.1</span> Exam Questions</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.2</div>
+      <nav class="sidebar-nav">
+        <a href="#ts12-concept"><span class="ts-badge">1.2</span> Core Concept</a>
+        <a href="#ts12-architecture"><span class="ts-badge">1.2</span> Hub-and-Spoke</a>
+        <a href="#ts12-coordinator"><span class="ts-badge">1.2</span> Coordinator Design</a>
+        <a href="#ts12-traps"><span class="ts-badge">1.2</span> Exam Traps</a>
+        <a href="#ts12-task"><span class="ts-badge">1.2</span> Implementation Task</a>
+        <a href="#ts12-questions"><span class="ts-badge">1.2</span> Exam Questions</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.3</div>
+      <nav class="sidebar-nav">
+        <a href="#ts13-concept"><span class="ts-badge">1.3</span> Core Concept</a>
+        <a href="#ts13-task-tool"><span class="ts-badge">1.3</span> Task Tool</a>
+        <a href="#ts13-context"><span class="ts-badge">1.3</span> Context Passing</a>
+        <a href="#ts13-parallel"><span class="ts-badge">1.3</span> Parallel Spawning</a>
+        <a href="#ts13-traps"><span class="ts-badge">1.3</span> Exam Traps</a>
+        <a href="#ts13-task"><span class="ts-badge">1.3</span> Implementation Task</a>
+        <a href="#ts13-questions"><span class="ts-badge">1.3</span> Exam Questions</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.4</div>
+      <nav class="sidebar-nav">
+        <a href="#ts14-concept"><span class="ts-badge">1.4</span> Core Concept</a>
+        <a href="#ts14-enforcement"><span class="ts-badge">1.4</span> Programmatic Gates</a>
+        <a href="#ts14-handoff"><span class="ts-badge">1.4</span> Handoff Protocols</a>
+        <a href="#ts14-traps"><span class="ts-badge">1.4</span> Exam Traps</a>
+        <a href="#ts14-task"><span class="ts-badge">1.4</span> Implementation Task</a>
+        <a href="#ts14-questions"><span class="ts-badge">1.4</span> Exam Questions</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.5</div>
+      <nav class="sidebar-nav">
+        <a href="#ts15-concept"><span class="ts-badge">1.5</span> Core Concept</a>
+        <a href="#ts15-hooks"><span class="ts-badge">1.5</span> Hook Patterns</a>
+        <a href="#ts15-code"><span class="ts-badge">1.5</span> Implementation</a>
+        <a href="#ts15-traps"><span class="ts-badge">1.5</span> Exam Traps</a>
+        <a href="#ts15-task"><span class="ts-badge">1.5</span> Implementation Task</a>
+        <a href="#ts15-questions"><span class="ts-badge">1.5</span> Exam Questions</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.6</div>
+      <nav class="sidebar-nav">
+        <a href="#ts16-concept"><span class="ts-badge">1.6</span> Core Concept</a>
+        <a href="#ts16-patterns"><span class="ts-badge">1.6</span> Decomposition Patterns</a>
+        <a href="#ts16-traps"><span class="ts-badge">1.6</span> Exam Traps</a>
+        <a href="#ts16-task"><span class="ts-badge">1.6</span> Implementation Task</a>
+        <a href="#ts16-questions"><span class="ts-badge">1.6</span> Exam Questions</a>
+      </nav>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 1.7</div>
+      <nav class="sidebar-nav">
+        <a href="#ts17-concept"><span class="ts-badge">1.7</span> Core Concept</a>
+        <a href="#ts17-resume"><span class="ts-badge">1.7</span> Session Resumption</a>
+        <a href="#ts17-fork"><span class="ts-badge">1.7</span> Session Forking</a>
+        <a href="#ts17-traps"><span class="ts-badge">1.7</span> Exam Traps</a>
+        <a href="#ts17-task"><span class="ts-badge">1.7</span> Implementation Task</a>
+        <a href="#ts17-questions"><span class="ts-badge">1.7</span> Exam Questions</a>
+      </nav>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DOMAIN HERO -->
+    <div class="domain-hero" id="domain-overview">
+      <div class="task-meta">
+        <span class="badge badge-domain">Domain 1</span>
+        <span class="badge badge-weight">27% of exam · 7 Task Statements</span>
+      </div>
+      <h2>Agentic Architecture<br>&amp; <em>Orchestration</em></h2>
+      <p>The heaviest domain at 27%. It covers everything from the mechanics of a single agent loop to coordinating fleets of specialized subagents. The exam tests whether you know the <strong>exact stopping condition</strong> for a loop, whether you understand that subagents have <strong>zero inherited context</strong>, and whether you reach for programmatic enforcement or prompt instructions when correctness is non-negotiable.</p>
+      <p>Every scenario in the exam touches Domain 1 — whether it's the Customer Support agent enforcing identity verification, the Research system coordinating subagents, or the CI/CD pipeline decomposing large reviews into focused passes.</p>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.1 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.1</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts11">
+      <div class="ts-number">Task Statement 1.1</div>
+      <h3>Design and implement agentic loops for autonomous task execution</h3>
+      <div class="ts-desc">The agentic loop is the fundamental execution primitive. Getting the termination condition wrong is the most common and most consequential implementation error — and the exam tests it explicitly.</div>
+    </div>
+
+    <section class="section" id="ts11-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>An agentic loop sends a message to Claude, receives a response, checks the <code>stop_reason</code> field, executes any requested tools, appends the results to the conversation history, and repeats. The loop continues until Claude signals it is finished by returning <code>stop_reason == "end_turn"</code>.</p>
+      <p>The critical insight: <strong>Claude decides when it is done</strong>, not the developer's iteration counter or text-parsing logic. The <code>stop_reason</code> field is the only reliable signal. Everything else is a workaround that will fail in production.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Exam Principle:</strong> The loop terminates when <code>stop_reason == "end_turn"</code>. The loop continues when <code>stop_reason == "tool_use"</code>. Never parse text content to determine termination. Never rely solely on iteration caps. These are the two most tested facts in 1.1.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts11-lifecycle">
+      <h3 class="section-title blue">Loop Lifecycle</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">📤</div>
+          <h4>1. Send Request</h4>
+          <p>Send the current conversation history (including all previous tool results) to Claude. The model reasons over the full history to decide its next action.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔍</div>
+          <h4>2. Inspect stop_reason</h4>
+          <p><code>"tool_use"</code> → Claude wants to call a tool. <code>"end_turn"</code> → Claude is finished. These are the only two values that matter for loop control.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">⚙️</div>
+          <h4>3. Execute Tools</h4>
+          <p>For each tool call in the response, execute the tool and collect the result. Tool calls are in <code>response.content</code> blocks with <code>type == "tool_use"</code>.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📥</div>
+          <h4>4. Append Results</h4>
+          <p>Append the assistant's response AND the tool results to conversation history. Both are required — omitting the assistant turn corrupts the conversation structure.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts11-code">
+      <h3 class="section-title green">Correct Implementation</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">python — correct agentic loop</span>
+          <span class="code-tag tag-good">PRODUCTION PATTERN</span>
+        </div>
+        <pre><span class="hl-fn">def</span> <span class="hl-key">run_agent</span>(client, tools, initial_message):
+    messages = [{"role": "user", "content": initial_message}]
+
+    <span class="hl-fn">while</span> True:
+        response = client.messages.create(
+            model=<span class="hl-str">"claude-sonnet-4-20250514"</span>,
+            tools=tools,
+            messages=messages
+        )
+
+        <span class="hl-comment"># ✓ ONLY correct termination signal</span>
+        <span class="hl-fn">if</span> response.stop_reason == <span class="hl-str">"end_turn"</span>:
+            <span class="hl-fn">break</span>
+
+        <span class="hl-comment"># ✓ Continue loop on tool_use</span>
+        <span class="hl-fn">if</span> response.stop_reason == <span class="hl-str">"tool_use"</span>:
+            <span class="hl-comment"># Append assistant response to history</span>
+            messages.append({
+                <span class="hl-str">"role"</span>: <span class="hl-str">"assistant"</span>,
+                <span class="hl-str">"content"</span>: response.content
+            })
+
+            <span class="hl-comment"># Execute each tool call and collect results</span>
+            tool_results = []
+            <span class="hl-fn">for</span> block <span class="hl-fn">in</span> response.content:
+                <span class="hl-fn">if</span> block.type == <span class="hl-str">"tool_use"</span>:
+                    result = execute_tool(block.name, block.input)
+                    tool_results.append({
+                        <span class="hl-str">"type"</span>: <span class="hl-str">"tool_result"</span>,
+                        <span class="hl-str">"tool_use_id"</span>: block.id,
+                        <span class="hl-str">"content"</span>: result
+                    })
+
+            <span class="hl-comment"># ✓ Append tool results for next iteration</span>
+            messages.append({
+                <span class="hl-str">"role"</span>: <span class="hl-str">"user"</span>,
+                <span class="hl-str">"content"</span>: tool_results
+            })
+
+    <span class="hl-fn">return</span> response</pre>
+      </div>
+    </section>
+
+    <section class="section" id="ts11-antipatterns">
+      <h3 class="section-title red">Anti-Patterns the Exam Tests</h3>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Text-Based Termination</div>
+          <div class="compare-body">
+<span class="hl-warn"># NEVER do this</span>
+for block in response.content:
+  if block.type == "text":
+    if "done" in block.text.lower() or
+       "finished" in block.text.lower():
+      break  <span class="hl-warn"># unreliable!</span>
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Arbitrary Iteration Cap</div>
+          <div class="compare-body">
+<span class="hl-warn"># NEVER use as primary stop</span>
+for i in range(10):
+  response = client.messages...
+  <span class="hl-warn"># Silently truncates valid work</span>
+  <span class="hl-warn"># No signal to the user</span>
+  <span class="hl-warn"># May cut off mid-task</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-danger">
+        <div class="callout-icon">🚨</div>
+        <div class="callout-body"><strong>Iteration caps as safety nets are fine.</strong> The anti-pattern is using them as the <em>primary</em> stopping mechanism. A safety cap of 50 iterations with a <code>stop_reason</code> check inside is correct. A loop that stops at 10 iterations without ever checking <code>stop_reason</code> is not.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts11-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.1</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Parse "I'm done" or "Task complete" in response text to terminate</td>
+            <td class="col-why">Text content is non-deterministic — Claude may phrase completion differently, or include those words mid-task</td>
+            <td class="col-correct">Check <code>stop_reason == "end_turn"</code> exclusively</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Check if response has no tool_use blocks as a completion signal</td>
+            <td class="col-why">A response with only text and <code>stop_reason == "tool_use"</code> doesn't exist — but this logic misses edge cases</td>
+            <td class="col-correct">Rely on <code>stop_reason</code>, not content structure</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Omit the assistant turn when appending tool results</td>
+            <td class="col-why">The API requires alternating user/assistant turns. Jumping straight to tool results breaks the conversation structure</td>
+            <td class="col-correct">Append assistant response first, then append tool results as a user turn</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Use pre-configured decision trees instead of model-driven tool calling</td>
+            <td class="col-why">Removes the model's ability to reason about context — inflexible and brittle for novel inputs</td>
+            <td class="col-correct">Let Claude decide which tool to call based on context; use programmatic gates only for ordering constraints</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts11-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T1</div>
+          <h3>Build and Stress-Test a Production Agentic Loop</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Implement a loop and deliberately trigger each failure mode to confirm your termination logic is correct.</p>
+        <ul class="task-steps">
+          <li>Implement the agentic loop using <code>stop_reason</code> as the sole termination signal</li>
+          <li>Add a safety cap of 25 iterations with an explicit warning log — verify it never fires on normal tasks</li>
+          <li>Test: have Claude call 3 tools in sequence — confirm all results are appended and reasoning is continuous</li>
+          <li>Break it intentionally: omit the assistant turn append — observe the API error and understand why</li>
+          <li>Add text-based termination as a second branch — prove it fires incorrectly on a response that contains "done" mid-reasoning</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts11-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.1</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.1</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">An agent loop is implemented with a check: <em>"if the response has no tool_use blocks, break the loop."</em> During load testing, some support requests are being cut off — the agent stops mid-investigation without completing. What is the root cause?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q11a')"><span class="option-letter">A</span>The tool descriptions are too vague, causing Claude to skip tool calls on complex requests</li>
+            <li class="exam-option" onclick="pick(this,true,'q11a')"><span class="option-letter">B</span>The termination condition is incorrect — the loop should check <code>stop_reason == "end_turn"</code>, not the presence of tool_use blocks, since Claude may reason across multiple turns before needing tools</li>
+            <li class="exam-option" onclick="pick(this,false,'q11a')"><span class="option-letter">C</span>The agent needs a higher iteration cap — increase from 10 to 25 iterations</li>
+            <li class="exam-option" onclick="pick(this,false,'q11a')"><span class="option-letter">D</span>Tool results are not being appended to conversation history, causing Claude to repeat tool calls</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r11a')">Show explanation</button>
+          <div class="exam-reveal" id="r11a">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> Claude can produce pure-text responses (no <code>tool_use</code> blocks) as reasoning turns — turns where it thinks through the next step before calling a tool. These responses have <code>stop_reason == "end_turn"</code>, which is the same signal as genuine task completion. Using the absence of <code>tool_use</code> blocks as a termination condition incorrectly fires on these reasoning turns, ending the loop prematurely while the task is still in progress. <strong>A is wrong:</strong> Tool description quality doesn't cause early termination. <strong>C is wrong:</strong> An iteration cap is a band-aid and not the right mental model for loop control. <strong>D is wrong:</strong> Missing tool results cause repetition, not early termination.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 1.1</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A developer implements the following loop termination: <code>if "research complete" in response.content[0].text: break</code>. What is wrong with this approach, and what is the correct implementation?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q11b')"><span class="option-letter">A</span>The string comparison is case-sensitive — use <code>.lower()</code> to make it robust</li>
+            <li class="exam-option" onclick="pick(this,false,'q11b')"><span class="option-letter">B</span>The response may contain multiple content blocks — iterate over all blocks to check for the phrase</li>
+            <li class="exam-option" onclick="pick(this,true,'q11b')"><span class="option-letter">C</span>Text-based termination is fundamentally unreliable — the phrase may appear in mid-task reasoning or not at all when the task genuinely completes. Use <code>response.stop_reason == "end_turn"</code></li>
+            <li class="exam-option" onclick="pick(this,false,'q11b')"><span class="option-letter">D</span>The phrase should be injected into the system prompt so Claude consistently uses it as a completion signal</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r11b')">Show explanation</button>
+          <div class="exam-reveal" id="r11b">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> Text-based termination is non-deterministic. Claude may write "research complete" while mid-task (e.g., "This section of research is complete, moving on to..."), or it may finish without using that exact phrase. The <code>stop_reason</code> field is a structured signal set programmatically by the API — the only reliable termination signal. <strong>A and B</strong> fix edge cases without addressing the fundamental design flaw. <strong>D</strong> is an interesting idea but still non-deterministic — Claude may paraphrase or the phrase may appear mid-reasoning.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.2 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.2</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts12">
+      <div class="ts-number">Task Statement 1.2</div>
+      <h3>Orchestrate multi-agent systems with coordinator-subagent patterns</h3>
+      <div class="ts-desc">Multiple specialized agents working in concert, coordinated by a single orchestrator. The coordinator pattern provides observability, consistent error handling, and controlled information flow — but only if you design it correctly.</div>
+    </div>
+
+    <section class="section" id="ts12-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>In a hub-and-spoke architecture, a <strong>coordinator agent</strong> receives the original request, decomposes it into subtasks, delegates each to a specialized subagent, collects results, and synthesizes the final response. No subagent communicates directly with another — all routing passes through the coordinator.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Exam Principle:</strong> Subagents have <strong>isolated context</strong>. They do not inherit the coordinator's conversation history automatically. Every piece of context a subagent needs must be explicitly provided in its prompt. This is the most tested fact in 1.2 and 1.3.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts12-architecture">
+      <h3 class="section-title blue">Hub-and-Spoke Architecture</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">🎯</div>
+          <h4>Coordinator Role</h4>
+          <p>Analyzes query complexity, decomposes into subtasks, selects which subagents to invoke, aggregates results, evaluates coverage, and re-delegates if gaps exist.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔬</div>
+          <h4>Subagent Role</h4>
+          <p>Specialized for one task type. Receives a complete, self-contained prompt from the coordinator. Executes and returns structured results. No awareness of other subagents.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🚦</div>
+          <h4>All Routing Through Coordinator</h4>
+          <p>Prevents spaghetti communication patterns. Enables consistent error handling, logging, and retry logic in one place rather than scattered across agents.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔄</div>
+          <h4>Iterative Refinement</h4>
+          <p>Coordinator evaluates synthesis output for coverage gaps, re-delegates with targeted queries, and re-invokes synthesis — repeating until coverage is sufficient.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts12-coordinator">
+      <h3 class="section-title green">Coordinator Design Principles</h3>
+      <p>The most common coordinator failure is <strong>overly narrow task decomposition</strong> — breaking "impact of AI on creative industries" into only visual arts subtasks, because that's what the coordinator knows best. The result: every subagent completes successfully, but the final output has systematic blind spots.</p>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Narrow Decomposition</div>
+          <div class="compare-body">
+Topic: "AI in creative industries"
+
+Subtasks assigned:
+<span class="hl-warn">1. AI in digital art creation</span>
+<span class="hl-warn">2. AI in graphic design</span>
+<span class="hl-warn">3. AI in photography</span>
+
+Result: 100% visual arts.
+Music, writing, film: missed.
+All subagents: "successful".
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Comprehensive Decomposition</div>
+          <div class="compare-body">
+Topic: "AI in creative industries"
+
+Subtasks assigned:
+<span class="hl-ok">1. AI in visual arts & design</span>
+<span class="hl-ok">2. AI in music composition</span>
+<span class="hl-ok">3. AI in writing & journalism</span>
+<span class="hl-ok">4. AI in film & video production</span>
+
+Coverage: breadth-first, explicit.
+          </div>
+        </div>
+      </div>
+      <ul class="skill-list">
+        <li>Design coordinator prompts specifying <strong>research goals and quality criteria</strong> — not step-by-step procedural instructions, to preserve subagent adaptability</li>
+        <li>Partition scope across subagents to minimize duplication (distinct subtopics or source types per agent)</li>
+        <li>Implement iterative refinement: evaluate synthesis output → identify gaps → re-delegate with targeted queries → re-synthesize</li>
+        <li>Route all inter-subagent information through the coordinator — never allow direct subagent-to-subagent communication</li>
+      </ul>
+    </section>
+
+    <section class="section" id="ts12-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.2</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Subagents automatically inherit coordinator context</td>
+            <td class="col-why">They do not. Each subagent invocation is a fresh context. Assuming inheritance leads to silent failures where subagents lack required information</td>
+            <td class="col-correct">Explicitly pass all needed context in the subagent's prompt</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Blame synthesis agent when final output has coverage gaps</td>
+            <td class="col-why">If each subagent completed successfully, the gap is in what they were assigned — coordinator decomposition is the root cause</td>
+            <td class="col-correct">Inspect coordinator logs first. Narrow decomposition is the most common cause of systematic gaps</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Allow subagents to call each other directly for efficiency</td>
+            <td class="col-why">Bypasses coordinator's observability and error handling — creates spaghetti flows that are impossible to debug</td>
+            <td class="col-correct">All communication routes through coordinator; coordinator handles retries and routing decisions</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts12-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T2</div>
+          <h3>Build a 3-Agent Research Coordinator</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Implement a coordinator + web search agent + synthesis agent. Deliberately create and then fix a decomposition failure.</p>
+        <ul class="task-steps">
+          <li>Implement the coordinator with hub-and-spoke routing — all subagent communication through coordinator only</li>
+          <li>Run on "impact of remote work on urban planning" — log the decomposition. Identify if any major category is missing</li>
+          <li>Implement the iterative refinement loop: coordinator evaluates synthesis output and re-delegates if coverage is below threshold</li>
+          <li>Test context isolation: verify the synthesis agent has no access to the web search agent's raw conversation — only the coordinator-passed results</li>
+          <li>Deliberately break decomposition by giving coordinator a narrow system prompt — observe the coverage gap and fix it</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts12-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.2</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.2</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">After running the system on "impact of AI on creative industries," all subagents complete successfully, but the final reports cover only visual arts, missing music, writing, and film. The coordinator's logs show it decomposed the topic into: "AI in digital art," "AI in graphic design," and "AI in photography." What is the most likely root cause?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q12a')"><span class="option-letter">A</span>The synthesis agent lacks instructions for identifying coverage gaps in findings from other agents</li>
+            <li class="exam-option" onclick="pick(this,true,'q12a')"><span class="option-letter">B</span>The coordinator's task decomposition is too narrow — it assigned only visual arts subtasks and the subagents executed those correctly, leaving other creative domains unassigned</li>
+            <li class="exam-option" onclick="pick(this,false,'q12a')"><span class="option-letter">C</span>The web search agent's queries are not comprehensive enough — it needs expanded search parameters</li>
+            <li class="exam-option" onclick="pick(this,false,'q12a')"><span class="option-letter">D</span>The document analysis agent is filtering out non-visual-arts sources due to overly restrictive relevance criteria</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r12a')">Show explanation</button>
+          <div class="exam-reveal" id="r12a">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> The coordinator's logs are the diagnostic — it decomposed "creative industries" into only visual arts subtasks. The subagents did exactly what they were assigned. The failure is upstream in the coordinator's decomposition logic, not in any subagent's execution. <strong>A, C, D</strong> incorrectly blame downstream agents that performed their assigned tasks correctly. This is the official exam question Q7 — always trace failures to their root in the coordinator before blaming subagents.</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 1.2</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A coordinator agent manages 3 specialized subagents: <code>WebSearchAgent</code>, <code>DocumentAnalysisAgent</code>, and <code>DataValidationAgent</code>. For each request, WebSearch and DocumentAnalysis can run simultaneously (independent inputs), while DataValidation must run after both complete. Currently all three run sequentially: total latency = 45s + 60s + 30s = 135s. What architecture achieves the minimum possible latency?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q12b')"><span class="option-letter">A</span>Give the coordinator a meta-tool that triggers all three agents simultaneously and waits for all results before proceeding</li>
+          <li class="exam-option" onclick="pick(this,true,'q12b')"><span class="option-letter">B</span>Emit both <code>WebSearchAgent</code> and <code>DocumentAnalysisAgent</code> Task tool calls in a single coordinator response (parallel), then in the next coordinator turn emit <code>DataValidationAgent</code> after both results are available</li>
+          <li class="exam-option" onclick="pick(this,false,'q12b')"><span class="option-letter">C</span>Have WebSearch and DocumentAnalysis each invoke DataValidation directly when they finish, removing the coordinator from the final step</li>
+          <li class="exam-option" onclick="pick(this,false,'q12b')"><span class="option-letter">D</span>Merge WebSearch and DocumentAnalysis into a single SuperSearchAgent that handles both operations internally, reducing coordinator round-trips from 3 to 2</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r12b')">Show explanation</button>
+        <div class="exam-reveal" id="r12b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Multiple Task tool calls in a single coordinator response triggers parallel API execution — WebSearch and DocumentAnalysis run concurrently (max(45s, 60s) = 60s), then DataValidation runs after (30s) = 90s total, down from 135s. <strong>A is wrong:</strong> A "meta-tool" for parallel execution doesn't exist in the Claude Agent SDK — the Task tool IS the correct mechanism, and multiple Task calls in one response is how parallel execution works. <strong>C is wrong:</strong> Subagents invoking other subagents directly creates unpredictable coordination and breaks the hub-and-spoke pattern. <strong>D is wrong:</strong> Merging reduces round-trips but doesn't achieve parallel execution of independent operations — the merged agent still processes them sequentially.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 1.2</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A coordinator agent manages 4 subagents and accumulates all their result outputs in its context. By request 3 in a session, the coordinator is using 180k tokens of a 200k token model — mostly subagent result outputs from earlier steps that are no longer needed. The system is approaching context limits after just 3 requests. What is the most scalable architectural fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q12c')"><span class="option-letter">A</span>Switch to a model with a larger context window (e.g., 1M tokens) to accommodate accumulating subagent results across more requests</li>
+          <li class="exam-option" onclick="pick(this,false,'q12c')"><span class="option-letter">B</span>Add a system prompt instruction: "Summarize and discard subagent results immediately after each synthesis step to conserve context"</li>
+          <li class="exam-option" onclick="pick(this,true,'q12c')"><span class="option-letter">C</span>Externalize subagent results to a shared state store (file or memory object passed via tool results), and have the coordinator reference only what it currently needs for the active reasoning step rather than accumulating all history in its context</li>
+          <li class="exam-option" onclick="pick(this,false,'q12c')"><span class="option-letter">D</span>Reduce the number of active subagents from 4 to 2 to limit the volume of result data entering the coordinator context</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r12c')">Show explanation</button>
+        <div class="exam-reveal" id="r12c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> The coordinator shouldn't hold all results in its context — results should live outside the model context and be fetched or referenced when needed. This is the architectural fix: decouple result storage from model context. <strong>A is wrong — this is the canonical exam trap:</strong> scaling the context window is a band-aid, not a fix. At 1M tokens, the same accumulation pattern repeats at request 10 or 20. <strong>B is wrong:</strong> Prompt instructions for summarization are probabilistic and unreliable for structured data — the coordinator may not consistently apply them. <strong>D is wrong:</strong> Reducing subagent count limits the system's capability and doesn't address the accumulation architectural pattern.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.3 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.3</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts13">
+      <div class="ts-number">Task Statement 1.3</div>
+      <h3>Configure subagent invocation, context passing, and spawning</h3>
+      <div class="ts-desc">The mechanics of subagent creation: what tool spawns them, how context flows in, and how parallel execution works. The exam tests precise knowledge of the Task tool and the parallel spawning pattern.</div>
+    </div>
+
+    <section class="section" id="ts13-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Subagents are not automatically created — they are spawned using the <code>Task</code> tool. The coordinator must have <code>"Task"</code> in its <code>allowedTools</code> list, and each subagent is defined via <code>AgentDefinition</code> with its own system prompt, description, and tool restrictions.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>Isolation is absolute.</strong> Subagents do not share memory. They do not inherit parent context. Each invocation of a subagent is fresh. If you need the synthesis agent to know what the web search agent found, you must explicitly include those findings in the synthesis agent's prompt.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts13-task-tool">
+      <h3 class="section-title blue">The Task Tool</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">🔑</div>
+          <h4>Requirement: allowedTools</h4>
+          <p>The coordinator's <code>allowedTools</code> must include <code>"Task"</code>. Without this, the coordinator cannot spawn subagents regardless of prompt instructions.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📝</div>
+          <h4>AgentDefinition</h4>
+          <p>Defines each subagent type with: description, system prompt, and tool restrictions. The system prompt scopes the subagent's behavior. Tool restrictions enforce role separation.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📦</div>
+          <h4>Complete Context in Prompt</h4>
+          <p>Every piece of information the subagent needs must be in the Task call's prompt. Source URLs, document names, prior agent outputs — all must be explicitly included.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🌿</div>
+          <h4>Fork-Based Session Management</h4>
+          <p>Fork sessions create independent branches from a shared analysis baseline — enabling divergent explorations without contaminating the main session context.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts13-context">
+      <h3 class="section-title green">Context Passing Pattern</h3>
+      <p>When passing context between agents, use <strong>structured data formats</strong> that separate content from metadata. Raw text blobs lose attribution — source URLs, document names, and page numbers disappear during synthesis.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">python — explicit context passing to synthesis agent</span>
+          <span class="code-tag tag-good">CORRECT PATTERN</span>
+        </div>
+        <pre><span class="hl-comment"># ✓ Pass structured context explicitly — not raw text</span>
+synthesis_prompt = <span class="hl-str">f"""
+You are a synthesis agent. Combine the following research findings
+into a comprehensive report on: {research_topic}
+
+Web Search Results:
+{json.dumps(web_results, indent=2)}
+
+Document Analysis:
+{json.dumps(doc_analysis, indent=2)}
+
+Each result includes: source_url, excerpt, relevance_score, date.
+Preserve source attribution in your synthesis.
+
+Quality criteria: Cover all major categories. Flag any gaps.
+"""</span>
+
+<span class="hl-comment"># ✗ DO NOT pass context like this:</span>
+<span class="hl-warn">synthesis_prompt = f"Synthesize this: {str(all_results)}"</span>
+<span class="hl-comment"># ↑ Loses structure, attribution, and metadata</span></pre>
+      </div>
+    </section>
+
+    <section class="section" id="ts13-parallel">
+      <h3 class="section-title purple">Parallel Spawning</h3>
+      <p>To run subagents in parallel, emit <strong>multiple Task tool calls in a single coordinator response</strong>. Spawning them across separate turns forces sequential execution and negates the latency benefit.</p>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Sequential (Separate Turns)</div>
+          <div class="compare-body">
+Turn 1: Task(web_search, topic_A)
+→ wait for result
+Turn 2: Task(doc_analysis, topic_B)
+→ wait for result
+Turn 3: Task(web_search, topic_C)
+
+<span class="hl-warn">3x latency. Sequential by design.</span>
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Parallel (Single Response)</div>
+          <div class="compare-body">
+Turn 1: [
+  Task(web_search, topic_A),
+  Task(doc_analysis, topic_B),
+  Task(web_search, topic_C)
+]
+→ all 3 run concurrently
+
+<span class="hl-ok">1x latency. Parallel by design.</span>
+          </div>
+        </div>
+      </div>
+      <ul class="skill-list">
+        <li>Include complete findings from prior agents directly in the subagent's prompt — never assume it can access them from history</li>
+        <li>Use structured data formats (JSON with source URLs, document names, page numbers) to preserve attribution when passing context</li>
+        <li>Spawn parallel subagents by emitting multiple Task calls in a single coordinator response — not across separate turns</li>
+        <li>Design coordinator prompts with goals and quality criteria — not step-by-step instructions — to preserve subagent adaptability</li>
+      </ul>
+    </section>
+
+    <section class="section" id="ts13-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.3</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Spawn subagents across multiple turns for parallelism</td>
+            <td class="col-why">Each turn is sequential — the coordinator waits for each Task result before proceeding to the next turn</td>
+            <td class="col-correct">Emit all parallel Task calls in a single coordinator response</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Pass raw string concatenation of results between agents</td>
+            <td class="col-why">Loses structure and attribution — source URLs, dates, and metadata disappear; synthesis agent cannot distinguish findings</td>
+            <td class="col-correct">Pass structured JSON with explicit fields for content, source, date, relevance</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Give coordinator step-by-step procedural instructions</td>
+            <td class="col-why">Overly procedural prompts make subagents rigid — they can't adapt when intermediate results reveal new requirements</td>
+            <td class="col-correct">Specify research goals and quality criteria; let subagents determine their approach</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts13-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T3</div>
+          <h3>Implement Parallel Subagent Spawning with Structured Context</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Build parallel spawning and structured context passing, then measure the latency difference vs sequential.</p>
+        <ul class="task-steps">
+          <li>Configure coordinator with <code>allowedTools: ["Task", ...]</code> and define 3 subagent types via AgentDefinition</li>
+          <li>Implement sequential spawning — measure total latency for 3 subagents</li>
+          <li>Implement parallel spawning (multiple Task calls in one response) — measure total latency and confirm it's ~1x not 3x</li>
+          <li>Pass context using a structured JSON schema including: content, source_url, date, relevance_score</li>
+          <li>Verify isolation: confirm synthesis agent has zero access to web search agent's raw conversation history</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts13-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.3</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.3</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">The synthesis agent is producing reports that miss source attributions — it references findings but cannot cite which web source they came from. The web search agent correctly returns results with URLs. What is the most likely cause?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q13a')"><span class="option-letter">A</span>The synthesis agent's system prompt does not instruct it to include citations</li>
+            <li class="exam-option" onclick="pick(this,true,'q13a')"><span class="option-letter">B</span>The coordinator passes web search results as a plain text string, stripping the structured metadata (source URLs, dates) that was in the original JSON response</li>
+            <li class="exam-option" onclick="pick(this,false,'q13a')"><span class="option-letter">C</span>The synthesis agent inherits the web search agent's context and is discarding the URL fields</li>
+            <li class="exam-option" onclick="pick(this,false,'q13a')"><span class="option-letter">D</span>The web search tool is not returning URLs in its response schema</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r13a')">Show explanation</button>
+          <div class="exam-reveal" id="r13a">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> Context passing format is the most common source of lost attribution. If the coordinator converts structured JSON to a plain text summary before passing it to the synthesis agent, source URLs are silently discarded. The fix: pass the full structured JSON preserving all metadata. <strong>A</strong> is a secondary issue that a prompt fix could address, but the root cause is the data pipeline losing structure. <strong>C is wrong:</strong> Subagents don't inherit context — they receive only what the coordinator explicitly passes. <strong>D is wrong:</strong> The problem statement states the web search agent correctly returns URLs.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 1.3</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A research pipeline spawns 4 subagents sequentially, each taking ~15 seconds. Total pipeline time is 60+ seconds. The team wants to reduce this to ~15 seconds. What is the correct architectural change?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q13b')"><span class="option-letter">A</span>Use a faster Claude model for subagents to reduce per-agent latency from 15s to 5s</li>
+            <li class="exam-option" onclick="pick(this,false,'q13b')"><span class="option-letter">B</span>Add caching to the coordinator so repeated queries reuse previous subagent results</li>
+            <li class="exam-option" onclick="pick(this,true,'q13b')"><span class="option-letter">C</span>Emit all 4 Task tool calls in a single coordinator response so the subagents execute in parallel rather than sequentially across separate turns</li>
+            <li class="exam-option" onclick="pick(this,false,'q13b')"><span class="option-letter">D</span>Merge all 4 subagents into a single agent that handles all research tasks to eliminate coordination overhead</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r13b')">Show explanation</button>
+          <div class="exam-reveal" id="r13b">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> Multiple Task calls in a single response triggers parallel execution — all 4 run concurrently, so total time approaches the slowest single agent (~15s) rather than the sum (~60s). This is the explicit parallel spawning pattern from the exam guide. <strong>A</strong> reduces per-agent time but doesn't address the sequential architecture — time is still 4x the single-agent time. <strong>B</strong> helps for repeated identical queries but doesn't solve the fundamental sequencing. <strong>D</strong> merges specializations, degrading quality and violating the role-scoping principle.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.4 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.4</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts14">
+      <div class="ts-number">Task Statement 1.4</div>
+      <h3>Implement multi-step workflows with enforcement and handoff patterns</h3>
+      <div class="ts-desc">When the business cannot tolerate a 1% failure rate, prompt instructions are not enough. This task statement is about knowing when to build programmatic gates — and how to hand off gracefully when the agent can't proceed alone.</div>
+    </div>
+
+    <section class="section" id="ts14-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Prompt-based guidance tells Claude what it <em>should</em> do. Programmatic enforcement tells the system what it <em>can</em> do. For critical business logic — identity verification before financial operations, compliance checks before data access — only programmatic gates provide the deterministic guarantees that production requires.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Exam Principle:</strong> "Enhance the system prompt to say X is mandatory" is always the wrong answer when the question describes a scenario with financial consequences or identity verification. The correct answer is a programmatic prerequisite gate that blocks the downstream tool call until the prerequisite is satisfied.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts14-enforcement">
+      <h3 class="section-title blue">Programmatic Prerequisite Gates</h3>
+      <p>A prerequisite gate intercepts a tool call and checks whether required prior steps have been completed. If not, it blocks the call and returns a structured error explaining what must happen first.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">python — prerequisite gate blocking process_refund</span>
+          <span class="code-tag tag-good">DETERMINISTIC ENFORCEMENT</span>
+        </div>
+        <pre><span class="hl-fn">def</span> <span class="hl-key">execute_tool</span>(tool_name, tool_input, session_state):
+    <span class="hl-comment"># ✓ Programmatic gate — runs before every tool execution</span>
+    <span class="hl-fn">if</span> tool_name <span class="hl-fn">in</span> [<span class="hl-str">"process_refund"</span>, <span class="hl-str">"lookup_order"</span>]:
+        <span class="hl-fn">if not</span> session_state.get(<span class="hl-str">"verified_customer_id"</span>):
+            <span class="hl-fn">return</span> {
+                <span class="hl-str">"error"</span>: <span class="hl-str">"Prerequisite not met"</span>,
+                <span class="hl-str">"required"</span>: <span class="hl-str">"get_customer must be called first"</span>,
+                <span class="hl-str">"reason"</span>: <span class="hl-str">"Identity verification required before order operations"</span>
+            }
+
+    <span class="hl-fn">if</span> tool_name == <span class="hl-str">"get_customer"</span>:
+        result = get_customer_impl(tool_input)
+        <span class="hl-comment"># ✓ Gate is cleared once prerequisite completes</span>
+        session_state[<span class="hl-str">"verified_customer_id"</span>] = result[<span class="hl-str">"customer_id"</span>]
+        <span class="hl-fn">return</span> result
+
+    <span class="hl-comment"># ✗ Prompt-only approach (12% failure rate):</span>
+    <span class="hl-comment"># "Always call get_customer before any order operations"</span></pre>
+      </div>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Prompt-Based (12% Failure)</div>
+          <div class="compare-body">
+System prompt:
+<span class="hl-warn">"Customer verification via
+get_customer is mandatory
+before any order operations."</span>
+
+Production result:
+- 88% compliance rate
+- 12% skips to lookup_order
+- Wrong refunds issued
+- Financial impact
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Programmatic Gate (0% Bypass)</div>
+          <div class="compare-body">
+Gate logic:
+<span class="hl-ok">if "process_refund" called
+  and no verified_customer_id
+  → block + return error</span>
+
+Production result:
+- 100% compliance
+- Zero bypasses possible
+- Deterministic guarantee
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts14-handoff">
+      <h3 class="section-title green">Structured Handoff Protocols</h3>
+      <p>When an agent must escalate to a human, the handoff package must be complete — the human agent receiving it has no access to the conversation history. Every decision, finding, and recommendation must be compiled into a self-contained summary.</p>
+      <ul class="skill-list">
+        <li>Decompose multi-concern requests into distinct items, investigate each in parallel using shared context, then synthesize a unified resolution before handoff</li>
+        <li>Compile structured handoff summaries with: customer ID, issue root cause, refund amount or action taken, recommended next action</li>
+        <li>Include what was attempted and what was not — the human agent needs to know where to pick up</li>
+        <li>Never escalate with "I couldn't help" — always include the investigation results that led to escalation</li>
+      </ul>
+    </section>
+
+    <section class="section" id="ts14-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.4</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Enhance system prompt to make verification "mandatory"</td>
+            <td class="col-why">Prompt instructions have a non-zero failure rate for compliance. "Mandatory" in a prompt is advisory, not enforced</td>
+            <td class="col-correct">Programmatic gate that physically blocks the tool call until prerequisite state is set</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Add few-shot examples showing correct tool order</td>
+            <td class="col-why">Few-shot examples improve probability but don't provide deterministic guarantees for financial operations</td>
+            <td class="col-correct">Gates for financial/identity operations; few-shot for classification and routing where probabilistic is acceptable</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Escalate with just "I need human assistance"</td>
+            <td class="col-why">Human agent has no context — they must start over. Wastes the investigation work already done</td>
+            <td class="col-correct">Structured handoff including customer ID, root cause, what was found, and recommended action</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts14-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T4</div>
+          <h3>Build a Prerequisite Gate for a Financial Workflow</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Implement the get_customer → lookup_order → process_refund gate chain and prove it enforces order deterministically.</p>
+        <ul class="task-steps">
+          <li>Implement session state tracking with <code>verified_customer_id</code> flag</li>
+          <li>Build the prerequisite gate: block <code>lookup_order</code> and <code>process_refund</code> until <code>get_customer</code> sets the flag</li>
+          <li>Test bypass attempt: craft a prompt where the user volunteers their order ID — confirm the gate still fires</li>
+          <li>Implement structured handoff: when a refund exceeds $500, compile a complete handoff package and escalate</li>
+          <li>Compare with prompt-only: remove the gate, add a system prompt instruction — run 10 tests and count how many bypass verification</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts14-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.4</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.4</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">Production data shows that in 12% of cases, the agent skips <code>get_customer</code> entirely and calls <code>lookup_order</code> using only the customer's stated name, occasionally leading to misidentified accounts and incorrect refunds. What change would most effectively address this reliability issue?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,true,'q14a')"><span class="option-letter">A</span>Add a programmatic prerequisite that blocks <code>lookup_order</code> and <code>process_refund</code> calls until <code>get_customer</code> has returned a verified customer ID</li>
+            <li class="exam-option" onclick="pick(this,false,'q14a')"><span class="option-letter">B</span>Enhance the system prompt to state that customer verification via <code>get_customer</code> is mandatory before any order operations</li>
+            <li class="exam-option" onclick="pick(this,false,'q14a')"><span class="option-letter">C</span>Add few-shot examples showing the agent always calling <code>get_customer</code> first, even when customers volunteer order details</li>
+            <li class="exam-option" onclick="pick(this,false,'q14a')"><span class="option-letter">D</span>Implement a routing classifier that analyzes each request and enables only the subset of tools appropriate for that request type</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r14a')">Show explanation</button>
+          <div class="exam-reveal" id="r14a">
+            <div class="reveal-label">Correct: A</div>
+            <div class="reveal-text"><strong>A is correct.</strong> This is the official exam question Q1. Programmatic enforcement provides deterministic guarantees that prompt-based approaches cannot. The 12% failure rate is already proof that the prompt approach is insufficient. <strong>B and C</strong> are both probabilistic — they may reduce the failure rate but cannot eliminate it when errors have financial consequences. <strong>D</strong> addresses which tools are available, not their execution order — the actual problem.</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 1.4</span>
+        <span class="exam-scenario">Customer Support Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A customer support agent has a 5-step workflow: <code>identify_customer → lookup_order → assess_eligibility → calculate_compensation → process_refund</code>. Post-deployment analysis shows that in 8% of cases, <code>process_refund</code> is called with a null <code>customer_id</code> because a <code>lookup_order</code> failure was silently absorbed 3 steps earlier. What is the most effective architectural change to prevent null propagation through the workflow?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q14b')"><span class="option-letter">A</span>Add validation in <code>process_refund</code> to reject calls with null <code>customer_id</code> and return a structured error message</li>
+          <li class="exam-option" onclick="pick(this,false,'q14b')"><span class="option-letter">B</span>Add a system prompt instruction: "Always verify <code>customer_id</code> is not null before processing a refund"</li>
+          <li class="exam-option" onclick="pick(this,false,'q14b')"><span class="option-letter">C</span>Add retry logic at the <code>lookup_order</code> step so it retries up to 3 times before returning null</li>
+          <li class="exam-option" onclick="pick(this,true,'q14b')"><span class="option-letter">D</span>Implement a programmatic gate at <code>lookup_order</code>'s output: if the result lacks a valid <code>customer_id</code>, immediately raise a structured error that halts the workflow — preventing downstream tools from being called with incomplete state</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r14b')">Show explanation</button>
+        <div class="exam-reveal" id="r14b">
+          <div class="reveal-label">Correct: D</div>
+          <div class="reveal-text"><strong>D is correct.</strong> A gate at the failure source stops propagation immediately rather than letting null flow through 3 intermediate steps. This is enforcement at the right layer — the workflow cannot proceed past <code>lookup_order</code> with invalid state. <strong>A is wrong:</strong> Validation at <code>process_refund</code> only catches the null 3 steps later, after the workflow has done unnecessary work and potentially taken other actions. <strong>B is wrong:</strong> The 8% failure rate proves prompt instructions aren't sufficient — programmatic enforcement is required. <strong>C is wrong:</strong> Retry addresses transient failures, not the null propagation architecture problem. If <code>lookup_order</code> returns null after retries, the same null still propagates downstream.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 1.4</span>
+        <span class="exam-scenario">Customer Support Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your agent must enforce this rule: a refund cannot exceed the original order total. The order total is retrieved by <code>lookup_order</code> at step 2, and the refund amount is determined by <code>calculate_compensation</code> at step 4. Currently, <code>process_refund</code> occasionally executes refunds exceeding the order total due to compensation calculation errors. What is the most reliable enforcement mechanism?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q14c')"><span class="option-letter">A</span>Add a validation instruction to <code>calculate_compensation</code>: "The compensation must never exceed the original order total retrieved in step 2"</li>
+          <li class="exam-option" onclick="pick(this,true,'q14c')"><span class="option-letter">B</span>Implement a pre-call guard on <code>process_refund</code> that receives both <code>refund_amount</code> and <code>order_total</code> as required inputs, compares them programmatically in application code, and raises a structured error if <code>refund_amount &gt; order_total</code></li>
+          <li class="exam-option" onclick="pick(this,false,'q14c')"><span class="option-letter">C</span>Add a post-call audit tool that reviews completed refunds and flags overages for manual reversal within 24 hours</li>
+          <li class="exam-option" onclick="pick(this,false,'q14c')"><span class="option-letter">D</span>Log the order total to session state at <code>lookup_order</code> so it is consistently available for the model to reference when calculating compensation</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r14c')">Show explanation</button>
+        <div class="exam-reveal" id="r14c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> A programmatic comparison in application code before the refund executes is deterministic — it cannot be bypassed regardless of what the model decided. The guard fires before any funds move. <strong>A is wrong:</strong> Prompt instructions in <code>calculate_compensation</code> are probabilistic — the same conditions causing occasional overages will cause them again. <strong>C is wrong:</strong> Post-call audits are a recovery mechanism, not a prevention mechanism — money has already moved before the audit runs. <strong>D is wrong:</strong> Logging the order total improves auditability but adds no enforcement — the model can still pass an incorrect amount to <code>process_refund</code> regardless of what's in session state.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.5 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.5</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts15">
+      <div class="ts-number">Task Statement 1.5</div>
+      <h3>Apply Agent SDK hooks for tool call interception and data normalization</h3>
+      <div class="ts-desc">Hooks are the layer between tool execution and model reasoning. They enable deterministic compliance and clean data normalization — without polluting tool implementations or system prompts.</div>
+    </div>
+
+    <section class="section" id="ts15-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Hooks intercept the tool call lifecycle at two points: <strong>before</strong> a tool is called (tool call interception) and <strong>after</strong> it returns (PostToolUse). This gives you a centralized place to enforce compliance rules and normalize data formats before Claude reasons about tool results.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Decision Rule:</strong> Use hooks when the business rule requires <em>guaranteed</em> compliance. Use prompts when probabilistic compliance is acceptable. The exam will present scenarios — your job is to classify them correctly. Financial operations, refund thresholds, and PII handling = hooks. Style guidelines and output formatting = prompts.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts15-hooks">
+      <h3 class="section-title blue">Hook Patterns</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">📥</div>
+          <h4>PostToolUse Hook</h4>
+          <p>Intercepts tool results before the model sees them. Use for: normalizing heterogeneous data formats (Unix timestamps → ISO 8601, numeric status codes → human-readable strings) from different MCP tools.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📤</div>
+          <h4>Tool Call Interception Hook</h4>
+          <p>Intercepts outgoing tool calls before execution. Use for: blocking policy-violating actions (refunds exceeding $500), redirecting to alternative workflows, logging compliance events.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔒</div>
+          <h4>Deterministic Guarantee</h4>
+          <p>Hook logic runs in application code — not through the LLM. This means 100% enforcement. A hook that blocks a call will never fail due to model reasoning.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🧹</div>
+          <h4>Data Normalization</h4>
+          <p>Multiple MCP tools return different timestamp formats, status codes, and field names. PostToolUse hooks normalize everything to a consistent schema before Claude processes it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts15-code">
+      <h3 class="section-title green">Hook Implementations</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">python — PostToolUse: normalize timestamps from multiple MCP tools</span>
+          <span class="code-tag tag-neutral">DATA NORMALIZATION</span>
+        </div>
+        <pre><span class="hl-fn">def</span> <span class="hl-key">post_tool_use_hook</span>(tool_name, tool_result):
+    <span class="hl-comment">"""Normalize heterogeneous data before model processes it."""</span>
+
+    <span class="hl-fn">if</span> <span class="hl-str">"created_at"</span> <span class="hl-fn">in</span> tool_result:
+        ts = tool_result[<span class="hl-str">"created_at"</span>]
+
+        <span class="hl-comment"># Unix timestamp → ISO 8601</span>
+        <span class="hl-fn">if</span> isinstance(ts, (int, float)):
+            tool_result[<span class="hl-str">"created_at"</span>] = datetime.utcfromtimestamp(ts).isoformat()
+
+    <span class="hl-comment"># Numeric status codes → human-readable</span>
+    status_map = {<span class="hl-num">1</span>: <span class="hl-str">"active"</span>, <span class="hl-num">2</span>: <span class="hl-str">"pending"</span>, <span class="hl-num">3</span>: <span class="hl-str">"cancelled"</span>}
+    <span class="hl-fn">if</span> <span class="hl-str">"status"</span> <span class="hl-fn">in</span> tool_result <span class="hl-fn">and</span> isinstance(tool_result[<span class="hl-str">"status"</span>], int):
+        tool_result[<span class="hl-str">"status"</span>] = status_map.get(tool_result[<span class="hl-str">"status"</span>], <span class="hl-str">"unknown"</span>)
+
+    <span class="hl-fn">return</span> tool_result</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">python — Tool call interception: block refunds exceeding policy threshold</span>
+          <span class="code-tag tag-good">COMPLIANCE ENFORCEMENT</span>
+        </div>
+        <pre><span class="hl-fn">def</span> <span class="hl-key">pre_call_hook</span>(tool_name, tool_input, session_state):
+    <span class="hl-comment">"""Block policy-violating actions before execution."""</span>
+
+    <span class="hl-fn">if</span> tool_name == <span class="hl-str">"process_refund"</span>:
+        amount = tool_input.get(<span class="hl-str">"amount"</span>, <span class="hl-num">0</span>)
+
+        <span class="hl-fn">if</span> amount > <span class="hl-num">500</span>:
+            <span class="hl-comment"># Block and redirect to escalation workflow</span>
+            <span class="hl-fn">return</span> {
+                <span class="hl-str">"blocked"</span>: <span class="hl-num">True</span>,
+                <span class="hl-str">"reason"</span>: <span class="hl-str">"Refund exceeds $500 policy maximum"</span>,
+                <span class="hl-str">"action"</span>: <span class="hl-str">"escalate_to_manager"</span>,
+                <span class="hl-str">"amount_requested"</span>: amount
+            }
+
+    <span class="hl-fn">return</span> None  <span class="hl-comment"># None = allow the call to proceed</span></pre>
+      </div>
+    </section>
+
+    <section class="section" id="ts15-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.5</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Use system prompt to enforce the $500 refund policy</td>
+            <td class="col-why">Prompts are probabilistic — a sufficiently unusual input or edge case will bypass the instruction</td>
+            <td class="col-correct">Pre-call hook that reads the amount and blocks before execution, 100% of the time</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Normalize data formats inside each tool implementation</td>
+            <td class="col-why">Scatters normalization logic across tools — inconsistent, hard to audit, breaks when new tools are added</td>
+            <td class="col-correct">Centralized PostToolUse hook normalizes all tool outputs to a consistent schema</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Use hooks for all compliance, even style/formatting guidelines</td>
+            <td class="col-why">Overkill — hooks are for deterministic requirements; prompts handle stylistic preferences effectively</td>
+            <td class="col-correct">Hooks for financial, identity, and regulatory compliance. Prompts for formatting, tone, and style.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts15-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T5</div>
+          <h3>Build a Hook Layer for a Customer Support Agent</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Implement both a PostToolUse normalization hook and a pre-call compliance hook.</p>
+        <ul class="task-steps">
+          <li>Build PostToolUse hook that normalizes: Unix timestamps → ISO 8601, numeric status codes → strings, currency in cents → formatted dollars</li>
+          <li>Build pre-call hook blocking <code>process_refund</code> when amount &gt; $500 and redirecting to <code>escalate_to_manager</code></li>
+          <li>Test: send a refund request for $750 — confirm the hook blocks it before the tool executes, not after</li>
+          <li>Test normalization: mock a tool that returns Unix timestamp and numeric status — confirm Claude receives ISO and string versions</li>
+          <li>Compare: remove the hook and add a system prompt for the $500 rule — run 20 tests with varying inputs and count bypasses</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts15-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.5</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.5</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">Your agent uses 3 MCP tools from different vendors. Each returns timestamps in a different format: Tool A returns Unix timestamps, Tool B returns ISO 8601 strings, Tool C returns "MM/DD/YYYY" formatted strings. Claude is making errors in time-based comparisons because it processes different formats inconsistently. What is the most architecturally sound fix?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q15a')"><span class="option-letter">A</span>Add a system prompt instruction: "All timestamps should be treated as UTC and converted to ISO 8601 before comparison"</li>
+            <li class="exam-option" onclick="pick(this,false,'q15a')"><span class="option-letter">B</span>Update each of the 3 MCP tool implementations to return ISO 8601 format</li>
+            <li class="exam-option" onclick="pick(this,true,'q15a')"><span class="option-letter">C</span>Implement a PostToolUse hook that normalizes all tool outputs to ISO 8601 before the model processes them, centralizing format logic in one place</li>
+            <li class="exam-option" onclick="pick(this,false,'q15a')"><span class="option-letter">D</span>Add a dedicated timestamp normalization tool that Claude can call after each tool result to convert the format</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r15a')">Show explanation</button>
+          <div class="exam-reveal" id="r15a">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> A PostToolUse hook centralizes normalization in one place — consistent, auditable, and automatically applied to any new tool added in the future. <strong>A is wrong:</strong> System prompts are probabilistic and still require Claude to correctly interpret heterogeneous inputs. <strong>B would work</strong> but requires modifying external vendor tools — often not possible, and scatters normalization logic. <strong>D</strong> is over-engineered and adds unnecessary tool calls and latency to every interaction.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 1.5</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">Your team needs to enforce a policy that no refund over $500 can be processed without manager approval. Which implementation approach provides the required deterministic guarantee?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q15b')"><span class="option-letter">A</span>Add to the system prompt: "For refunds over $500, always check with a manager before processing"</li>
+            <li class="exam-option" onclick="pick(this,false,'q15b')"><span class="option-letter">B</span>Include 5–8 few-shot examples in the system prompt demonstrating the agent escalating large refunds</li>
+            <li class="exam-option" onclick="pick(this,true,'q15b')"><span class="option-letter">C</span>Implement a pre-call interception hook on <code>process_refund</code> that reads the amount, blocks calls over $500, and routes to an escalation workflow — running in application code before any LLM call</li>
+            <li class="exam-option" onclick="pick(this,false,'q15b')"><span class="option-letter">D</span>Add input validation to the <code>process_refund</code> tool that returns an error for amounts over $500</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r15b')">Show explanation</button>
+          <div class="exam-reveal" id="r15b">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> A pre-call hook runs in application code and cannot be bypassed by any model behavior. <strong>A and B</strong> are probabilistic — they depend on LLM compliance, which has a non-zero failure rate. <strong>D is close</strong> but input validation inside the tool fires after the LLM has already decided to call it; the hook fires before — preventing the call entirely and enabling redirection to escalation. Additionally, tool-level validation still invokes the tool; the hook redirects to a different workflow.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.6 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.6</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts16">
+      <div class="ts-number">Task Statement 1.6</div>
+      <h3>Design task decomposition strategies for complex workflows</h3>
+      <div class="ts-desc">Not all workflows need the same decomposition strategy. Fixed sequential pipelines excel at predictable multi-step tasks. Dynamic adaptive decomposition shines for open-ended investigation. Knowing which to use — and why — is what the exam tests.</div>
+    </div>
+
+    <section class="section" id="ts16-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Task decomposition is the act of breaking a complex goal into a sequence of smaller, executable steps. The right pattern depends on how much is known about the task upfront: <strong>prompt chaining</strong> for predictable workflows where the steps are known in advance, <strong>dynamic decomposition</strong> for open-ended investigations where each step reveals what to do next.</p>
+    </section>
+
+    <section class="section" id="ts16-patterns">
+      <h3 class="section-title blue">Decomposition Patterns</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">🔗</div>
+          <h4>Prompt Chaining</h4>
+          <p>Fixed sequential pipeline. Each step's output is the next step's input. Use when: the workflow has predictable stages (analyze file → summarize → compare → report). Steps known in advance.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🌱</div>
+          <h4>Dynamic Adaptive Decomposition</h4>
+          <p>Generates subtasks based on what's discovered. Use when: the task is open-ended and intermediate findings change what to explore next (e.g., "add comprehensive tests to a legacy codebase").</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📄</div>
+          <h4>Per-File + Integration Pass</h4>
+          <p>Split large multi-file reviews: analyze each file individually for local issues, then run a separate cross-file integration pass. Avoids attention dilution in single-pass reviews of 10+ files.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🗺️</div>
+          <h4>Map-First, Then Plan</h4>
+          <p>For open-ended tasks: first map the full scope (all files, all dependencies), identify high-impact areas, then generate a prioritized plan that can adapt as dependencies are discovered.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Per-file + integration pass is tested directly.</strong> A single-pass review of 14 files produces inconsistent depth and contradictory findings. The fix is not a larger context window — it's splitting into per-file local passes plus a separate cross-file integration pass. This pattern appears in Domain 1 (decomposition) and Domain 4 (multi-pass review).</div>
+      </div>
+
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Single-Pass Review (14 files)</div>
+          <div class="compare-body">
+Input: all 14 files simultaneously
+
+Problems observed:
+<span class="hl-warn">- Superficial comments on some files</span>
+<span class="hl-warn">- Obvious bugs missed</span>
+<span class="hl-warn">- Contradictory feedback across files</span>
+<span class="hl-warn">- Pattern flagged in file A,</span>
+<span class="hl-warn">  approved in identical file B</span>
+
+Root cause: attention dilution
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Per-file + Integration Pass</div>
+          <div class="compare-body">
+Pass 1: analyze each file individually
+→ consistent depth per file
+→ local issues caught reliably
+
+Pass 2: cross-file integration review
+→ data flow analysis
+→ interface contracts
+→ global pattern consistency
+
+<span class="hl-ok">Root cause eliminated.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts16-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.6</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Use dynamic decomposition for a predictable multi-step review</td>
+            <td class="col-why">Dynamic decomposition adds overhead and unpredictability when the steps are already known and fixed</td>
+            <td class="col-correct">Prompt chaining for predictable workflows; dynamic only for open-ended investigation tasks</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Switch to a larger context model to review 14 files in one pass</td>
+            <td class="col-why">Context window size doesn't solve attention dilution — models still process middle content less reliably</td>
+            <td class="col-correct">Split into per-file passes + integration pass; attention is consistent within each focused pass</td>
+          </tr>
+          <tr>
+            <td class="col-trap">For "add tests to a legacy codebase," start implementing immediately</td>
+            <td class="col-why">Without mapping the codebase first, tests will duplicate existing coverage and miss high-impact areas</td>
+            <td class="col-correct">Map structure → identify high-impact areas → create prioritized plan → implement adaptively</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts16-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T6</div>
+          <h3>Implement Both Decomposition Patterns and Compare</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Build both patterns on the same problem set and demonstrate when each is appropriate.</p>
+        <ul class="task-steps">
+          <li>Implement a prompt chain for a 5-step code review: parse → analyze → summarize per file → cross-file compare → report</li>
+          <li>Implement dynamic decomposition for "identify all test gaps in this codebase" — observe how the plan adapts to discoveries</li>
+          <li>Run a single-pass review on 8 files. Document the inconsistencies in depth and any contradictions</li>
+          <li>Re-run with per-file passes + integration pass. Compare output quality and consistency</li>
+          <li>Classify 5 new task descriptions as "prompt chain" or "dynamic" and justify each classification</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts16-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.6</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.6</span>
+          <span class="exam-scenario">Claude Code for CI/CD</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A PR modifying 14 files produces inconsistent single-pass review results: detailed feedback for some files, superficial comments for others, obvious bugs missed, and contradictory feedback — flagging a pattern as problematic in one file while approving identical code elsewhere. How should you restructure the review?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,true,'q16a')"><span class="option-letter">A</span>Split into focused passes: analyze each file individually for local issues, then run a separate integration-focused pass examining cross-file data flow</li>
+            <li class="exam-option" onclick="pick(this,false,'q16a')"><span class="option-letter">B</span>Require developers to split large PRs into smaller submissions of 3–4 files before automated review runs</li>
+            <li class="exam-option" onclick="pick(this,false,'q16a')"><span class="option-letter">C</span>Switch to a higher-tier model with a larger context window to give all 14 files adequate attention in one pass</li>
+            <li class="exam-option" onclick="pick(this,false,'q16a')"><span class="option-letter">D</span>Run three independent review passes on the full PR and only flag issues appearing in at least two of three runs</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r16a')">Show explanation</button>
+          <div class="exam-reveal" id="r16a">
+            <div class="reveal-label">Correct: A</div>
+            <div class="reveal-text"><strong>A is correct.</strong> Per-file passes ensure consistent depth; the integration pass catches cross-file issues. This is the official exam question Q12. <strong>B</strong> shifts burden to developers without solving the review quality problem. <strong>C is the canonical exam trap</strong> — context window size does not solve attention dilution. A model with a 200k token window still processes middle content less reliably than a focused per-file review. <strong>D</strong> adds cost and complexity without addressing inconsistency — three inconsistent passes still produce inconsistent results.</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 1.6</span>
+        <span class="exam-scenario">Claude Code for CI/CD</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A team uses a single Claude Code agent to review a microservices PR touching: 4 service implementations, 3 shared library modules, 1 database migration, and 12 test files (20 files total, given simultaneously). Reviews are technically complete but lack depth — obvious architectural risks are noted superficially while trivial issues receive detailed discussion. What decomposition strategy would most improve review quality?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q16b')"><span class="option-letter">A</span>Switch to a model with a larger context window so all 20 files receive proportional attention without context dilution</li>
+          <li class="exam-option" onclick="pick(this,true,'q16b')"><span class="option-letter">B</span>Split into specialized passes: a per-file structural pass (one agent call per significant file), an integration pass examining cross-service data contracts and shared library changes, and a separate database migration safety pass</li>
+          <li class="exam-option" onclick="pick(this,false,'q16b')"><span class="option-letter">C</span>Run the same review 3 times with different prompts and take the union of all findings to maximize coverage</li>
+          <li class="exam-option" onclick="pick(this,false,'q16b')"><span class="option-letter">D</span>Provide a ranked priority list in the system prompt so the agent allocates more reasoning to high-risk files first</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r16b')">Show explanation</button>
+        <div class="exam-reveal" id="r16b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Decomposing by concern rather than by file count ensures each pass has a focused, well-defined goal: structural correctness per file, cross-service contract integrity, and migration safety are distinct analyses each requiring full context. <strong>A is wrong — this is the canonical exam trap:</strong> larger context windows don't solve attention dilution. Adding more files to a larger window produces the same uneven depth of analysis. <strong>C is wrong:</strong> Multiple runs of the same under-scoped review produce consistent shallow analysis — union of three shallow passes doesn't produce depth. <strong>D is wrong:</strong> Prioritization improves ordering but doesn't fix the fundamental problem — 20 files in one context still produces shallow analysis on lower-priority files regardless of ordering.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 1.6</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A research synthesis task receives findings from 6 domain specialists (all given simultaneously). Post-review, the synthesis agent merged contradictory statistics from reports 2 and 5 without flagging the conflict, and ignored report 4 entirely. Which decomposition strategy would most reliably surface conflicts and ensure complete coverage?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q16c')"><span class="option-letter">A</span>Add a system prompt instruction: "Identify and flag all contradictions between reports before synthesizing, and confirm you have read all 6 reports"</li>
+          <li class="exam-option" onclick="pick(this,false,'q16c')"><span class="option-letter">B</span>Run the synthesis agent 3 times and use the majority position on each claim to reduce variance</li>
+          <li class="exam-option" onclick="pick(this,true,'q16c')"><span class="option-letter">C</span>Decompose into: (1) per-report structured extraction passes normalizing each report into a claim-evidence-source schema, then (2) a conflict detection pass comparing claims pairwise across all 6 reports, then (3) a final synthesis pass that explicitly addresses identified conflicts</li>
+          <li class="exam-option" onclick="pick(this,false,'q16c')"><span class="option-letter">D</span>Place report 4 first in the input order to ensure it receives the most attention through the primacy effect</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r16c')">Show explanation</button>
+        <div class="exam-reveal" id="r16c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Structural decomposition guarantees coverage: by normalizing all 6 reports into a consistent claim schema first, the conflict detection pass has clean structured data to compare — it cannot miss report 4 because all 6 reports are processed in the extraction phase. The synthesis pass then works from verified, structured, conflict-annotated input. <strong>A is wrong:</strong> The same conditions that caused the miss (6 reports simultaneously in one context) persist — instructions don't change the attention distribution. <strong>B is wrong:</strong> Majority voting suppresses minority findings. If reports 2 and 5 each have a different contradictory statistic, the "majority" is silence — neither is repeated across 3 runs. <strong>D is wrong:</strong> Primacy improves the first few reports, not coverage of all 6. Report 4 placed later would still receive diminished attention.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 1.7 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 1.7</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts17">
+      <div class="ts-number">Task Statement 1.7</div>
+      <h3>Manage session state, resumption, and forking</h3>
+      <div class="ts-desc">Long-running investigations don't fit in a single session. This task statement covers how to pause and resume work correctly — and how to explore divergent paths from a shared baseline without contaminating either branch.</div>
+    </div>
+
+    <section class="section" id="ts17-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Sessions preserve conversation history and tool results across work sessions. But session resumption is not always the right choice — when the files being analyzed have changed since the last session, the cached tool results are stale and the model will reason incorrectly from them.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Key Decision:</strong> Resume when prior context is mostly valid. Start fresh with an injected summary when prior tool results are stale. The exam tests this decision — "stale tool results from a codebase that has changed" always calls for fresh start with summary injection, not blind resumption.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ts17-resume">
+      <h3 class="section-title blue">Session Resumption</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">▶️</div>
+          <h4>--resume &lt;session-name&gt;</h4>
+          <p>Continues a specific prior named conversation. The full history — including all tool calls and results — is restored. Use when: investigation is paused mid-task and no analyzed files have changed.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📋</div>
+          <h4>Summary Injection</h4>
+          <p>Start a new session but open with a structured summary of prior findings. Use when: files have been modified since the last session — prior tool results no longer reflect reality.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🎯</div>
+          <h4>Targeted Re-Analysis</h4>
+          <p>When resuming after file changes, inform the agent specifically which files changed — don't require full re-exploration of unchanged areas. Focus re-analysis on what's different.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">⚠️</div>
+          <h4>Stale Tool Results</h4>
+          <p>A resumed session where files have changed since the last run contains tool results that contradict the current state of the code. The model will reason incorrectly from stale data.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ts17-fork">
+      <h3 class="section-title green">Session Forking</h3>
+      <p><code>fork_session</code> creates an independent branch from the current session's state. Both branches share the same history up to the fork point, then diverge independently. Neither branch's changes affect the other.</p>
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>When to fork:</strong> You've completed a shared codebase analysis and want to explore two different testing strategies from the same starting point. Fork once after the analysis — then each branch explores its strategy independently, with the full shared analysis as context.</div>
+      </div>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Resume Stale Session</div>
+          <div class="compare-body">
+Session from 2 days ago:
+- Analyzed auth.py → found 3 issues
+- Analyzed models.py → mapped schema
+
+Since then:
+<span class="hl-warn">- auth.py was refactored</span>
+<span class="hl-warn">- models.py has new fields</span>
+
+Resume anyway?
+<span class="hl-warn">Model reasons from stale data.
+Wrong conclusions. Missed issues.</span>
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Fresh Start + Summary Injection</div>
+          <div class="compare-body">
+New session opens with:
+
+"Prior analysis summary:
+- auth.py: had 3 issues (now refactored)
+- models.py: schema mapped (new fields added)
+
+Files changed since last session:
+<span class="hl-ok">- auth.py (full re-analysis needed)
+- models.py (check new fields only)</span>
+
+Re-analyze these specifically."
+          </div>
+        </div>
+      </div>
+      <ul class="skill-list">
+        <li>Use <code>--resume &lt;session-name&gt;</code> for named session continuation when prior context is mostly valid</li>
+        <li>Use <code>fork_session</code> to compare two approaches (e.g., testing strategies, refactoring patterns) from a shared analysis baseline</li>
+        <li>Choose summary injection over resumption when prior tool results are stale — inject a structured summary of findings as the first message</li>
+        <li>When resuming after changes, explicitly tell the agent which specific files changed — enable targeted re-analysis rather than full re-exploration</li>
+      </ul>
+    </section>
+
+    <section class="section" id="ts17-traps">
+      <h3 class="section-title red">Exam Traps for Task 1.7</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Resume a session after the codebase has been refactored</td>
+            <td class="col-why">Tool results from the previous session reflect the old codebase — model reasons incorrectly from stale data</td>
+            <td class="col-correct">Start fresh with a summary of prior findings; specify which files changed for targeted re-analysis</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Fork a session to run two strategies, then merge results back</td>
+            <td class="col-why">Fork branches are independent — there's no merge operation. Results from forked branches must be collected by the original coordinator session</td>
+            <td class="col-correct">Fork for independent exploration; have the coordinator collect and compare results from both branches</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Re-explore the entire codebase after a targeted file change</td>
+            <td class="col-why">Wastes time and context on files that haven't changed; prior analysis of unchanged files is still valid</td>
+            <td class="col-correct">Inform the resumed session specifically which files changed — only re-analyze those</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="ts17-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T7</div>
+          <h3>Implement Session Resumption and Forking with Stale Detection</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Build session management that correctly handles stale results and enables divergent exploration.</p>
+        <ul class="task-steps">
+          <li>Implement a named session workflow: analyze a codebase, pause, resume with <code>--resume</code> and verify context is intact</li>
+          <li>Simulate a stale session: modify two files after a session, attempt resumption — observe where the model reasons incorrectly from old data</li>
+          <li>Fix it: implement fresh start with structured summary injection specifying which files changed</li>
+          <li>Implement <code>fork_session</code>: from a shared analysis baseline, explore "add unit tests" vs "add integration tests" in parallel branches</li>
+          <li>Compare branch results in the original coordinator session and synthesize the better approach</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ts17-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 1.7</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 1.7</span>
+          <span class="exam-scenario">Developer Productivity with Claude</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A developer paused a codebase analysis session yesterday. Since then, two files were significantly refactored. They want to continue the investigation. What is the most reliable approach?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q17a')"><span class="option-letter">A</span>Use <code>--resume</code> to continue the session, then tell Claude about the two changed files in a follow-up message</li>
+            <li class="exam-option" onclick="pick(this,false,'q17a')"><span class="option-letter">B</span>Use <code>--resume</code> directly — Claude will automatically detect that the files have changed and re-analyze them</li>
+            <li class="exam-option" onclick="pick(this,true,'q17a')"><span class="option-letter">C</span>Start a new session with a structured summary of prior findings, explicitly noting which two files changed and requesting targeted re-analysis of only those files</li>
+            <li class="exam-option" onclick="pick(this,false,'q17a')"><span class="option-letter">D</span>Discard the prior session entirely and re-analyze the full codebase from scratch</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r17a')">Show explanation</button>
+          <div class="exam-reveal" id="r17a">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> When tool results from a prior session are stale, starting fresh with a summary injection is more reliable than resumption. The fresh session uses only current file state; the summary carries forward valid findings from unchanged files; the targeted re-analysis focuses effort on what actually changed. <strong>A is closer</strong> but still problematic — the resumed session already contains stale tool results in its history, and the model will reason from those before seeing the follow-up message. <strong>B is wrong:</strong> Claude has no mechanism to automatically detect file changes — it reasons from what's in its context window. <strong>D</strong> throws away all prior valid analysis unnecessarily.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 1.7</span>
+          <span class="exam-scenario">Developer Productivity with Claude</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">After completing a comprehensive codebase analysis, a team wants to explore two different refactoring strategies from the same baseline — without either exploration influencing the other. What is the correct tool?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q17b')"><span class="option-letter">A</span>Start two entirely separate new sessions from scratch, each with the codebase analysis re-run</li>
+            <li class="exam-option" onclick="pick(this,true,'q17b')"><span class="option-letter">B</span>Use <code>fork_session</code> on the completed analysis session to create two independent branches that both share the analysis as context</li>
+            <li class="exam-option" onclick="pick(this,false,'q17b')"><span class="option-letter">C</span>Use a single session and explore both strategies sequentially, using <code>/compact</code> between each to reduce context</li>
+            <li class="exam-option" onclick="pick(this,false,'q17b')"><span class="option-letter">D</span>Use <code>--resume</code> twice from the same session — the second resume creates a copy automatically</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r17b')">Show explanation</button>
+          <div class="exam-reveal" id="r17b">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> <code>fork_session</code> is exactly the tool for this scenario: both branches inherit the full analysis context, and neither branch's exploration contaminates the other. <strong>A wastes effort</strong> by re-running the entire codebase analysis twice — fork lets both branches share the work already done. <strong>C is wrong:</strong> Sequential exploration in a single session means strategy A's findings are in context during strategy B's exploration — they contaminate each other. <strong>D is wrong:</strong> <code>--resume</code> continues a session, it does not copy or fork it.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-meta">Domain 1 · All 7 Task Statements · Claude Certified Architect – Foundations</div>
+      <a class="next-btn" href="#">Next: Domain 2 — Tool Design & MCP Integration →</a>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const _DOMAIN = 1;
+  function saEvent(name, meta) {
+    if (typeof window.sa_event === 'function') window.sa_event(name, meta);
+  }
+  function _taskFromId(id) {
+    const m = id.match(/^[qr](\d)(\d)/);
+    return m ? m[1] + '.' + m[2] : id;
+  }
+
+  function pick(el, correct, qid) {
+    const parent = el.closest('.exam-options');
+    parent.querySelectorAll('.exam-option').forEach(o => o.classList.remove('correct','wrong'));
+    el.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      parent.querySelectorAll('.exam-option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true,')) {
+          o.classList.add('correct');
+        }
+      });
+    }
+    const reveal = el.closest('.exam-body').querySelector('.exam-reveal');
+    if (reveal) reveal.classList.add('visible');
+    saEvent('domain_question_answered', { domain: _DOMAIN, task: _taskFromId(qid), qid: qid, correct: correct ? 'yes' : 'no' });
+  }
+
+  function showReveal(id) {
+    document.getElementById(id).classList.add('visible');
+    saEvent('domain_explanation_viewed', { domain: _DOMAIN, task: _taskFromId(id) });
+  }
+
+  saEvent('domain_opened', { domain: _DOMAIN });
+
+  // Active sidebar highlighting
+  const allSections = document.querySelectorAll('[id]');
+  const allLinks = document.querySelectorAll('.sidebar-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    allLinks.forEach(l => {
+      l.classList.remove('active');
+      const href = l.getAttribute('href');
+      if (href && href === '#' + current) l.classList.add('active');
+    });
+  }, { passive: true });
+</script>
+<script>
+function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
+(function(){
+  var p=location.pathname.split('/').pop()||'index.html';
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    if(a.getAttribute('href').split('/').pop()===p) a.classList.add('nav-active');
+  });
+})();
+</script>
+</body>
+</html>

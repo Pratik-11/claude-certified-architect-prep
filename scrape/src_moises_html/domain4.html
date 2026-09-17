@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 4: Prompt Engineering & Structured Output | Claude Certified Architect Guide</title>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1b1f27;
+    --border: #252a35;
+    --accent: #6f9ceb;
+    --accent-warm: #e8b84b;
+    --accent2: #61c99b;
+    --accent3: #e86b5f;
+    --accent4: #b57bee;
+    --accent5: #f97b6b;
+    --text: #e8e6e0;
+    --text-dim: #8891a4;
+    --text-muted: #4a5366;
+    --mono: 'Cascadia Code','Fira Code','JetBrains Mono','SF Mono','Menlo','Consolas',monospace;
+    --serif: 'Palatino Linotype','Book Antiqua','Georgia','Cambria',serif;
+    --sans: -apple-system,'BlinkMacSystemFont','Segoe UI','Helvetica Neue','Arial',sans-serif;
+    --nav-h: 52px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top: calc(var(--nav-h) + 65px); }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.7; min-height:100vh; padding-top:var(--nav-h); }
+
+  /* HEADER */
+  .header { border-bottom:1px solid var(--border); padding:1.1rem 3rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:var(--nav-h); background:rgba(13,15,18,0.95); backdrop-filter:blur(12px); z-index:100; height:65px; }
+  .header-left { display:flex; align-items:center; gap:1.2rem; }
+  .badge { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; padding:4px 10px; border-radius:4px; border:1px solid; }
+  .badge-domain { color:var(--accent2); border-color:rgba(97,201,155,.3); background:rgba(97,201,155,.06); }
+  .badge-weight { color:var(--accent-warm); border-color:rgba(232,184,75,.3); background:rgba(232,184,75,.06); }
+  .header h1 { font-family:var(--serif); font-size:1.05rem; font-weight:300; color:var(--text-dim); }
+  .header h1 strong { color:var(--text); font-weight:600; }
+  .progress-dots { display:flex; gap:4px; align-items:center; }
+  .progress-bar { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--border); }
+  .dot.done { background:var(--accent2); }
+
+  /* LAYOUT */
+  .layout { display:grid; grid-template-columns:250px 1fr; min-height:calc(100vh - 65px); }
+
+  /* SIDEBAR */
+  .sidebar { border-right:1px solid var(--border); padding:2rem 0; position:sticky; top:calc(var(--nav-h) + 65px); height:calc(100vh - var(--nav-h) - 65px); overflow-y:auto; }
+  .sidebar-section { padding:0 1.5rem; margin-bottom:1.75rem; }
+  .sidebar-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.75rem; }
+  .sidebar-nav a { display:block; padding:6px 10px; border-radius:4px; color:var(--text-muted); text-decoration:none; font-size:13px; transition:all .15s; border-left:2px solid transparent; line-height:1.4; }
+  .sidebar-nav a:hover { color:var(--text); background:var(--surface); }
+  .sidebar-nav a.active { color:var(--accent2); border-left-color:var(--accent2); background:rgba(97,201,155,.05); }
+  .ts-badge { display:inline-block; font-family:var(--mono); font-size:9px; padding:1px 5px; border-radius:3px; margin-right:4px; vertical-align:middle; background:rgba(97,201,155,.1); color:var(--accent2); border:1px solid rgba(97,201,155,.2); }
+
+  /* MAIN */
+  .main { padding:3rem 4rem 5rem; max-width:860px; }
+
+  /* HERO */
+  .domain-hero { margin-bottom:3.5rem; padding-bottom:3rem; border-bottom:1px solid var(--border); }
+  .task-meta { display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .domain-hero h2 { font-family:var(--serif); font-size:2.4rem; font-weight:800; line-height:1.15; color:var(--text); margin-bottom:1rem; }
+  .domain-hero h2 em { font-style:italic; color:var(--accent2); }
+  .domain-hero p { font-size:15px; color:var(--text-dim); max-width:620px; line-height:1.75; margin-bottom:.75rem; }
+
+  /* TS DIVIDER */
+  .ts-divider { display:flex; align-items:center; gap:1rem; margin:4rem 0 2.5rem; }
+  .ts-divider-line { flex:1; height:1px; background:var(--border); }
+  .ts-divider-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+
+  /* SECTION */
+  .section { margin-bottom:3rem; }
+  .section-title { font-family:var(--serif); font-size:1.3rem; font-weight:600; color:var(--text); margin-bottom:1.25rem; display:flex; align-items:center; gap:.75rem; }
+  .section-title::before { content:''; display:inline-block; width:4px; height:1.3rem; background:var(--accent2); border-radius:2px; flex-shrink:0; }
+  .section-title.blue::before   { background:var(--accent); }
+  .section-title.red::before    { background:var(--accent3); }
+  .section-title.gold::before   { background:var(--accent-warm); }
+  .section-title.purple::before { background:var(--accent4); }
+
+  /* TS TITLE BLOCK */
+  .ts-title-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.5rem 1.75rem; margin-bottom:2rem; }
+  .ts-title-block .ts-number { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent2); margin-bottom:.5rem; }
+  .ts-title-block h3 { font-family:var(--serif); font-size:1.5rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:.75rem; }
+  .ts-title-block .ts-desc { font-size:14px; color:var(--text-dim); line-height:1.75; }
+
+  p { color:var(--text-dim); margin-bottom:1rem; line-height:1.8; }
+  p strong { color:var(--text); font-weight:500; }
+
+  /* KNOWLEDGE CARDS */
+  .knowledge-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.25rem; }
+  .k-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1.25rem; }
+  .k-card-icon { font-size:1.3rem; margin-bottom:.6rem; }
+  .k-card h4 { font-size:13px; font-weight:500; color:var(--text); margin-bottom:.5rem; }
+  .k-card p { font-size:13px; margin:0; color:var(--text-dim); }
+
+  /* SKILL LIST */
+  .skill-list { list-style:none; margin-top:1rem; }
+  .skill-list li { display:flex; gap:.75rem; align-items:flex-start; padding:.65rem 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text-dim); }
+  .skill-list li:last-child { border-bottom:none; }
+  .skill-list li::before { content:'→'; color:var(--accent2); font-family:var(--mono); flex-shrink:0; margin-top:1px; }
+
+  /* CODE BLOCKS */
+  .code-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin:1.25rem 0; }
+  .code-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .code-label { font-family:var(--mono); font-size:11px; color:var(--text-muted); letter-spacing:.05em; }
+  .code-tag { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:3px; font-weight:500; }
+  .tag-bad     { color:var(--accent3); background:rgba(232,107,95,.1);  border:1px solid rgba(232,107,95,.25); }
+  .tag-good    { color:var(--accent2); background:rgba(97,201,155,.1);  border:1px solid rgba(97,201,155,.25); }
+  .tag-neutral { color:var(--accent);  background:rgba(111,156,235,.1); border:1px solid rgba(111,156,235,.25); }
+  .tag-gold    { color:var(--accent-warm); background:rgba(232,184,75,.1); border:1px solid rgba(232,184,75,.25); }
+  pre { padding:1.25rem 1.5rem; font-family:var(--mono); font-size:12.5px; line-height:1.7; color:var(--text-dim); overflow-x:auto; white-space:pre; }
+  .hl-key     { color:var(--accent4); }
+  .hl-str     { color:var(--accent2); }
+  .hl-comment { color:var(--text-muted); font-style:italic; }
+  .hl-warn    { color:var(--accent3); }
+  .hl-ok      { color:var(--accent2); }
+  .hl-num     { color:var(--accent-warm); }
+  .hl-fn      { color:var(--accent); }
+  .hl-field   { color:var(--accent-warm); }
+
+  /* CALLOUT */
+  .callout { border-radius:8px; padding:1.1rem 1.4rem; margin:1.25rem 0; display:flex; gap:1rem; align-items:flex-start; }
+  .callout-warn    { background:rgba(232,184,75,.07);  border:1px solid rgba(232,184,75,.2); }
+  .callout-danger  { background:rgba(232,107,95,.07);  border:1px solid rgba(232,107,95,.2); }
+  .callout-info    { background:rgba(111,156,235,.07); border:1px solid rgba(111,156,235,.2); }
+  .callout-success { background:rgba(97,201,155,.07);  border:1px solid rgba(97,201,155,.2); }
+  .callout-purple  { background:rgba(181,123,238,.07); border:1px solid rgba(181,123,238,.2); }
+  .callout-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+  .callout-body { font-size:13.5px; color:var(--text-dim); line-height:1.7; }
+  .callout-body strong { color:var(--text); }
+
+  /* COMPARISON */
+  .comparison { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.25rem 0; }
+  .compare-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .compare-header { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; }
+  .compare-header.bad  { background:rgba(232,107,95,.06); color:var(--accent3); }
+  .compare-header.good { background:rgba(97,201,155,.06); color:var(--accent2); }
+  .compare-body { padding:1rem 1.25rem; font-family:var(--mono); font-size:12px; line-height:1.65; color:var(--text-dim); }
+
+  /* TRAP TABLE */
+  .trap-table { width:100%; border-collapse:collapse; margin:1.25rem 0; font-size:13px; }
+  .trap-table th { text-align:left; padding:10px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border); }
+  .trap-table td { padding:11px 14px; border-bottom:1px solid rgba(37,42,53,.5); vertical-align:top; line-height:1.6; }
+  .trap-table tr:last-child td { border-bottom:none; }
+  .trap-table .col-trap    { color:var(--accent3); font-family:var(--mono); font-size:12px; }
+  .trap-table .col-correct { color:var(--accent2); font-size:13px; }
+  .trap-table .col-why     { color:var(--text-dim); font-size:12px; }
+
+  /* TASK BOX */
+  .task-box { background:var(--surface); border:1px solid rgba(97,201,155,.35); border-radius:10px; padding:1.75rem; margin:1.5rem 0; }
+  .task-box-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
+  .task-number { width:28px; height:28px; background:rgba(97,201,155,.15); border:1px solid rgba(97,201,155,.35); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; color:var(--accent2); flex-shrink:0; }
+  .task-box-header h3 { font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--accent2); }
+  .task-steps { list-style:none; counter-reset:task-counter; }
+  .task-steps li { counter-increment:task-counter; display:flex; gap:.85rem; padding:.55rem 0; font-size:14px; color:var(--text-dim); align-items:flex-start; }
+  .task-steps li::before { content:counter(task-counter); font-family:var(--mono); font-size:10px; color:var(--text-muted); background:var(--surface2); border:1px solid var(--border); width:20px; height:20px; border-radius:3px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+
+  /* EXAM QUESTION */
+  .exam-question { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin:1.5rem 0; }
+  .exam-header { background:var(--surface2); padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .exam-q-label { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent2); }
+  .exam-scenario { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+  .exam-body { padding:1.5rem 1.75rem; }
+  .exam-stem { font-size:14px; color:var(--text); line-height:1.75; margin-bottom:1.25rem; }
+  .exam-options { list-style:none; display:flex; flex-direction:column; gap:.65rem; }
+  .exam-option { display:flex; gap:.85rem; padding:.85rem 1.1rem; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text-dim); cursor:pointer; transition:all .15s; align-items:flex-start; }
+  .exam-option:hover { border-color:var(--accent2); color:var(--text); background:rgba(97,201,155,.04); }
+  .exam-option.correct { border-color:var(--accent2); background:rgba(97,201,155,.06); color:var(--text); }
+  .exam-option.wrong   { border-color:rgba(232,107,95,.4); background:rgba(232,107,95,.04); }
+  .option-letter { font-family:var(--mono); font-size:11px; color:var(--text-muted); flex-shrink:0; margin-top:1px; }
+  .exam-option.correct .option-letter { color:var(--accent2); }
+  .exam-option.wrong   .option-letter { color:var(--accent3); }
+  .exam-reveal { display:none; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border); }
+  .exam-reveal.visible { display:block; }
+  .reveal-label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent2); margin-bottom:.5rem; }
+  .reveal-text { font-size:13.5px; color:var(--text-dim); line-height:1.75; }
+  .reveal-text strong { color:var(--text); }
+  .show-answer-btn { margin-top:1.1rem; background:none; border:1px solid var(--border); color:var(--text-muted); font-family:var(--mono); font-size:11px; padding:7px 14px; border-radius:5px; cursor:pointer; transition:all .15s; }
+  .show-answer-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+
+  code { font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--accent2); }
+
+  .footer { margin-top:4rem; padding-top:2rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .footer-meta { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .next-btn { display:flex; align-items:center; gap:.5rem; background:rgba(97,201,155,.1); border:1px solid rgba(97,201,155,.3); color:var(--accent2); font-family:var(--mono); font-size:12px; padding:10px 18px; border-radius:6px; cursor:pointer; text-decoration:none; transition:all .15s; }
+  .next-btn:hover { background:rgba(97,201,155,.18); }
+
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+  /* ── Top Navigation ── */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    background: rgba(13,15,18,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #252a35;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+  }
+  .top-nav-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 1.5rem; display:flex; align-items:center; gap:1.5rem; }
+  .nav-brand { font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#4ade80; text-decoration:none; white-space:nowrap; flex-shrink:0; }
+  .nav-links { display:flex; align-items:center; gap:0.25rem; flex-wrap:nowrap; margin-left:auto; }
+  .nav-links a { font-family:var(--mono); font-size:11px; color:#4a5366; text-decoration:none; padding:5px 10px; border-radius:4px; transition:color 0.15s,background 0.15s; white-space:nowrap; letter-spacing:0.06em; }
+  .nav-links a:hover { color:#e8e9eb; background:rgba(255,255,255,0.06); }
+  .nav-links a.nav-active { color:#e8e9eb; background:rgba(255,255,255,0.08); }
+  .nav-exam-btn { background:rgba(74,222,128,0.1) !important; border:1px solid rgba(74,222,128,0.3) !important; color:#4ade80 !important; }
+  .nav-exam-btn:hover { background:rgba(74,222,128,0.2) !important; }
+  .nav-hamburger { display:none; background:none; border:none; color:#8a8d94; font-size:18px; cursor:pointer; margin-left:auto; padding:4px 8px; }
+  @media (max-width:720px) {
+    .nav-hamburger { display:block; }
+    .nav-links { display:none; position:absolute; top:var(--nav-h); left:0; right:0; background:rgba(13,15,18,0.98); flex-direction:column; padding:0.75rem 1rem; gap:0.25rem; border-bottom:1px solid #252a35; }
+    .nav-links.open { display:flex; }
+    .nav-links a { width:100%; }
+  }
+</style>
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+<noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="./index.html" class="nav-brand">Claude Architect</a>
+    <a href="https://moisesprat.dev" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:10px;color:var(--text2);text-decoration:none;border-left:1px solid var(--border2);padding-left:1rem;margin-left:0.25rem;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">Guide by Moises Prat</a>
+    <button class="nav-hamburger" onclick="toggleNav()">&#9776;</button>
+    <div class="nav-links" id="nav-links">
+      <a href="./index.html">Home</a>
+      <a href="./domain1.html">Domain 1</a>
+      <a href="./domain2.html">Domain 2</a>
+      <a href="./domain3.html">Domain 3</a>
+      <a href="./domain4.html">Domain 4</a>
+      <a href="./domain5.html">Domain 5</a>
+      <a href="./progress.html">Progress</a>
+      <a href="./exam.html" class="nav-exam-btn">Exam</a>
+    </div>
+  </div>
+</nav>
+
+
+<header class="header">
+  <div class="header-left">
+    <span class="badge badge-domain">Domain 4</span>
+    <span class="badge badge-weight">20% of exam</span>
+    <h1><strong>Prompt Engineering & Structured Output</strong> — Complete Lesson</h1>
+  </div>
+  <div class="progress-bar">
+    <span>Domain progress</span>
+    <div class="progress-dots">
+      <div class="dot done" title="4.1 Explicit Criteria"></div>
+      <div class="dot done" title="4.2 Few-Shot Prompting"></div>
+      <div class="dot done" title="4.3 Structured Output"></div>
+      <div class="dot done" title="4.4 Validation & Retry"></div>
+      <div class="dot done" title="4.5 Batch Processing"></div>
+      <div class="dot done" title="4.6 Multi-Pass Review"></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Domain 4 Overview</div>
+    <nav class="sidebar-nav"><a href="#domain-overview">Introduction</a></nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 4.1</div>
+    <nav class="sidebar-nav">
+      <a href="#ts41-concept"><span class="ts-badge">4.1</span> Core Concept</a>
+      <a href="#ts41-vague-vs-explicit"><span class="ts-badge">4.1</span> Vague vs Explicit</a>
+      <a href="#ts41-false-positives"><span class="ts-badge">4.1</span> False Positive Damage</a>
+      <a href="#ts41-traps"><span class="ts-badge">4.1</span> Exam Traps</a>
+      <a href="#ts41-task"><span class="ts-badge">4.1</span> Implementation Task</a>
+      <a href="#ts41-questions"><span class="ts-badge">4.1</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 4.2</div>
+    <nav class="sidebar-nav">
+      <a href="#ts42-concept"><span class="ts-badge">4.2</span> Core Concept</a>
+      <a href="#ts42-anatomy"><span class="ts-badge">4.2</span> Example Anatomy</a>
+      <a href="#ts42-applications"><span class="ts-badge">4.2</span> Key Applications</a>
+      <a href="#ts42-traps"><span class="ts-badge">4.2</span> Exam Traps</a>
+      <a href="#ts42-task"><span class="ts-badge">4.2</span> Implementation Task</a>
+      <a href="#ts42-questions"><span class="ts-badge">4.2</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 4.3</div>
+    <nav class="sidebar-nav">
+      <a href="#ts43-concept"><span class="ts-badge">4.3</span> Core Concept</a>
+      <a href="#ts43-tool-choice"><span class="ts-badge">4.3</span> tool_choice Options</a>
+      <a href="#ts43-schema"><span class="ts-badge">4.3</span> Schema Design</a>
+      <a href="#ts43-limits"><span class="ts-badge">4.3</span> What Schemas Can't Do</a>
+      <a href="#ts43-traps"><span class="ts-badge">4.3</span> Exam Traps</a>
+      <a href="#ts43-task"><span class="ts-badge">4.3</span> Implementation Task</a>
+      <a href="#ts43-questions"><span class="ts-badge">4.3</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 4.4</div>
+    <nav class="sidebar-nav">
+      <a href="#ts44-concept"><span class="ts-badge">4.4</span> Core Concept</a>
+      <a href="#ts44-retry"><span class="ts-badge">4.4</span> Retry-with-Feedback</a>
+      <a href="#ts44-when-retry-fails"><span class="ts-badge">4.4</span> When Retry Won't Help</a>
+      <a href="#ts44-feedback-loops"><span class="ts-badge">4.4</span> Feedback Loop Design</a>
+      <a href="#ts44-traps"><span class="ts-badge">4.4</span> Exam Traps</a>
+      <a href="#ts44-task"><span class="ts-badge">4.4</span> Implementation Task</a>
+      <a href="#ts44-questions"><span class="ts-badge">4.4</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 4.5</div>
+    <nav class="sidebar-nav">
+      <a href="#ts45-concept"><span class="ts-badge">4.5</span> Core Concept</a>
+      <a href="#ts45-tradeoffs"><span class="ts-badge">4.5</span> Batch API Trade-offs</a>
+      <a href="#ts45-patterns"><span class="ts-badge">4.5</span> Failure Handling</a>
+      <a href="#ts45-traps"><span class="ts-badge">4.5</span> Exam Traps</a>
+      <a href="#ts45-task"><span class="ts-badge">4.5</span> Implementation Task</a>
+      <a href="#ts45-questions"><span class="ts-badge">4.5</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 4.6</div>
+    <nav class="sidebar-nav">
+      <a href="#ts46-concept"><span class="ts-badge">4.6</span> Core Concept</a>
+      <a href="#ts46-self-review"><span class="ts-badge">4.6</span> Self-Review Limits</a>
+      <a href="#ts46-architecture"><span class="ts-badge">4.6</span> Review Architectures</a>
+      <a href="#ts46-traps"><span class="ts-badge">4.6</span> Exam Traps</a>
+      <a href="#ts46-task"><span class="ts-badge">4.6</span> Implementation Task</a>
+      <a href="#ts46-questions"><span class="ts-badge">4.6</span> Exam Questions</a>
+    </nav>
+  </div>
+</nav>
+
+<main class="main">
+
+  <div class="domain-hero" id="domain-overview">
+    <div class="task-meta">
+      <span class="badge badge-domain">Domain 4</span>
+      <span class="badge badge-weight">20% of exam · 6 Task Statements</span>
+    </div>
+    <h2>Prompt Engineering<br>&amp; <em>Structured Output</em></h2>
+    <p>Domain 4 is the precision domain. It tests whether you know the difference between vague confidence-based instructions and specific categorical criteria, whether you understand that <code>tool_use</code> eliminates syntax errors but not semantic ones, and whether you know exactly when a retry will succeed versus when the information simply isn't there.</p>
+    <p>This domain maps to <strong>Scenario 5 (CI/CD)</strong> and <strong>Scenario 6 (Structured Data Extraction)</strong> — but its techniques appear in every scenario. Explicit criteria, few-shot examples, and schema-enforced output are universal production skills.</p>
+  </div>
+
+
+  <!-- ═══════════════════════════ TS 4.1 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 4.1</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts41">
+    <div class="ts-number">Task Statement 4.1</div>
+    <h3>Design prompts with explicit criteria to improve precision and reduce false positives</h3>
+    <div class="ts-desc">Vague instructions like "be conservative" or "only report high-confidence findings" sound useful but consistently fail in production. Explicit categorical criteria — specifying exactly which issues to report and which to skip — is the only approach that reliably reduces false positive rates.</div>
+  </div>
+
+  <section class="section" id="ts41-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>False positives are not a model quality problem — they are a prompt precision problem. When you tell a model to "check that comments are accurate," it will flag anything that might be inaccurate, including stylistic issues, subjective interpretations, and local conventions. When you tell it to "flag comments <strong>only</strong> when the claimed behaviour contradicts actual code behaviour," it has an unambiguous criterion to apply.</p>
+    <div class="callout callout-warn">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> General instructions like "be conservative" or "only report high-confidence findings" do not reduce false positives. They are confidence-based filters applied over an unchanged decision process — the model still makes the same borderline calls, just with lower stated confidence. Only <strong>specific categorical criteria</strong> change which issues are considered in scope.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts41-vague-vs-explicit">
+    <h3 class="section-title blue">Vague vs Explicit Criteria</h3>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Vague — Produces False Positives</div>
+        <div class="compare-body">
+System prompt:
+<span class="hl-warn">"Check that comments are accurate
+and flag any inaccurate ones."</span>
+
+What gets flagged:
+- Comment says "returns null on error"
+  but actually throws → <span class="hl-ok">VALID</span>
+- Comment uses different wording
+  than the code → <span class="hl-warn">FALSE POSITIVE</span>
+- Comment describes old behaviour
+  but code was updated → could go either way
+- Comment missing edge case
+  description → <span class="hl-warn">FALSE POSITIVE</span>
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Explicit — Precise Scope</div>
+        <div class="compare-body">
+System prompt:
+<span class="hl-ok">"Flag comments ONLY when the
+claimed behaviour contradicts
+the actual code behaviour.
+
+Skip:
+- Stylistic or wording differences
+- Missing details or edge cases
+- Local naming conventions
+- Subjective quality opinions"</span>
+
+Result: Only genuine contradictions
+are flagged. False positive rate ↓↓
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Explicit severity criteria with code examples — consistent classification</span>
+        <span class="code-tag tag-good">PRODUCTION PATTERN</span>
+      </div>
+      <pre><span class="hl-comment">## Code Review Severity Criteria
+
+### CRITICAL — Report immediately
+- Null pointer dereference with no guard
+- SQL injection via string concatenation
+- Hardcoded credentials or API keys
+Example: `db.query("SELECT * FROM users WHERE id=" + userId)`
+→ Report as CRITICAL
+
+### HIGH — Report with suggested fix
+- Logic errors where output contradicts specification
+- Race conditions in shared state
+Example: `if (user.role = "admin")` (assignment not comparison)
+→ Report as HIGH
+
+### SKIP — Do not report
+- Minor style differences from team convention
+- Missing JSDoc on private methods
+- Variable naming preferences
+- Comments that could be more descriptive (but aren't wrong)
+Example: `// get user` above getUserById() → SKIP</span></pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts41-false-positives">
+    <h3 class="section-title red">The False Positive Trust Problem</h3>
+    <p>High false positive rates cause cascading trust failure. When developers learn that a particular review category generates noise, they start <strong>ignoring all findings from that category</strong> — including the real bugs it correctly identifies. A 30% false positive rate in comment accuracy doesn't just waste time on 30% of reviews — it erodes confidence in the 70% of findings that were correct.</p>
+    <div class="callout callout-danger">
+      <div class="callout-icon">🚨</div>
+      <div class="callout-body"><strong>The Correct Response:</strong> When a category has unacceptably high false positive rates, <strong>temporarily disable that category</strong> and fix its criteria before re-enabling. Leaving it enabled — even with a note that it's unreliable — continues to erode developer trust in the entire review system.</div>
+    </div>
+    <ul class="skill-list">
+      <li>Write criteria that define which issues to <strong>report</strong> (bugs, security vulnerabilities, logic errors) and which to <strong>skip</strong> (style preferences, local patterns, subjective quality)</li>
+      <li>Temporarily disable high false-positive categories while improving their prompts — restores developer trust in the remaining categories</li>
+      <li>Define explicit severity levels (CRITICAL / HIGH / MEDIUM / SKIP) with concrete code examples for each — eliminates ambiguous classifications</li>
+      <li>Never rely on "be conservative" or confidence thresholds as substitutes for categorical scope definitions</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts41-traps">
+    <h3 class="section-title red">Exam Traps for Task 4.1</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Add "only report high-confidence findings" to reduce false positives</td>
+          <td class="col-why">Confidence-based filtering doesn't change what the model considers in scope — it still makes the same borderline decisions, just reports fewer of them. Root cause (vague scope) is unchanged.</td>
+          <td class="col-correct">Define categorical scope: explicitly list what IS in scope vs what is NOT. Remove ambiguous categories entirely.</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Keep a high false-positive category enabled to avoid missing real issues</td>
+          <td class="col-why">A category with 30% false positive rate destroys trust in all its findings, including the 70% that are real. Net effect: developers ignore more real issues than the category catches.</td>
+          <td class="col-correct">Temporarily disable the category; fix the criteria; re-enable once false positive rate is acceptable</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Use vague severity labels ("low/medium/high") without definitions</td>
+          <td class="col-why">Inconsistent classification across sessions — the same issue gets different severity labels on different runs. Breaks automated triage workflows.</td>
+          <td class="col-correct">Define each severity level with concrete code examples for each classification</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts41-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T1</div>
+        <h3>Build an Explicit-Criteria Code Review Prompt</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Start with a vague prompt: "Review this code for bugs and style issues." Run it on 10 files. Classify each finding as true or false positive.</li>
+        <li>Rewrite with explicit categorical criteria: define which 3 issue types to report and which 3 to skip. Run the same 10 files.</li>
+        <li>Compare false positive rates — document the reduction.</li>
+        <li>Add severity definitions (CRITICAL/HIGH/SKIP) with one concrete code example each.</li>
+        <li>Identify the highest false-positive category in your results; write a prompt that disables it and removes the noise from developer view.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts41-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 4.1</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 4.1</span>
+        <span class="exam-scenario">CI/CD Code Review Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A CI code review pipeline is flagging 40% of valid comment blocks as inaccurate, generating constant noise. The current prompt says "check that comments are accurate and flag inaccurate ones." A developer suggests adding "only flag when you're highly confident the comment is wrong." What outcome should you expect?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q41a')"><span class="option-letter">A</span>False positive rate drops significantly — confidence thresholds are an effective filter for borderline cases</li>
+          <li class="exam-option" onclick="pick(this,true,'q41a')"><span class="option-letter">B</span>False positive rate improves marginally at best — the root cause is vague scope, not confidence calibration. The prompt must explicitly define which comment inaccuracies are in scope vs out of scope</li>
+          <li class="exam-option" onclick="pick(this,false,'q41a')"><span class="option-letter">C</span>Total findings drop significantly — fewer reviews means less developer friction even if some real issues are missed</li>
+          <li class="exam-option" onclick="pick(this,false,'q41a')"><span class="option-letter">D</span>False positive rate improves because the model will re-evaluate all its borderline decisions with a stricter threshold</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r41a')">Show explanation</button>
+        <div class="exam-reveal" id="r41a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> "Only flag when highly confident" is a confidence filter — it doesn't change the model's scope of what counts as an inaccuracy. The model still considers style differences, missing details, and subjective quality as potential inaccuracies; it just suppresses some of them. The fix is categorical scope: "flag ONLY when claimed behaviour contradicts actual code behaviour." <strong>A is wrong:</strong> Confidence filters don't fix scope ambiguity. <strong>C is a net negative:</strong> reducing total findings by suppression means real bugs are also suppressed. <strong>D is wrong:</strong> confidence thresholds don't make the model reconsider what it considers in scope.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 4.1</span>
+        <span class="exam-scenario">CI/CD Code Review Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your CI review has 5 categories: security vulnerabilities, logic errors, performance issues, comment accuracy, and naming conventions. Developers report they've stopped reading any findings because there are too many false positives in comment accuracy and naming. What is the most effective immediate fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q41b')"><span class="option-letter">A</span>Add a disclaimer to all findings: "This category has elevated false positive rates — verify before acting"</li>
+          <li class="exam-option" onclick="pick(this,false,'q41b')"><span class="option-letter">B</span>Reduce the review to only 2 categories — security vulnerabilities and logic errors — and never add more categories</li>
+          <li class="exam-option" onclick="pick(this,true,'q41b')"><span class="option-letter">C</span>Temporarily disable comment accuracy and naming categories from the pipeline while improving their criteria, so developers can immediately trust the remaining 3 categories</li>
+          <li class="exam-option" onclick="pick(this,false,'q41b')"><span class="option-letter">D</span>Add "only flag when confidence is above 90%" to the comment accuracy and naming prompts</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r41b')">Show explanation</button>
+        <div class="exam-reveal" id="r41b">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> When false positive rates destroy trust, the right move is to temporarily disable those categories so developers can confidently act on the reliable categories. This restores trust immediately without requiring a full prompt rewrite — then improve the disabled categories offline before re-enabling. <strong>A</strong> adds disclaimers that further erode trust and don't help developers distinguish real findings. <strong>B is too aggressive</strong> — permanently removing categories is different from temporarily disabling them for improvement. <strong>D</strong> is the confidence-filter anti-pattern — doesn't fix the scope problem.</div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 4.1</span>
+        <span class="exam-scenario">CI/CD Code Review Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your Claude-powered code review pipeline runs on every pull request. After deploying, you observe that 40% of flagged issues are false positives — Claude flags well-written code as problematic. A colleague suggests adding more examples of good code to the training prompt. Which prompt engineering change most directly reduces false positives?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q41c')"><span class="option-letter">A</span>Add five examples of good code that should NOT be flagged, with no explanation.</li>
+          <li class="exam-option" onclick="pick(this,true,'q41c')"><span class="option-letter">B</span>Add explicit exclusion criteria to the system prompt, such as 'Do not flag functions that have full test coverage, are under 20 lines, and have no branching complexity.'</li>
+          <li class="exam-option" onclick="pick(this,false,'q41c')"><span class="option-letter">C</span>Increase the temperature setting to allow more nuanced judgements.</li>
+          <li class="exam-option" onclick="pick(this,false,'q41c')"><span class="option-letter">D</span>Add a second Claude pass that reviews the first pass's output for false positives.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r41c')">Show explanation</button>
+        <div class="exam-reveal" id="r41c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Explicit exclusion criteria tell Claude exactly which conditions disqualify a finding. Without them, Claude applies its own judgment about what 'problematic' means, producing high false-positive rates on well-written code. A (few-shot without explanation) helps less than criteria because it doesn't generalise to unseen patterns. C (temperature) controls randomness, not precision. D (second pass) can help but is a cost-multiplier and doesn't address the root cause: the first pass lacks a clear definition of what NOT to flag.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 4.2 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 4.2</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts42">
+    <div class="ts-number">Task Statement 4.2</div>
+    <h3>Apply few-shot prompting to improve output consistency and quality</h3>
+    <div class="ts-desc">When detailed instructions alone produce inconsistent results, few-shot examples are the most effective remedy. They demonstrate judgment in ambiguous cases, show exact output format, and enable Claude to generalise to novel patterns — not just match pre-specified cases.</div>
+  </div>
+
+  <section class="section" id="ts42-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Few-shot examples demonstrate the <em>reasoning</em> behind a decision, not just the decision itself. A good example shows why one choice was made over a plausible alternative — enabling Claude to apply that same reasoning to inputs it has never seen. Examples that only show inputs and outputs (without explaining the why) improve consistency but not generalisation.</p>
+    <div class="callout callout-warn">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> Few-shot examples are the most effective technique when detailed instructions alone produce inconsistent results. They are especially powerful for: (1) ambiguous-case handling, (2) exact output format enforcement, (3) reducing hallucination in extraction tasks with varied document structures.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts42-anatomy">
+    <h3 class="section-title blue">Anatomy of an Effective Few-Shot Example</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Code review few-shot — showing reasoning for ambiguous cases</span>
+        <span class="code-tag tag-good">EFFECTIVE PATTERN</span>
+      </div>
+      <pre><span class="hl-comment">## Example 1 — Genuine Bug (REPORT)</span>
+Code:
+  <span class="hl-warn">const total = items.reduce((sum, item) => sum + item.price, 0);</span>
+  <span class="hl-warn">// Returns total including tax</span>
+
+Finding: <span class="hl-ok">REPORT as HIGH</span>
+Location: checkout.js line 42
+Issue: Comment claims tax is included, but price field
+  does not include tax per the schema in types.ts
+Suggested fix: Either update the comment to "Returns
+  subtotal (excluding tax)" or add tax calculation
+Why reported: Claimed behaviour contradicts code behaviour.
+  This could cause double-counting in tax reporting.
+
+<span class="hl-comment">## Example 2 — Style Issue (SKIP)</span>
+Code:
+  <span class="hl-ok">// Get the user from db</span>
+  <span class="hl-ok">const user = await db.getUser(userId);</span>
+
+Finding: <span class="hl-warn">SKIP</span>
+Why skipped: Comment accurately describes what the code
+  does. "From db" vs "from database" is a wording
+  preference, not a behavioural contradiction.
+
+<span class="hl-comment">## Example 3 — Ambiguous (Demonstrate the Decision)</span>
+Code:
+  <span class="hl-ok">// Validate input</span>
+  <span class="hl-ok">if (!user.email) throw new Error('Email required');</span>
+
+Finding: <span class="hl-warn">SKIP</span>
+Why skipped: Comment describes the general category
+  (validation) but not every validation rule. Missing
+  specificity is not a contradiction. No false claim.</pre>
+    </div>
+
+    <div class="knowledge-grid" style="margin-top:1.25rem;">
+      <div class="k-card">
+        <div class="k-card-icon">🎯</div>
+        <h4>Show Reasoning, Not Just Answers</h4>
+        <p>Include "Why reported" or "Why skipped" in every example. This enables Claude to apply the same reasoning to patterns it hasn't seen, rather than pattern-matching to the specific examples.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔀</div>
+        <h4>Include Ambiguous Cases</h4>
+        <p>The most valuable examples show how to handle the grey area — the cases that instructions alone can't resolve. Show a borderline case and explain why it falls on one side of the line.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📐</div>
+        <h4>Demonstrate Exact Output Format</h4>
+        <p>Use the same output structure in every example: Location, Issue, Severity, Suggested fix. Models reproduce the structure they're shown — inconsistent examples produce inconsistent output.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📄</div>
+        <h4>Varied Document Structures</h4>
+        <p>For extraction tasks, include examples from documents with different formats: inline citations vs bibliographies, narrative descriptions vs structured tables. One format example fails to generalise.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts42-applications">
+    <h3 class="section-title green">Key Applications</h3>
+    <ul class="skill-list">
+      <li>Create 2–4 targeted examples for <strong>ambiguous scenarios</strong> — show reasoning for why one action was chosen over plausible alternatives</li>
+      <li>Demonstrate <strong>exact desired output format</strong> (location, issue, severity, suggested fix) in every example to achieve structural consistency</li>
+      <li>Include examples showing <strong>acceptable patterns that are NOT issues</strong> — this reduces false positives while preserving generalisation to genuine bugs</li>
+      <li>For extraction tasks: provide examples from <strong>multiple document formats</strong> (inline citations, bibliographies, narrative, tables) — single-format examples fail on novel structures</li>
+      <li>For extraction of optional fields: include an example showing correct <code>null</code> output when information is absent — prevents hallucinated values</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts42-traps">
+    <h3 class="section-title red">Exam Traps for Task 4.2</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Provide 10+ examples covering every possible case</td>
+          <td class="col-why">Overly comprehensive examples inflate token usage without improving quality — 2–4 targeted examples at the ambiguous boundary are more effective than exhaustive coverage</td>
+          <td class="col-correct">2–4 examples focused on the hardest cases — especially ambiguous ones where instructions alone are insufficient</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Show only correct answers without reasoning</td>
+          <td class="col-why">Without "why," Claude can only pattern-match to the specific examples — it cannot generalise the decision rule to novel patterns</td>
+          <td class="col-correct">Include explicit reasoning in each example: "Why reported / Why skipped" so Claude can apply the same logic to new inputs</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Use one document format in extraction examples</td>
+          <td class="col-why">Model learns to extract from that format but fails on documents with different structures (e.g., inline vs bibliography citations)</td>
+          <td class="col-correct">Include examples from each major document variant the system will encounter in production</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts42-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T2</div>
+        <h3>Build a Few-Shot Prompt and Measure Consistency</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Design a code review prompt with 3 few-shot examples: one genuine bug, one false-positive-prone case that should be skipped, one genuinely ambiguous case showing the decision</li>
+        <li>For each example, include the reasoning ("Why reported / Why skipped") — not just the verdict</li>
+        <li>Run the prompt on 20 code samples. Measure consistency: how often does the same code get the same classification across 3 runs?</li>
+        <li>Compare against the same 20 samples with instructions-only (no examples). Document the consistency improvement.</li>
+        <li>For a structured extraction task: add examples from 3 different document formats. Measure how often required fields are correctly extracted vs left null vs hallucinated.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts42-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 4.2</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 4.2</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">An extraction pipeline processing research papers is leaving the <code>methodology</code> field null in 35% of documents, even though the papers do contain methodology information — it's just described inline in the results section rather than in a dedicated "Methods" section. Detailed instructions about finding methodology information haven't helped. What is the most effective fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q42a')"><span class="option-letter">A</span>Make the <code>methodology</code> field required in the schema so the model is forced to populate it</li>
+          <li class="exam-option" onclick="pick(this,true,'q42a')"><span class="option-letter">B</span>Add few-shot examples demonstrating correct extraction from papers that describe methodology inline in the results section, without a dedicated Methods heading</li>
+          <li class="exam-option" onclick="pick(this,false,'q42a')"><span class="option-letter">C</span>Add a retry loop that resubmits documents where <code>methodology</code> is null, with instructions to look harder</li>
+          <li class="exam-option" onclick="pick(this,false,'q42a')"><span class="option-letter">D</span>Switch to a larger model with better reading comprehension for research paper formats</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r42a')">Show explanation</button>
+        <div class="exam-reveal" id="r42a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The model has been trained to look for methodology in a dedicated section — it doesn't generalise to inline descriptions without examples showing that structure. Few-shot examples demonstrating exactly how to find methodology embedded in results sections teach the model the pattern it needs. <strong>A is counterproductive:</strong> making the field required without fixing the extraction prompt causes hallucination — the model invents methodology information to satisfy the schema. <strong>C won't help:</strong> retrying doesn't fix the extraction approach — the model will look in the same place again. <strong>D misdiagnoses the problem</strong> as a model capability issue when it's a prompt format issue.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 4.2</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your Claude extraction pipeline converts scanned invoices to JSON. Two failure modes appear in production: (1) vendor names with commas are split incorrectly, and (2) dates in DD/MM/YYYY format are transposed to MM/DD/YYYY. You plan to add few-shot examples to fix both. Which approach is most efficient?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q42b')"><span class="option-letter">A</span>Add one comprehensive example that demonstrates both correct vendor parsing and correct date parsing in a single invoice.</li>
+          <li class="exam-option" onclick="pick(this,false,'q42b')"><span class="option-letter">B</span>Add two separate examples — one targeting only comma-containing vendor names, one targeting only DD/MM/YYYY dates.</li>
+          <li class="exam-option" onclick="pick(this,true,'q42b')"><span class="option-letter">C</span>Add one example for each failure mode, placing the most frequent failure first.</li>
+          <li class="exam-option" onclick="pick(this,false,'q42b')"><span class="option-letter">D</span>Add three examples with diverse invoice layouts to improve generalisation.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r42b')">Show explanation</button>
+        <div class="exam-reveal" id="r42b">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Targeted few-shot examples that isolate each failure mode are more efficient than broad examples, because the model learns the specific pattern being corrected rather than trying to generalise from mixed signals. Placing the most frequent failure first ensures it gets more implicit weighting. A (single combined example) makes it harder to isolate which correction fixed which problem if you need to iterate. B is essentially C but misses the ordering principle. D (diverse layouts) improves generalisation but doesn't directly target the two known failures.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 4.2</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">You're building a prompt to extract financial data from earnings call transcripts. Early tests show Claude inconsistently formats revenue figures — sometimes '$1.2B', sometimes '1,200,000,000', sometimes '1.2 billion'. You have 50 real transcripts available. What is the most effective use of few-shot examples for this problem?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q42c')"><span class="option-letter">A</span>Add all 50 transcripts as examples with annotated correct outputs.</li>
+          <li class="exam-option" onclick="pick(this,true,'q42c')"><span class="option-letter">B</span>Add 2–3 targeted examples showing the exact output format required, each demonstrating a different revenue magnitude.</li>
+          <li class="exam-option" onclick="pick(this,false,'q42c')"><span class="option-letter">C</span>Add 10 examples covering all revenue format variations seen in the 50 transcripts.</li>
+          <li class="exam-option" onclick="pick(this,false,'q42c')"><span class="option-letter">D</span>Describe the format rule in the system prompt instead of using examples.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r42c')">Show explanation</button>
+        <div class="exam-reveal" id="r42c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> 2–3 well-chosen examples that directly demonstrate the desired format are sufficient and efficient — they show the model exactly what's expected without creating a bloated prompt. A (50 examples) dramatically increases token cost with diminishing returns. C (10 examples) is better than A but still more than needed to convey a single format convention. D (description only) is weaker than examples for format enforcement — showing is more reliable than telling for consistent structured output.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 4.3 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 4.3</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts43">
+    <div class="ts-number">Task Statement 4.3</div>
+    <h3>Enforce structured output using tool use and JSON schemas</h3>
+    <div class="ts-desc">Tool use with JSON schemas is the most reliable mechanism for structured output — it eliminates JSON syntax errors. But it does not eliminate semantic errors. And <code>tool_choice</code> has three modes with very different guarantees.</div>
+  </div>
+
+  <section class="section" id="ts43-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Asking Claude to "return JSON" in a prompt is unreliable — it can return markdown-wrapped JSON, prose before/after the JSON, or malformed JSON under pressure. Defining an extraction function via <code>tool_use</code> with a JSON schema guarantees syntax-valid output because the API enforces the schema structurally before returning the response.</p>
+    <div class="callout callout-warn">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Critical Limit:</strong> Tool use eliminates <strong>syntax errors</strong> (malformed JSON, missing brackets, wrong types). It does <strong>not</strong> eliminate <strong>semantic errors</strong> — line items that don't sum to the stated total, values placed in the wrong fields, or logically inconsistent data. Schema validation is syntactic; business logic validation is a separate layer.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts43-tool-choice">
+    <h3 class="section-title blue">tool_choice: Three Modes</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🔄</div>
+        <h4><code>"auto"</code></h4>
+        <p>Model decides whether to call a tool or return text. <strong>May return conversational text instead of calling a tool.</strong> Use when tool calling is optional — e.g., the model might answer a simple question directly without needing a tool.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">✅</div>
+        <h4><code>"any"</code></h4>
+        <p>Model must call one of the available tools — cannot return plain text. <strong>Use when structured output is required</strong> and multiple extraction schemas exist (e.g., invoice vs contract vs receipt — the model selects which tool fits). Guarantees a tool is called.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🎯</div>
+        <h4><code>{"type":"tool","name":"X"}</code></h4>
+        <p>Forced tool selection — the model must call exactly this tool. <strong>Use when a specific extraction must run first</strong> — e.g., <code>extract_metadata</code> before enrichment tools. Guarantees not just that a tool is called, but which one.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚠️</div>
+        <h4>The "auto" Trap</h4>
+        <p>Setting <code>tool_choice: "auto"</code> when you need guaranteed structured output is a common exam distractor. "auto" means Claude <em>may</em> return text. For guaranteed output, use "any" or forced selection.</p>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:1.25rem;">
+      <div class="code-header">
+        <span class="code-label">python — tool_use structured extraction with tool_choice</span>
+        <span class="code-tag tag-good">PRODUCTION PATTERN</span>
+      </div>
+      <pre>tools = [{
+    <span class="hl-str">"name"</span>: <span class="hl-str">"extract_invoice"</span>,
+    <span class="hl-str">"description"</span>: <span class="hl-str">"Extract structured data from an invoice document"</span>,
+    <span class="hl-str">"input_schema"</span>: {
+        <span class="hl-str">"type"</span>: <span class="hl-str">"object"</span>,
+        <span class="hl-str">"properties"</span>: {
+            <span class="hl-str">"vendor_name"</span>:    {<span class="hl-str">"type"</span>: <span class="hl-str">"string"</span>},
+            <span class="hl-str">"invoice_date"</span>:   {<span class="hl-str">"type"</span>: [<span class="hl-str">"string"</span>, <span class="hl-str">"null"</span>]},  <span class="hl-comment"># nullable!</span>
+            <span class="hl-str">"total_amount"</span>:  {<span class="hl-str">"type"</span>: <span class="hl-str">"number"</span>},
+            <span class="hl-str">"line_items"</span>: {
+                <span class="hl-str">"type"</span>: <span class="hl-str">"array"</span>,
+                <span class="hl-str">"items"</span>: {
+                    <span class="hl-str">"type"</span>: <span class="hl-str">"object"</span>,
+                    <span class="hl-str">"properties"</span>: {
+                        <span class="hl-str">"description"</span>: {<span class="hl-str">"type"</span>: <span class="hl-str">"string"</span>},
+                        <span class="hl-str">"amount"</span>: {<span class="hl-str">"type"</span>: <span class="hl-str">"number"</span>}
+                    }
+                }
+            },
+            <span class="hl-str">"currency"</span>: {
+                <span class="hl-str">"type"</span>: <span class="hl-str">"string"</span>,
+                <span class="hl-str">"enum"</span>: [<span class="hl-str">"USD"</span>, <span class="hl-str">"EUR"</span>, <span class="hl-str">"GBP"</span>, <span class="hl-str">"other"</span>]  <span class="hl-comment"># "other" for extensibility</span>
+            }
+        },
+        <span class="hl-str">"required"</span>: [<span class="hl-str">"vendor_name"</span>, <span class="hl-str">"total_amount"</span>, <span class="hl-str">"line_items"</span>]
+        <span class="hl-comment"># invoice_date is NOT required — may be absent</span>
+    }
+}]
+
+response = client.messages.create(
+    model=<span class="hl-str">"claude-sonnet-4-20250514"</span>,
+    tools=tools,
+    tool_choice={<span class="hl-str">"type"</span>: <span class="hl-str">"any"</span>},  <span class="hl-comment"># ← guarantees structured output</span>
+    messages=[{<span class="hl-str">"role"</span>: <span class="hl-str">"user"</span>, <span class="hl-str">"content"</span>: document_text}]
+)</pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts43-schema">
+    <h3 class="section-title green">Schema Design Principles</h3>
+    <ul class="skill-list">
+      <li>Make fields <strong>nullable (optional)</strong> when source documents may not contain the information — prevents the model from fabricating values to satisfy a required field</li>
+      <li>Use <code>enum</code> fields with an <strong>"other" + detail string pattern</strong> for extensible categorisation — captures known categories precisely while preserving unknown ones</li>
+      <li>Add an <strong>"unclear" enum value</strong> for fields where the source data is ambiguous — explicit rather than guessing</li>
+      <li>Include <strong>format normalisation rules in prompts</strong> alongside strict schemas — e.g., "dates should be ISO 8601 format" — schemas enforce structure but not format consistency</li>
+    </ul>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Schema — "other" + detail pattern for extensible enums</span>
+        <span class="code-tag tag-neutral">SCHEMA DESIGN</span>
+      </div>
+      <pre><span class="hl-comment"># ✗ Closed enum — fails on unknown contract types</span>
+<span class="hl-warn">"contract_type": {"type": "string", "enum": ["NDA", "SLA", "MSA"]}</span>
+
+<span class="hl-comment"># ✓ Open enum with fallback — handles unknown types</span>
+<span class="hl-ok">"contract_type": {
+    "type": "string",
+    "enum": ["NDA", "SLA", "MSA", "other"]
+},
+"contract_type_detail": {
+    "type": ["string", "null"],
+    "description": "Populated when contract_type is 'other'"
+}</span></pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts43-limits">
+    <h3 class="section-title red">What Schemas Cannot Do</h3>
+    <p>Tool use schemas enforce <strong>syntactic correctness</strong>. They cannot detect <strong>semantic errors</strong> — when the values are syntactically valid but logically wrong:</p>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header good">✓ Schema Catches (Syntax Errors)</div>
+        <div class="compare-body">
+<span class="hl-ok">Wrong type: "amount": "50.00"</span>
+  → should be number, not string
+
+<span class="hl-ok">Missing required field: no vendor_name</span>
+  → required field absent
+
+<span class="hl-ok">Invalid enum: "currency": "CAD"</span>
+  → not in allowed enum values
+
+<span class="hl-ok">Malformed JSON: missing closing brace</span>
+  → syntax error caught
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Schema Misses (Semantic Errors)</div>
+        <div class="compare-body">
+<span class="hl-warn">Line items: [50, 75] but total: 200</span>
+  → values don't sum — schema can't check
+
+<span class="hl-warn">Invoice date: "2025-13-45"</span>
+  → invalid date — passes as string
+
+<span class="hl-warn">Amount in wrong currency unit</span>
+  → value is a number — schema satisfied
+
+<span class="hl-warn">Vendor name in address field</span>
+  → both strings — schema can't detect swap
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts43-traps">
+    <h3 class="section-title red">Exam Traps for Task 4.3</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use <code>tool_choice: "auto"</code> when structured output is required</td>
+          <td class="col-why">"auto" allows Claude to return plain text instead of calling the tool — doesn't guarantee structured output</td>
+          <td class="col-correct">Use <code>"any"</code> (any tool must be called) or forced selection when extraction is required every time</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Mark all fields as required in the schema to ensure complete extraction</td>
+          <td class="col-why">Required fields on optional information force the model to hallucinate values rather than leave them null — produces worse output than nullable fields</td>
+          <td class="col-correct">Only mark truly mandatory fields as required; use nullable types for fields that may be absent in source documents</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Assume schema validation eliminates all extraction errors</td>
+          <td class="col-why">Schemas eliminate syntax errors only — semantic errors (wrong values, mismatched sums, misplaced data) pass schema validation</td>
+          <td class="col-correct">Add semantic validation layer: check computed totals, validate date ranges, verify cross-field consistency after schema validation</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts43-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T3</div>
+        <h3>Build a Schema-Enforced Extraction Pipeline</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Define an invoice extraction tool with a JSON schema including: required fields (vendor, total), nullable fields (date, PO number), and an enum with "other" fallback for invoice type</li>
+        <li>Test with <code>tool_choice: "auto"</code> — observe when Claude returns text instead of calling the tool. Then switch to <code>"any"</code> and confirm 100% tool calls</li>
+        <li>Deliberately create a document where line items don't sum to the total. Verify the schema accepts the output (syntax valid). Add a post-validation check that flags the discrepancy (semantic validation)</li>
+        <li>Test with a document missing the invoice date — verify the nullable field correctly returns null rather than a fabricated date</li>
+        <li>Test forced tool selection: set <code>tool_choice: {"type":"tool","name":"extract_metadata"}</code> and confirm only that tool runs on the first turn</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts43-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 4.3</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 4.3</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">After switching invoice extraction to use <code>tool_use</code> with a strict JSON schema, the team celebrates that JSON syntax errors have been eliminated. However, they are still finding invoices where the <code>line_items</code> amounts don't add up to the <code>total_amount</code>. What does this indicate?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q43a')"><span class="option-letter">A</span>The JSON schema is not strict enough — add a <code>minimum</code> and <code>maximum</code> constraint to the total_amount field</li>
+          <li class="exam-option" onclick="pick(this,false,'q43a')"><span class="option-letter">B</span>The tool descriptions are unclear — rewrite them to explain that line items should sum to the total</li>
+          <li class="exam-option" onclick="pick(this,true,'q43a')"><span class="option-letter">C</span>Tool use eliminates syntax errors but not semantic errors — a separate validation layer is needed to check business logic like sum consistency</li>
+          <li class="exam-option" onclick="pick(this,false,'q43a')"><span class="option-letter">D</span>The model needs a larger context window to process both the line items and total in a single pass</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r43a')">Show explanation</button>
+        <div class="exam-reveal" id="r43a">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> This is the central exam principle for 4.3: tool use provides syntactic guarantees (valid JSON, correct types, required fields present) but cannot enforce business logic like "sum of line items must equal total." JSON schemas have no mechanism to express cross-field arithmetic constraints. A post-extraction validation layer must check semantic consistency. <strong>A is wrong:</strong> min/max constraints on a single field can't enforce relationships between fields. <strong>B is wrong:</strong> better tool descriptions improve selection, not arithmetic consistency. <strong>D is wrong:</strong> this is a validation architecture problem, not a context problem.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 4.3</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">An extraction pipeline processes three document types: invoices, contracts, and purchase orders — each with a different extraction schema. The document type is not always known in advance. What <code>tool_choice</code> configuration ensures the model always calls one of the extraction tools rather than returning conversational text?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q43b')"><span class="option-letter">A</span><code>tool_choice: "auto"</code> — the model will select the appropriate tool based on document content</li>
+          <li class="exam-option" onclick="pick(this,true,'q43b')"><span class="option-letter">B</span><code>tool_choice: "any"</code> — the model must call one of the available tools and cannot return plain text, while still choosing which tool fits the document</li>
+          <li class="exam-option" onclick="pick(this,false,'q43b')"><span class="option-letter">C</span><code>tool_choice: {"type":"tool","name":"extract_invoice"}</code> — forces the invoice tool to run for all documents</li>
+          <li class="exam-option" onclick="pick(this,false,'q43b')"><span class="option-letter">D</span>No <code>tool_choice</code> setting — include "always use a tool" in the system prompt</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r43b')">Show explanation</button>
+        <div class="exam-reveal" id="r43b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> <code>"any"</code> is the right choice when: (1) structured output is guaranteed (cannot return text), and (2) multiple tools exist and the model should choose the appropriate one. <strong>A is wrong:</strong> "auto" allows the model to return plain text — doesn't guarantee extraction. <strong>C is wrong:</strong> forcing a specific tool runs invoice extraction on contracts and POs, producing incorrect schema mappings. <strong>D is wrong:</strong> system prompt instructions are probabilistic — "any" provides a structural guarantee.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 4.3</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your pipeline extracts contract terms using a strict JSON schema enforced via tool use. Schema validation passes 100% of the time, but downstream legal review still rejects 18% of extractions because key relationships between fields are wrong — e.g., the <code>termination_date</code> is before the <code>start_date</code>. What additional measure would most reduce the rejection rate?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q43c')"><span class="option-letter">A</span>Switch from tool use enforcement to markdown JSON output and add format instructions.</li>
+          <li class="exam-option" onclick="pick(this,true,'q43c')"><span class="option-letter">B</span>Add a post-extraction validation layer that checks semantic constraints across fields, such as date ordering and required field co-occurrence.</li>
+          <li class="exam-option" onclick="pick(this,false,'q43c')"><span class="option-letter">C</span>Increase the schema strictness by adding more required fields.</li>
+          <li class="exam-option" onclick="pick(this,false,'q43c')"><span class="option-letter">D</span>Add few-shot examples showing correct field relationships.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r43c')">Show explanation</button>
+        <div class="exam-reveal" id="r43c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> JSON schema validation ensures structural correctness but cannot enforce semantic constraints between fields (e.g., end &gt; start). A semantic validation layer applies cross-field business rules that the schema cannot express. A (markdown JSON) is strictly worse — it removes schema enforcement without adding semantic validation. C (more required fields) increases structural coverage but still doesn't catch relational errors between existing fields. D (few-shot) helps Claude learn patterns but doesn't provide a deterministic safety net — a validation layer is more reliable for cross-field constraints.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 4.4 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 4.4</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts44">
+    <div class="ts-number">Task Statement 4.4</div>
+    <h3>Implement validation, retry, and feedback loops for extraction quality</h3>
+    <div class="ts-desc">Retries work when the error is fixable — format mismatches, structural output errors. They don't work when the required information simply isn't in the document. Knowing the difference prevents wasted API calls and incorrect data.</div>
+  </div>
+
+  <section class="section" id="ts44-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Retry-with-error-feedback is a powerful pattern: rather than sending the same prompt again, you append the specific validation error and ask the model to correct its output. This gives the model the information it needs to fix the error — but only if the error is fixable given the source document.</p>
+  </section>
+
+  <section class="section" id="ts44-retry">
+    <h3 class="section-title blue">Retry-with-Error-Feedback</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">python — retry loop with specific error feedback</span>
+        <span class="code-tag tag-good">EFFECTIVE RETRY PATTERN</span>
+      </div>
+      <pre><span class="hl-fn">def</span> <span class="hl-key">extract_with_retry</span>(document, max_retries=<span class="hl-num">3</span>):
+    messages = [{<span class="hl-str">"role"</span>: <span class="hl-str">"user"</span>, <span class="hl-str">"content"</span>: document}]
+
+    <span class="hl-fn">for</span> attempt <span class="hl-fn">in</span> range(max_retries):
+        response = extract(messages)
+        result = parse_tool_result(response)
+
+        <span class="hl-comment"># Validate the extraction result</span>
+        errors = validate_extraction(result)
+
+        <span class="hl-fn">if not</span> errors:
+            <span class="hl-fn">return</span> result  <span class="hl-comment"># ✓ Success</span>
+
+        <span class="hl-comment"># ✓ Append assistant response AND specific errors</span>
+        messages.append({<span class="hl-str">"role"</span>: <span class="hl-str">"assistant"</span>, <span class="hl-str">"content"</span>: response.content})
+        messages.append({
+            <span class="hl-str">"role"</span>: <span class="hl-str">"user"</span>,
+            <span class="hl-str">"content"</span>: <span class="hl-str">f"""Your extraction has validation errors. Please correct them:
+
+Errors found:
+{chr(10).join(f"- {e}" for e in errors)}
+
+Original document for reference:
+{document}
+
+Please re-extract with these corrections applied."""</span>
+        })
+
+    <span class="hl-fn">return</span> result  <span class="hl-comment"># Return best attempt after max retries</span></pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts44-when-retry-fails">
+    <h3 class="section-title red">When Retry Won't Help</h3>
+    <p>The most important distinction in 4.4: retries fix errors caused by <strong>format or structural output problems</strong>. They cannot fix errors caused by <strong>missing information in the source document</strong>.</p>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header good">✓ Retry Will Succeed</div>
+        <div class="compare-body">
+<span class="hl-ok">Format mismatch:</span>
+  Date extracted as "Jan 15, 2024"
+  Expected: ISO 8601 "2024-01-15"
+  → Retry with format instruction will fix
+
+<span class="hl-ok">Structural output error:</span>
+  Amount extracted as string "50.00"
+  Expected: number 50.00
+  → Schema feedback will fix
+
+<span class="hl-ok">Field misplacement:</span>
+  Vendor name in address field
+  → Specific error feedback will fix
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Retry Won't Help</div>
+        <div class="compare-body">
+<span class="hl-warn">Missing information:</span>
+  Invoice date not present anywhere
+  in the document
+  → Retrying just produces fabrication
+
+<span class="hl-warn">External reference:</span>
+  "As per the attached rate card"
+  Rate card not provided
+  → Model cannot extract what's
+    not in the context
+
+<span class="hl-warn">Ambiguous source data:</span>
+  Two conflicting totals in document
+  → Retry produces inconsistent picks,
+    not a correct answer
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts44-feedback-loops">
+    <h3 class="section-title green">Feedback Loop Design</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🔍</div>
+        <h4><code>detected_pattern</code> Field</h4>
+        <p>Add a <code>detected_pattern</code> field to structured findings so that when developers dismiss a finding, you can track which code constructs triggered false positives. Enables systematic prompt improvement based on real dismissal patterns.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🧮</div>
+        <h4>Self-Validation Fields</h4>
+        <p>Add <code>calculated_total</code> alongside <code>stated_total</code> — the model computes the sum of line items and compares. Add <code>conflict_detected: boolean</code> when source data has inconsistencies. Makes semantic errors visible without external logic.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📊</div>
+        <h4>Confidence Alongside Findings</h4>
+        <p>Have the model self-report a confidence score per finding. Use this to route low-confidence extractions to human review. Enables calibrated routing without making every extraction manual.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚡</div>
+        <h4>Sample Before Batch</h4>
+        <p>Run prompt refinement on a representative sample set (10–20 documents) before batch-processing large volumes. Maximises first-pass success rates and dramatically reduces costly iterative resubmission on thousands of documents.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts44-traps">
+    <h3 class="section-title red">Exam Traps for Task 4.4</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Retry when a required field is null because information isn't in the document</td>
+          <td class="col-why">The model has nothing new to work with — it will either repeat null or fabricate a value to satisfy the requirement</td>
+          <td class="col-correct">Distinguish format/structural errors (retry will help) from absent information (route to human review or accept null)</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Retry without providing the specific validation error</td>
+          <td class="col-why">Sending the same prompt again produces the same output — the model has no information about what was wrong</td>
+          <td class="col-correct">Include the original document, the failed extraction, and the specific validation errors in the retry request</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Run batch processing on 10,000 documents without sample testing</td>
+          <td class="col-why">If the prompt has extraction gaps, they affect all 10,000 documents — expensive to reprocess the entire batch</td>
+          <td class="col-correct">Test on a representative 10–20 document sample first; fix extraction issues before running at scale</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts44-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T4</div>
+        <h3>Build a Validation-Retry Pipeline with Semantic Checking</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Implement retry-with-error-feedback: include original document, failed extraction, and specific errors in the retry message</li>
+        <li>Create test cases: (a) date format mismatch — confirm retry fixes it; (b) required field absent from document — confirm retry produces fabrication or repeated null, not a correct answer</li>
+        <li>Add semantic validation: check that line item amounts sum to stated total; add <code>calculated_total</code> and <code>conflict_detected</code> fields to the schema</li>
+        <li>Add <code>detected_pattern</code> field to code review findings; track which patterns developers dismiss; identify top 3 false-positive patterns after 50 reviews</li>
+        <li>Test sample-before-batch: run on 10 documents, identify extraction gaps, fix prompt, then run on 100 — measure first-pass success rate improvement</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts44-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 4.4</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 4.4</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">An extraction pipeline has a 15% rate of null <code>publication_date</code> fields. Investigation reveals that 8% of documents genuinely don't contain a publication date, while 7% have a date but in a non-standard format (e.g., "Published Spring 2023"). The team has a retry loop that retries all null extractions. What outcome should they expect for each group?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q44a')"><span class="option-letter">A</span>Retry fixes both groups — the model will try harder to find dates it missed the first time</li>
+          <li class="exam-option" onclick="pick(this,false,'q44a')"><span class="option-letter">B</span>Retry fixes neither group — retries without new information produce the same output</li>
+          <li class="exam-option" onclick="pick(this,true,'q44a')"><span class="option-letter">C</span>Retry with format guidance fixes the 7% with non-standard formats (format mismatch is correctable) but the 8% with truly absent dates will either remain null or be fabricated</li>
+          <li class="exam-option" onclick="pick(this,false,'q44a')"><span class="option-letter">D</span>Retry fixes the 8% with absent dates because the model will infer approximate dates from document context</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r44a')">Show explanation</button>
+        <div class="exam-reveal" id="r44a">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Format mismatches are correctable — a retry telling the model "extract dates in ISO 8601 format, including informal formats like 'Spring 2023' → '2023-01'" will fix the 7%. But the 8% where no date exists cannot be fixed by retrying — the model either keeps returning null (correct) or hallucinates a date (incorrect). The correct handling for absent dates is to accept null and route to human review if needed. <strong>A is wrong:</strong> retrying without new information doesn't help absent-date documents. <strong>B is too pessimistic:</strong> retries with specific format feedback do fix format mismatches. <strong>D is wrong</strong> and dangerous — inferring dates from context produces fabrication, not extraction.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 4.4</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your contract extraction pipeline retries any extraction that fails JSON schema validation. After 3 retries, the error rate is still 12%. You analyse failures and find three distinct root causes: (A) Claude misidentifies section headings as clause content, (B) multi-paragraph clauses are truncated at the first line break, and (C) cross-references like 'see Section 4.3' are extracted literally instead of being resolved. Which retry strategy would most effectively reduce errors across all three root causes?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q44b')"><span class="option-letter">A</span>Retry with temperature=0 for all failures to maximise determinism.</li>
+          <li class="exam-option" onclick="pick(this,true,'q44b')"><span class="option-letter">B</span>Classify the failure type before retrying, then apply a targeted correction prompt specific to each root cause.</li>
+          <li class="exam-option" onclick="pick(this,false,'q44b')"><span class="option-letter">C</span>Retry with a longer context window to provide more surrounding text.</li>
+          <li class="exam-option" onclick="pick(this,false,'q44b')"><span class="option-letter">D</span>Add all three root causes as system prompt warnings on the first attempt.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r44b')">Show explanation</button>
+        <div class="exam-reveal" id="r44b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> When failures have multiple distinct root causes, a classification-based retry is far more effective than a single generic retry. Each root cause requires a different correction: for (A), a prompt distinguishing headings from content; for (B), instructions for multi-paragraph continuation; for (C), a resolution step for cross-references. A (temperature=0) helps with consistency but doesn't address structural misunderstandings. C (longer context) helps with (B) but not (A) or (C). D (upfront warnings) can reduce errors on the first pass but doesn't fully eliminate them — retries still need to be targeted.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 4.4</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">You implement a feedback loop where a validator Claude instance checks extraction quality. The validator is given only the extracted JSON and the schema to assess whether the extraction is correct. After deployment, you find the validator approves extractions that human reviewers reject. What is the most likely design flaw?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q44c')"><span class="option-letter">A</span>The validator prompt is too strict and rejecting valid extractions.</li>
+          <li class="exam-option" onclick="pick(this,false,'q44c')"><span class="option-letter">B</span>The validator model is less capable than the extractor model.</li>
+          <li class="exam-option" onclick="pick(this,true,'q44c')"><span class="option-letter">C</span>The validator only has the extracted JSON, not the source document, so it cannot verify whether extracted values actually appear in the source.</li>
+          <li class="exam-option" onclick="pick(this,false,'q44c')"><span class="option-letter">D</span>The schema used by the validator is outdated compared to the extractor's schema.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r44c')">Show explanation</button>
+        <div class="exam-reveal" id="r44c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> A validator checking extraction quality without access to the source document is fundamentally limited — it can only check structural validity, not factual accuracy (whether the extracted values actually exist in the document). Human reviewers reject extractions because values are wrong or hallucinated, not because the JSON structure is invalid. A (too strict) is the opposite problem — the validator is too permissive. B (less capable model) might cause inconsistent behavior but doesn't explain systematic approval of factually wrong extractions. D (schema mismatch) would cause structural validation failures, not factual accuracy failures.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 4.5 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 4.5</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts45">
+    <div class="ts-number">Task Statement 4.5</div>
+    <h3>Design efficient batch processing strategies</h3>
+    <div class="ts-desc">50% cost savings — but no guaranteed latency SLA, no multi-turn tool calling, and up to 24 hours. Matching the API to the workflow latency requirement is the core decision. The exam tests SLA calculation and failure recovery design.</div>
+  </div>
+
+  <section class="section" id="ts45-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>The Message Batches API is designed for workloads that can tolerate async processing — overnight reports, weekly audits, bulk document processing. Its 50% cost savings make it compelling. Its non-deterministic completion time (up to 24 hours) makes it incompatible with any blocking workflow.</p>
+    <div class="callout callout-warn">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>Critical Limitation:</strong> The batch API does <strong>not support multi-turn tool calling</strong> within a single request. If your extraction workflow requires calling tools mid-request and returning results, you cannot use the batch API for it — use the synchronous API.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts45-tradeoffs">
+    <h3 class="section-title blue">Batch API Trade-offs and SLA Calculation</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">💰</div>
+        <h4>50% Cost Savings</h4>
+        <p>Half the per-token cost of the synchronous API. For high-volume extraction on non-urgent workloads, this compounds significantly across millions of tokens.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⏱️</div>
+        <h4>Up to 24-Hour Window</h4>
+        <p>No guaranteed completion time. Batches complete within 24 hours — but may complete in minutes. Never build a blocking workflow dependency on "usually faster" completion.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔑</div>
+        <h4><code>custom_id</code> Correlation</h4>
+        <p>Every batch request takes a <code>custom_id</code>. Results are returned with the same ID, enabling correlation regardless of completion order. Essential for partial failure recovery.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🚫</div>
+        <h4>No Multi-Turn Tool Calling</h4>
+        <p>Single-turn only. If your workflow needs to call a tool, receive the result, then make a follow-up decision — use the synchronous API. Batch API cannot execute tools mid-request.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:1.25rem;">
+      <div class="callout-icon">📐</div>
+      <div class="callout-body"><strong>SLA Calculation Example:</strong> If your SLA requires results within 30 hours of document receipt, and the batch API takes up to 24 hours: you must submit batches within 6 hours of document receipt (30 − 24 = 6-hour submission window). If documents arrive continuously, submit every ≤6 hours to guarantee the 30-hour SLA.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts45-patterns">
+    <h3 class="section-title green">Batch Failure Handling</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">python — batch failure recovery using custom_id</span>
+        <span class="code-tag tag-good">FAILURE RECOVERY PATTERN</span>
+      </div>
+      <pre><span class="hl-fn">def</span> <span class="hl-key">process_batch_results</span>(batch_results, original_documents):
+    successful = []
+    failed = []
+
+    <span class="hl-fn">for</span> result <span class="hl-fn">in</span> batch_results:
+        doc_id = result.custom_id  <span class="hl-comment"># ← correlate using custom_id</span>
+
+        <span class="hl-fn">if</span> result.result.type == <span class="hl-str">"succeeded"</span>:
+            successful.append(result)
+        <span class="hl-fn">else</span>:
+            original_doc = original_documents[doc_id]
+            failure_reason = result.result.error.type
+
+            <span class="hl-fn">if</span> failure_reason == <span class="hl-str">"token_limit_exceeded"</span>:
+                <span class="hl-comment"># ✓ Chunk the document and resubmit</span>
+                chunks = chunk_document(original_doc)
+                failed.extend([(doc_id, chunk) <span class="hl-fn">for</span> chunk <span class="hl-fn">in</span> chunks])
+            <span class="hl-fn">else</span>:
+                <span class="hl-comment"># ✓ Resubmit with same content</span>
+                failed.append((doc_id, original_doc))
+
+    <span class="hl-comment"># ✓ Only resubmit failures, not the entire batch</span>
+    <span class="hl-fn">if</span> failed:
+        resubmit_batch(failed)
+
+    <span class="hl-fn">return</span> successful</pre>
+    </div>
+    <ul class="skill-list">
+      <li>Match API approach to latency: synchronous for blocking pre-merge checks, batch for overnight/weekly non-urgent workloads</li>
+      <li>Resubmit only <strong>failed documents</strong> identified by <code>custom_id</code> — not the entire batch</li>
+      <li>For documents that exceeded context limits: <strong>chunk them</strong> before resubmitting rather than retrying as-is</li>
+      <li>Test on a representative sample before batch-processing large volumes — maximises first-pass success and reduces costly resubmission cycles</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts45-traps">
+    <h3 class="section-title red">Exam Traps for Task 4.5</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use batch API for a blocking pre-merge check that developers wait for</td>
+          <td class="col-why">Batch API has up to 24-hour completion time — developers cannot wait for a pre-merge check to complete in an unbounded window</td>
+          <td class="col-correct">Synchronous API for any blocking workflow; batch only for non-blocking async workloads</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Use batch API for an agentic extraction workflow that calls tools mid-extraction</td>
+          <td class="col-why">Batch API does not support multi-turn tool calling within a single request — tool calling requires the synchronous API</td>
+          <td class="col-correct">Use synchronous API for tool-calling workflows; batch for single-turn extraction where results can be returned in one pass</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Resubmit the entire batch when a few documents fail</td>
+          <td class="col-why">Reprocessing successful documents wastes 50x the cost of targeted resubmission — and correct results may be overwritten</td>
+          <td class="col-correct">Use <code>custom_id</code> to identify and resubmit only failed documents</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts45-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T5</div>
+        <h3>Build a Batch Extraction Pipeline with Failure Recovery</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Submit a batch of 50 documents with unique <code>custom_id</code> values for each. Verify result correlation works correctly.</li>
+        <li>Deliberately include 3 oversized documents that exceed context limits. Implement chunking-based resubmission only for those failures.</li>
+        <li>Calculate the submission frequency for a 30-hour SLA given the batch API's 24-hour maximum processing window.</li>
+        <li>Run a sample of 10 documents with your extraction prompt before batch-processing all 50. Identify and fix any extraction gaps. Measure first-pass success improvement.</li>
+        <li>Design a decision matrix: given a new workflow, what 3 questions determine whether it should use batch vs synchronous API?</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts45-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 4.5</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 4.5</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A document processing system has an SLA requiring all documents to be processed within 36 hours of receipt. Documents arrive continuously throughout the day. The team wants to use the batch API (up to 24-hour processing window). What batch submission frequency is required to guarantee the SLA?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q45a')"><span class="option-letter">A</span>Submit batches every 24 hours — batches complete within 24 hours so results will meet the 36-hour SLA</li>
+          <li class="exam-option" onclick="pick(this,false,'q45a')"><span class="option-letter">B</span>Submit batches every 36 hours — the full SLA window is the maximum submission interval</li>
+          <li class="exam-option" onclick="pick(this,true,'q45a')"><span class="option-letter">C</span>Submit batches every 12 hours — documents must be submitted within 12 hours of receipt so that even a 24-hour batch processing window still completes within the 36-hour SLA (36 − 24 = 12)</li>
+          <li class="exam-option" onclick="pick(this,false,'q45a')"><span class="option-letter">D</span>Batch API is unsuitable — the 24-hour window makes any SLA under 24 hours impossible to guarantee</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r45a')">Show explanation</button>
+        <div class="exam-reveal" id="r45a">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> SLA calculation: 36-hour SLA minus 24-hour maximum batch processing time leaves a 12-hour submission window. Documents must be submitted to the batch API within 12 hours of receipt. Submitting every 12 hours guarantees the latest-arriving document in each batch is submitted within 12 hours and processed within 24 hours — total ≤36 hours. <strong>A is wrong:</strong> submitting every 24 hours means a document arriving just after a submission could wait up to 24 hours before being submitted, then another 24 hours processing = 48 hours total. <strong>B is wrong:</strong> same logical error. <strong>D is wrong:</strong> a 36-hour SLA is achievable with a 24-hour batch window — with the right submission frequency.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 4.5</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your customer support pipeline processes 10,000 support tickets per day. Your SLA requires ticket responses to be submitted within 36 hours of receipt, and processing latency is 24 hours end-to-end. Your batch job currently runs once per day at midnight. A ticket arrives at 11:58 PM. How much time remains before the SLA is breached from the moment the ticket arrives?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q45b')"><span class="option-letter">A</span>36 hours</li>
+          <li class="exam-option" onclick="pick(this,false,'q45b')"><span class="option-letter">B</span>24 hours</li>
+          <li class="exam-option" onclick="pick(this,true,'q45b')"><span class="option-letter">C</span>12 hours</li>
+          <li class="exam-option" onclick="pick(this,false,'q45b')"><span class="option-letter">D</span>0 hours</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r45b')">Show explanation</button>
+        <div class="exam-reveal" id="r45b">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Trace the timeline: ticket arrives at 11:58 PM (T=0) → SLA deadline is T+36h = 11:58 AM day+2. The next batch runs at midnight (T+2 min) and processing takes 24 hours, so the batch completes at ~12:02 AM day+2. From that completion point to the SLA deadline (11:58 AM day+2) is approximately 12 hours of buffer remaining. <strong>A (36 hours)</strong> treats the full SLA window as available buffer, ignoring that 24 hours are consumed by processing. <strong>B (24 hours)</strong> misidentifies the processing latency itself as the buffer. <strong>D (0 hours)</strong> would only be correct if the batch ran after the SLA window had already closed — it runs just 2 minutes after arrival.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 4.5</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your batch processing pipeline sends all 10,000 daily tickets to Claude in a single API request batch. Occasionally the entire batch fails due to a single malformed ticket causing a processing error, requiring a full re-run. Which batch design change most directly reduces the blast radius of single-ticket failures?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q45c')"><span class="option-letter">A</span>Add retry logic that re-submits the entire batch if any ticket fails.</li>
+          <li class="exam-option" onclick="pick(this,true,'q45c')"><span class="option-letter">B</span>Process tickets in smaller batches (e.g., 100 tickets per batch) so a single failure only affects that batch.</li>
+          <li class="exam-option" onclick="pick(this,false,'q45c')"><span class="option-letter">C</span>Add input validation before submission to catch malformed tickets.</li>
+          <li class="exam-option" onclick="pick(this,false,'q45c')"><span class="option-letter">D</span>Use a dead-letter queue to route failed tickets to a separate processing pipeline.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r45c')">Show explanation</button>
+        <div class="exam-reveal" id="r45c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Smaller batches directly limit blast radius — if one ticket fails in a 100-ticket batch, only 99 others are affected rather than 9,999. A (retry entire batch) makes things worse — it repeats the problem at scale. C (input validation) is complementary but novel failures can still slip through. D (dead-letter queue) handles failures after they occur but doesn't prevent the batch from failing in the first place.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════ TS 4.6 ═══════════════════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 4.6</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts46">
+    <div class="ts-number">Task Statement 4.6</div>
+    <h3>Design multi-instance and multi-pass review architectures</h3>
+    <div class="ts-desc">A model reviewing its own output is less effective than an independent reviewer — not because it's incapable, but because it retains reasoning context from generation. Independence eliminates the bias. Multi-pass eliminates attention dilution.</div>
+  </div>
+
+  <section class="section" id="ts46-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>When Claude generates code and then reviews it in the same session, it retains the reasoning context from generation — making it less likely to question its own architectural decisions. An <strong>independent review instance</strong> (a fresh session with no generation context) approaches the code with fresh eyes and is measurably more effective at catching subtle issues.</p>
+    <div class="callout callout-warn">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> Self-review in the same session is less effective than independent review — not because "Claude can't review its own code" in principle, but because the retained reasoning context makes it biased toward its own decisions. The fix is architectural: use a separate instance that has only the code, not the generation history.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts46-self-review">
+    <h3 class="section-title red">The Self-Review Limitation</h3>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Self-Review (Same Session)</div>
+        <div class="compare-body">
+Session history:
+1. [User] "Generate a sorting algorithm"
+2. [Claude] "Here's merge sort: ..."
+3. [User] "Review this code for bugs"
+4. [Claude] "The code looks correct..."
+
+Why it fails:
+<span class="hl-warn">Claude still has step 2's reasoning
+in context. It "knows" why it made
+each decision. Unlikely to question
+its own design choices or notice
+assumptions it encoded.</span>
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Independent Review (New Session)</div>
+        <div class="compare-body">
+Review session (fresh):
+1. [User] "Review this code for bugs"
+   [code provided directly]
+2. [Claude] "I notice the merge
+   operation doesn't handle..."
+
+Why it works:
+<span class="hl-ok">No generation context. No reasoning
+bias. Claude evaluates the code on
+its own merits. Same capability,
+different perspective.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts46-architecture">
+    <h3 class="section-title blue">Review Architectures</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🔄</div>
+        <h4>Independent Instance Review</h4>
+        <p>After generation, spawn a second Claude instance with no generation history. Provide only the code. The independent instance reviews without reasoning bias from the generation phase.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📄</div>
+        <h4>Per-File + Integration Pass</h4>
+        <p>For multi-file reviews: pass 1 analyzes each file individually for local issues (consistent depth, no attention dilution). Pass 2 is a separate cross-file integration review examining data flow, interface contracts, and cross-module patterns.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🎯</div>
+        <h4>Confidence-Scored Routing</h4>
+        <p>Run a verification pass where the model self-reports confidence alongside each finding. Route high-confidence findings to automated action, low-confidence findings to human review. Calibrates automation vs human oversight.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚡</div>
+        <h4>When to Use Each</h4>
+        <p>Independent instance: after any generation. Per-file + integration: PRs with 5+ files. Confidence routing: high-stakes automated actions. Combination: large PRs with auto-fix capability.</p>
+      </div>
+    </div>
+    <ul class="skill-list" style="margin-top:1.25rem;">
+      <li>Use a second independent Claude instance without the generator's reasoning context — not self-review instructions in the same session</li>
+      <li>Split large multi-file reviews into per-file local analysis passes plus a separate cross-file integration pass — avoids attention dilution and contradictory findings</li>
+      <li>Run verification passes with model-reported confidence scores to enable calibrated routing between automated action and human review</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts46-traps">
+    <h3 class="section-title red">Exam Traps for Task 4.6</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Add "critically review your own output" instruction in the same session</td>
+          <td class="col-why">The reasoning context from generation is still present — the model retains its design decisions and is less likely to question them, regardless of the instruction</td>
+          <td class="col-correct">Use a second independent instance with no generation history — provides architectural bias removal, not just instructional reminder</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Switch to a larger context model to review 14 files in one pass</td>
+          <td class="col-why">Context window size doesn't solve attention dilution — models still produce inconsistent depth across many files in a single pass</td>
+          <td class="col-correct">Per-file passes for consistent depth, plus a separate integration pass for cross-file issues</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Run three consensus-based passes to filter findings — only report issues appearing in 2/3 runs</td>
+          <td class="col-why">Consensus suppresses intermittently-detected real bugs — issues that are only sometimes caught are still real issues, just hard to detect</td>
+          <td class="col-correct">Independent instance review; per-file passes; confidence-scored routing — not consensus filtering</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts46-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T6</div>
+        <h3>Build a Two-Instance Review Pipeline</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Generate a sorting algorithm in one Claude session. In the same session, ask Claude to review it for bugs. Document what it finds (or doesn't).</li>
+        <li>In a fresh Claude session, provide only the generated code with no generation history. Ask for a review. Compare findings with the self-review. Document the difference.</li>
+        <li>Create a 6-file PR. Run a single-pass review. Document inconsistency in depth and any contradictory findings.</li>
+        <li>Re-run with per-file passes (6 separate reviews) + 1 integration pass. Compare quality and consistency.</li>
+        <li>Add confidence scoring to the review output: have Claude rate each finding 1–5. Define routing rules: ≥4 → automated comment, ≤2 → human review queue.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts46-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 4.6</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 4.6</span>
+        <span class="exam-scenario">CI/CD Code Review Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A CI pipeline uses the same Claude session to generate a function and then immediately review it. Developers report the review misses subtle issues that human reviewers catch. A developer suggests adding the instruction "Be critical of your own code — find all bugs including subtle ones." What outcome should you expect?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q46a')"><span class="option-letter">A</span>Review quality improves significantly — explicit self-critique instructions activate a different reasoning mode</li>
+          <li class="exam-option" onclick="pick(this,true,'q46a')"><span class="option-letter">B</span>Review quality improves marginally at best — the root cause is retained reasoning context from generation, which the instruction cannot eliminate. An independent review instance without generation history is needed</li>
+          <li class="exam-option" onclick="pick(this,false,'q46a')"><span class="option-letter">C</span>Review quality gets worse — self-critique instructions cause the model to flag too many false positives</li>
+          <li class="exam-option" onclick="pick(this,false,'q46a')"><span class="option-letter">D</span>Review quality improves because the instruction triggers extended thinking which bypasses the generation context</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r46a')">Show explanation</button>
+        <div class="exam-reveal" id="r46a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The self-review limitation is architectural — the model retains the reasoning and assumptions from generation in its context window. Adding a self-critique instruction doesn't remove that reasoning context; the model still "knows" why it made each decision and is biased toward its own choices. The correct fix is structural: use an independent review instance with a fresh context containing only the code, not the generation history. <strong>A is wrong:</strong> no instruction mode bypasses retained context. <strong>C is wrong:</strong> there's no evidence self-critique increases false positives specifically. <strong>D is wrong:</strong> extended thinking operates within the same session context — it doesn't remove the generation history.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 4.6</span>
+        <span class="exam-scenario">CI/CD Code Review Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A PR review of 14 files is producing inconsistent results — detailed feedback on some files, superficial comments on others, and contradictory findings (flagging a pattern in one file, approving it in another). What is the correct architectural fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,true,'q46b')"><span class="option-letter">A</span>Split into focused per-file passes for local issue analysis, then run a separate cross-file integration pass examining data flow and interface consistency</li>
+          <li class="exam-option" onclick="pick(this,false,'q46b')"><span class="option-letter">B</span>Switch to a model with a 200k token context window to accommodate all 14 files with adequate attention</li>
+          <li class="exam-option" onclick="pick(this,false,'q46b')"><span class="option-letter">C</span>Run three independent passes on the full PR and only report findings that appear in at least two of three runs</li>
+          <li class="exam-option" onclick="pick(this,false,'q46b')"><span class="option-letter">D</span>Add "maintain consistent analysis depth across all files" to the review system prompt</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r46b')">Show explanation</button>
+        <div class="exam-reveal" id="r46b">
+          <div class="reveal-label">Correct: A</div>
+          <div class="reveal-text"><strong>A is correct.</strong> This is the official exam question Q12 pattern. Per-file passes ensure consistent depth by limiting each pass to one file — attention is fully available. The integration pass catches cross-file issues that per-file analysis can't see. <strong>B is the canonical trap:</strong> larger context windows don't solve attention dilution — the model still processes middle content with lower reliability regardless of window size. <strong>C is wrong:</strong> consensus filtering suppresses real bugs that are only intermittently detected — not a quality improvement. <strong>D won't work:</strong> instruction-based fixes for attention dilution are probabilistic and fail on large inputs.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 4.6</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your multi-pass research system uses Pass 1 to gather evidence from 20 sources and Pass 2 to synthesise findings into a structured report. In testing, Pass 2 produces reports where minor contradictions between low-credibility sources dominate the conclusions, while strong evidence from high-credibility sources is underweighted. What is the most effective prompt engineering change for Pass 2?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q46c')"><span class="option-letter">A</span>Instruct Pass 2 to cite all sources equally to avoid bias.</li>
+          <li class="exam-option" onclick="pick(this,true,'q46c')"><span class="option-letter">B</span>Add explicit prioritisation criteria to the Pass 2 prompt, such as 'Weight findings by source credibility tier, recency, and consistency with majority evidence.'</li>
+          <li class="exam-option" onclick="pick(this,false,'q46c')"><span class="option-letter">C</span>Increase the number of sources in Pass 1 to 40 to dilute low-credibility outliers.</li>
+          <li class="exam-option" onclick="pick(this,false,'q46c')"><span class="option-letter">D</span>Run Pass 2 twice and take the consensus between the two runs.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r46c')">Show explanation</button>
+        <div class="exam-reveal" id="r46c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Without explicit prioritisation criteria, Claude synthesises sources by giving roughly equal weight to all of them, causing minor contradictions from low-credibility sources to distort conclusions. Adding explicit weighting rules (credibility tier, recency, majority consistency) gives Pass 2 a decision framework for resolving conflicts. A (equal citation) is the exact problem — it enforces the flawed default behaviour. C (more sources in Pass 1) dilutes the signal further — adding more low-credibility sources doesn't help if Pass 2 lacks rules for handling credibility differences. D (two Pass 2 runs) averages the same flawed synthesis twice, producing consistent but still wrong results.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-meta">Domain 4 · All 6 Task Statements · Claude Certified Architect – Foundations</div>
+    <a class="next-btn" href="#">Next: Domain 5 — Context Management & Reliability →</a>
+  </div>
+
+</main>
+</div>
+
+<script>
+  const _DOMAIN = 4;
+  function saEvent(name, meta) {
+    if (typeof window.sa_event === 'function') window.sa_event(name, meta);
+  }
+  function _taskFromId(id) {
+    const m = id.match(/^[qr](\d)(\d)/);
+    return m ? m[1] + '.' + m[2] : id;
+  }
+
+  function pick(el, correct, qid) {
+    const parent = el.closest('.exam-options');
+    parent.querySelectorAll('.exam-option').forEach(o => o.classList.remove('correct','wrong'));
+    el.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      parent.querySelectorAll('.exam-option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true,')) {
+          o.classList.add('correct');
+        }
+      });
+    }
+    const reveal = el.closest('.exam-body').querySelector('.exam-reveal');
+    if (reveal) reveal.classList.add('visible');
+    saEvent('domain_question_answered', { domain: _DOMAIN, task: _taskFromId(qid), qid: qid, correct: correct ? 'yes' : 'no' });
+  }
+  function showReveal(id) {
+    document.getElementById(id).classList.add('visible');
+    saEvent('domain_explanation_viewed', { domain: _DOMAIN, task: _taskFromId(id) });
+  }
+  saEvent('domain_opened', { domain: _DOMAIN });
+  const allSections = document.querySelectorAll('[id]');
+  const allLinks = document.querySelectorAll('.sidebar-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    allLinks.forEach(l => {
+      l.classList.remove('active');
+      const href = l.getAttribute('href');
+      if (href && href === '#' + current) l.classList.add('active');
+    });
+  }, { passive: true });
+</script>
+<script>
+function toggleNav() {
+  document.getElementById('nav-links').classList.toggle('open');
+}
+(function(){
+  const page = location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    if (a.getAttribute('href').split('/').pop() === page) a.classList.add('nav-active');
+  });
+})();
+</script>
+</body>
+</html>

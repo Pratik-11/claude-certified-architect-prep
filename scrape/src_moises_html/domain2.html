@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 2: Tool Design & MCP Integration | Claude Certified Architect Guide</title>
+<!-- Self-contained: no external resources required -->
+<style>
+  :root {
+    --nav-h: 52px;
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1b1f27;
+    --border: #252a35;
+    --accent: #e8b84b;
+    --accent2: #6f9ceb;
+    --accent3: #61c99b;
+    --accent4: #e86b5f;
+    --text: #e8e6e0;
+    --text-dim: #8891a4;
+    --text-muted: #4a5366;
+    --mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    --serif: 'Palatino Linotype', 'Book Antiqua', 'Palatino', 'Georgia', 'Cambria', serif;
+    --sans: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 65px); }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+    padding-top: var(--nav-h);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.1rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: var(--nav-h);
+    background: rgba(13,15,18,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    height: 65px;
+  }
+  .header-left { display: flex; align-items: center; gap: 1.2rem; }
+  .badge {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 4px; border: 1px solid;
+  }
+  .badge-domain { color: var(--accent); border-color: rgba(232,184,75,0.3); background: rgba(232,184,75,0.06); }
+  .badge-weight { color: var(--accent2); border-color: rgba(111,156,235,0.3); background: rgba(111,156,235,0.06); }
+  .header h1 { font-family: var(--serif); font-size: 1.05rem; font-weight: 300; color: var(--text-dim); }
+  .header h1 strong { color: var(--text); font-weight: 600; }
+  .progress-bar { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .progress-dots { display: flex; gap: 4px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+  .dot.active { background: var(--accent); }
+  .dot.done { background: var(--accent3); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+    position: sticky;
+    top: calc(var(--nav-h) + 65px);
+    height: calc(100vh - var(--nav-h) - 65px);
+    overflow-y: auto;
+  }
+  .sidebar-section { padding: 0 1.5rem; margin-bottom: 1.75rem; }
+  .sidebar-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;
+  }
+  .sidebar-nav a {
+    display: block; padding: 6px 10px; border-radius: 4px;
+    color: var(--text-dim); text-decoration: none; font-size: 13px;
+    transition: all 0.15s; border-left: 2px solid transparent;
+    line-height: 1.4;
+  }
+  .sidebar-nav a:hover { color: var(--text); background: var(--surface); }
+  .sidebar-nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(232,184,75,0.05); }
+  .sidebar-nav a .ts-badge {
+    display: inline-block; font-family: var(--mono); font-size: 9px;
+    padding: 1px 5px; border-radius: 3px; margin-right: 4px; vertical-align: middle;
+    background: rgba(232,184,75,0.1); color: var(--accent); border: 1px solid rgba(232,184,75,0.2);
+  }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+
+  /* ── MAIN ── */
+  .main { padding: 3rem 4rem 5rem; max-width: 860px; }
+
+  /* ── DOMAIN HERO ── */
+  .domain-hero {
+    margin-bottom: 3.5rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .task-meta { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .domain-hero h2 { font-family: var(--serif); font-size: 2.4rem; font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 1rem; }
+  .domain-hero h2 em { font-style: italic; color: var(--accent); }
+  .domain-hero p { font-size: 15px; color: var(--text-dim); max-width: 600px; line-height: 1.75; margin-bottom: 0; }
+
+  /* ── TS DIVIDERS ── */
+  .ts-divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 4rem 0 2.5rem;
+  }
+  .ts-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .ts-divider-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 3rem; }
+  .section-title {
+    font-family: var(--serif); font-size: 1.3rem; font-weight: 600;
+    color: var(--text); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .section-title::before {
+    content: ''; display: inline-block; width: 4px; height: 1.3rem;
+    background: var(--accent); border-radius: 2px; flex-shrink: 0;
+  }
+  .section-title.blue::before { background: var(--accent2); }
+  .section-title.green::before { background: var(--accent3); }
+  .section-title.red::before { background: var(--accent4); }
+
+  /* ── TS TITLE BLOCK ── */
+  .ts-title-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 2rem;
+  }
+  .ts-title-block .ts-number {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem;
+  }
+  .ts-title-block h3 { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 0.75rem; }
+  .ts-title-block .ts-desc { font-size: 14px; color: var(--text-dim); line-height: 1.75; }
+
+  p { color: var(--text-dim); margin-bottom: 1rem; line-height: 1.8; }
+  p strong { color: var(--text); font-weight: 500; }
+
+  /* ── KNOWLEDGE CARDS ── */
+  .knowledge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
+  .k-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+  .k-card-icon { font-size: 1.3rem; margin-bottom: 0.6rem; }
+  .k-card h4 { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; }
+  .k-card p { font-size: 13px; margin: 0; color: var(--text-dim); }
+
+  /* ── SKILL LIST ── */
+  .skill-list { list-style: none; margin-top: 1rem; }
+  .skill-list li {
+    display: flex; gap: 0.75rem; align-items: flex-start;
+    padding: 0.65rem 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; color: var(--text-dim);
+  }
+  .skill-list li:last-child { border-bottom: none; }
+  .skill-list li::before { content: '→'; color: var(--accent); font-family: var(--mono); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1.25rem 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.05em; }
+  .code-tag { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 3px; font-weight: 500; }
+  .tag-bad { color: var(--accent4); background: rgba(232,107,95,0.1); border: 1px solid rgba(232,107,95,0.25); }
+  .tag-good { color: var(--accent3); background: rgba(97,201,155,0.1); border: 1px solid rgba(97,201,155,0.25); }
+  .tag-neutral { color: var(--accent2); background: rgba(111,156,235,0.1); border: 1px solid rgba(111,156,235,0.25); }
+  pre { padding: 1.25rem 1.5rem; font-family: var(--mono); font-size: 12.5px; line-height: 1.7; color: var(--text-dim); overflow-x: auto; }
+  .hl-key { color: var(--accent2); }
+  .hl-str { color: var(--accent3); }
+  .hl-comment { color: var(--text-muted); font-style: italic; }
+  .hl-warn { color: var(--accent4); }
+  .hl-ok { color: var(--accent3); }
+  .hl-num { color: var(--accent); }
+
+  /* ── CALLOUT ── */
+  .callout { border-radius: 8px; padding: 1.1rem 1.4rem; margin: 1.25rem 0; display: flex; gap: 1rem; align-items: flex-start; }
+  .callout-warn { background: rgba(232,184,75,0.07); border: 1px solid rgba(232,184,75,0.2); }
+  .callout-danger { background: rgba(232,107,95,0.07); border: 1px solid rgba(232,107,95,0.2); }
+  .callout-info { background: rgba(111,156,235,0.07); border: 1px solid rgba(111,156,235,0.2); }
+  .callout-success { background: rgba(97,201,155,0.07); border: 1px solid rgba(97,201,155,0.2); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { font-size: 13.5px; color: var(--text-dim); line-height: 1.7; }
+  .callout-body strong { color: var(--text); }
+
+  /* ── COMPARISON ── */
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
+  .compare-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .compare-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; }
+  .compare-header.bad { background: rgba(232,107,95,0.06); color: var(--accent4); }
+  .compare-header.good { background: rgba(97,201,155,0.06); color: var(--accent3); }
+  .compare-body { padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--text-dim); }
+
+  /* ── TRAP TABLE ── */
+  .trap-table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 13px; }
+  .trap-table th { text-align: left; padding: 10px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  .trap-table td { padding: 11px 14px; border-bottom: 1px solid rgba(37,42,53,0.5); vertical-align: top; line-height: 1.6; }
+  .trap-table tr:last-child td { border-bottom: none; }
+  .trap-table .col-trap { color: var(--accent4); font-family: var(--mono); font-size: 12px; }
+  .trap-table .col-correct { color: var(--accent3); font-size: 13px; }
+  .trap-table .col-why { color: var(--text-dim); font-size: 12px; }
+
+  /* ── TASK BOX ── */
+  .task-box { background: var(--surface); border: 1px solid rgba(232,184,75,0.35); border-radius: 10px; padding: 1.75rem; margin: 1.5rem 0; }
+  .task-box-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+  .task-number {
+    width: 28px; height: 28px;
+    background: rgba(232,184,75,0.15); border: 1px solid rgba(232,184,75,0.35);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; color: var(--accent); flex-shrink: 0;
+  }
+  .task-box-header h3 { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--accent); }
+  .task-steps { list-style: none; counter-reset: task-counter; }
+  .task-steps li {
+    counter-increment: task-counter; display: flex; gap: 0.85rem;
+    padding: 0.55rem 0; font-size: 14px; color: var(--text-dim); align-items: flex-start;
+  }
+  .task-steps li::before {
+    content: counter(task-counter); font-family: var(--mono); font-size: 10px;
+    color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border);
+    width: 20px; height: 20px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* ── TOOL CHOICE MATRIX ── */
+  .matrix { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 13px; }
+  .matrix th { padding: 10px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); text-align: left; }
+  .matrix td { padding: 11px 14px; border-bottom: 1px solid rgba(37,42,53,0.5); vertical-align: top; line-height: 1.6; }
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix .val { font-family: var(--mono); font-size: 12px; color: var(--accent2); }
+  .matrix .behavior { color: var(--text-dim); font-size: 13px; }
+  .matrix .use-when { color: var(--text-muted); font-size: 12px; }
+
+  /* ── BUILT-IN TOOL CARDS ── */
+  .builtin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
+  .builtin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .builtin-card-header { padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; gap: 8px; }
+  .builtin-name { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--accent2); }
+  .builtin-card-body { padding: 1rem 1.1rem; }
+  .builtin-card-body p { font-size: 12.5px; margin: 0 0 0.5rem; }
+  .builtin-card-body .fallback { font-size: 11.5px; color: var(--text-muted); font-family: var(--mono); }
+
+  /* ── EXAM QUESTION ── */
+  .exam-question { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 1.5rem 0; }
+  .exam-header { background: var(--surface2); padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .exam-q-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); }
+  .exam-scenario { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+  .exam-body { padding: 1.5rem 1.75rem; }
+  .exam-stem { font-size: 14px; color: var(--text); line-height: 1.75; margin-bottom: 1.25rem; }
+  .exam-options { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+  .exam-option {
+    display: flex; gap: 0.85rem; padding: 0.85rem 1.1rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; color: var(--text-dim); cursor: pointer;
+    transition: all 0.15s; align-items: flex-start;
+  }
+  .exam-option:hover { border-color: var(--accent2); color: var(--text); background: rgba(111,156,235,0.04); }
+  .exam-option.correct { border-color: var(--accent3); background: rgba(97,201,155,0.06); color: var(--text); }
+  .exam-option.wrong { border-color: rgba(232,107,95,0.4); background: rgba(232,107,95,0.04); }
+  .option-letter { font-family: var(--mono); font-size: 11px; color: var(--text-muted); flex-shrink: 0; margin-top: 1px; }
+  .exam-option.correct .option-letter { color: var(--accent3); }
+  .exam-option.wrong .option-letter { color: var(--accent4); }
+  .exam-reveal { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .exam-reveal.visible { display: block; }
+  .reveal-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent3); margin-bottom: 0.5rem; }
+  .reveal-text { font-size: 13.5px; color: var(--text-dim); line-height: 1.75; }
+  .reveal-text strong { color: var(--text); }
+  .show-answer-btn {
+    margin-top: 1.1rem; background: none; border: 1px solid var(--border);
+    color: var(--text-muted); font-family: var(--mono); font-size: 11px;
+    padding: 7px 14px; border-radius: 5px; cursor: pointer; transition: all 0.15s;
+  }
+  .show-answer-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  code {
+    font-family: var(--mono); font-size: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 3px; color: var(--accent2);
+  }
+
+  /* ── FOOTER ── */
+  .footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .footer-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .next-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(232,184,75,0.1); border: 1px solid rgba(232,184,75,0.3);
+    color: var(--accent); font-family: var(--mono); font-size: 12px;
+    padding: 10px 18px; border-radius: 6px; cursor: pointer;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .next-btn:hover { background: rgba(232,184,75,0.18); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .section { animation: fadeUp 0.35s ease both; }
+/* ── TOP NAV ── */
+.top-nav { position:fixed; top:0; left:0; right:0; height:var(--nav-h); background:rgba(13,15,18,0.97); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); z-index:300; display:flex; align-items:center; }
+.top-nav-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 1.5rem; display:flex; align-items:center; gap:1.5rem; }
+.nav-brand { font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#4ade80; text-decoration:none; white-space:nowrap; flex-shrink:0; }
+.nav-links { display:flex; align-items:center; gap:0.25rem; flex-wrap:nowrap; margin-left:auto; }
+.nav-links a { font-family:var(--mono); font-size:11px; color:#4a5366; text-decoration:none; padding:5px 10px; border-radius:4px; transition:color 0.15s,background 0.15s; white-space:nowrap; letter-spacing:0.06em; }
+.nav-links a:hover { color:#e8e9eb; background:rgba(255,255,255,0.06); }
+.nav-links a.nav-active { color:#e8e9eb; background:rgba(255,255,255,0.08); }
+.nav-exam-btn { background:rgba(74,222,128,0.1) !important; border:1px solid rgba(74,222,128,0.3) !important; color:#4ade80 !important; }
+.nav-exam-btn:hover { background:rgba(74,222,128,0.2) !important; }
+.nav-hamburger { display:none; background:none; border:none; color:#8a8d94; font-size:18px; cursor:pointer; margin-left:auto; padding:4px 8px; }
+@media (max-width:720px) {
+  .nav-hamburger { display:block; }
+  .nav-links { display:none; position:absolute; top:var(--nav-h); left:0; right:0; background:rgba(13,15,18,0.98); flex-direction:column; padding:0.75rem 1rem; gap:0.25rem; border-bottom:1px solid #252a35; }
+  .nav-links.open { display:flex; }
+  .nav-links a { width:100%; }
+}
+</style>
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+<noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="./index.html" class="nav-brand">Claude Architect</a>
+    <a href="https://moisesprat.dev" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:10px;color:var(--text2);text-decoration:none;border-left:1px solid var(--border2);padding-left:1rem;margin-left:0.25rem;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">Guide by Moises Prat</a>
+    <button class="nav-hamburger" onclick="toggleNav()">&#9776;</button>
+    <div class="nav-links" id="nav-links">
+      <a href="./index.html">Home</a>
+      <a href="./domain1.html">Domain 1</a>
+      <a href="./domain2.html">Domain 2</a>
+      <a href="./domain3.html">Domain 3</a>
+      <a href="./domain4.html">Domain 4</a>
+      <a href="./domain5.html">Domain 5</a>
+      <a href="./progress.html">Progress</a>
+      <a href="./exam.html" class="nav-exam-btn">Exam</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="badge badge-domain">Domain 2</span>
+    <span class="badge badge-weight">18% of exam</span>
+    <h1><strong>Tool Design & MCP Integration</strong> — Complete Lesson</h1>
+  </div>
+  <div class="progress-bar">
+    <span>Domain progress</span>
+    <div class="progress-dots">
+      <div class="dot done" title="2.1 Tool Descriptions"></div>
+      <div class="dot done" title="2.2 Structured Errors"></div>
+      <div class="dot done" title="2.3 Tool Distribution"></div>
+      <div class="dot done" title="2.4 MCP Integration"></div>
+      <div class="dot done" title="2.5 Built-in Tools"></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Domain 2 Overview</div>
+      <nav class="sidebar-nav">
+        <a href="#domain-overview">Introduction</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 2.1</div>
+      <nav class="sidebar-nav">
+        <a href="#ts21-concept"><span class="ts-badge">2.1</span> Core Concept</a>
+        <a href="#ts21-knowledge"><span class="ts-badge">2.1</span> Knowledge</a>
+        <a href="#ts21-anatomy"><span class="ts-badge">2.1</span> Tool Anatomy</a>
+        <a href="#ts21-comparison"><span class="ts-badge">2.1</span> Weak vs Strong</a>
+        <a href="#ts21-split"><span class="ts-badge">2.1</span> Split Pattern</a>
+        <a href="#ts21-sysprompt"><span class="ts-badge">2.1</span> System Prompt Risk</a>
+        <a href="#ts21-traps"><span class="ts-badge">2.1</span> Exam Traps</a>
+        <a href="#ts21-task"><span class="ts-badge">2.1</span> Implementation Task</a>
+        <a href="#ts21-questions"><span class="ts-badge">2.1</span> Exam Questions</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 2.2</div>
+      <nav class="sidebar-nav">
+        <a href="#ts22-concept"><span class="ts-badge">2.2</span> Core Concept</a>
+        <a href="#ts22-categories"><span class="ts-badge">2.2</span> Error Categories</a>
+        <a href="#ts22-schema"><span class="ts-badge">2.2</span> Error Schema</a>
+        <a href="#ts22-recovery"><span class="ts-badge">2.2</span> Recovery Strategy</a>
+        <a href="#ts22-traps"><span class="ts-badge">2.2</span> Exam Traps</a>
+        <a href="#ts22-task"><span class="ts-badge">2.2</span> Implementation Task</a>
+        <a href="#ts22-questions"><span class="ts-badge">2.2</span> Exam Questions</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 2.3</div>
+      <nav class="sidebar-nav">
+        <a href="#ts23-concept"><span class="ts-badge">2.3</span> Core Concept</a>
+        <a href="#ts23-toolcount"><span class="ts-badge">2.3</span> Tool Count Impact</a>
+        <a href="#ts23-toolchoice"><span class="ts-badge">2.3</span> tool_choice Options</a>
+        <a href="#ts23-scoping"><span class="ts-badge">2.3</span> Scoped Access</a>
+        <a href="#ts23-traps"><span class="ts-badge">2.3</span> Exam Traps</a>
+        <a href="#ts23-task"><span class="ts-badge">2.3</span> Implementation Task</a>
+        <a href="#ts23-questions"><span class="ts-badge">2.3</span> Exam Questions</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 2.4</div>
+      <nav class="sidebar-nav">
+        <a href="#ts24-concept"><span class="ts-badge">2.4</span> Core Concept</a>
+        <a href="#ts24-scoping"><span class="ts-badge">2.4</span> Server Scoping</a>
+        <a href="#ts24-config"><span class="ts-badge">2.4</span> Configuration</a>
+        <a href="#ts24-resources"><span class="ts-badge">2.4</span> MCP Resources</a>
+        <a href="#ts24-traps"><span class="ts-badge">2.4</span> Exam Traps</a>
+        <a href="#ts24-task"><span class="ts-badge">2.4</span> Implementation Task</a>
+        <a href="#ts24-questions"><span class="ts-badge">2.4</span> Exam Questions</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Task Statement 2.5</div>
+      <nav class="sidebar-nav">
+        <a href="#ts25-concept"><span class="ts-badge">2.5</span> Core Concept</a>
+        <a href="#ts25-tools"><span class="ts-badge">2.5</span> Tool Reference</a>
+        <a href="#ts25-patterns"><span class="ts-badge">2.5</span> Usage Patterns</a>
+        <a href="#ts25-traps"><span class="ts-badge">2.5</span> Exam Traps</a>
+        <a href="#ts25-task"><span class="ts-badge">2.5</span> Implementation Task</a>
+        <a href="#ts25-questions"><span class="ts-badge">2.5</span> Exam Questions</a>
+      </nav>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DOMAIN HERO -->
+    <div class="domain-hero" id="domain-overview">
+      <div class="task-meta">
+        <span class="badge badge-domain">Domain 2</span>
+        <span class="badge badge-weight">18% of exam · 5 Task Statements</span>
+      </div>
+      <h2>Tool Design &<br><em>MCP Integration</em></h2>
+      <p>
+        How you define tools is how the agent thinks. This domain covers the full stack of tool design — from writing descriptions that produce reliable routing, to implementing structured errors that enable intelligent recovery, to configuring MCP servers and knowing when to reach for built-in tools. Every task statement here directly maps to scenarios the exam will test.
+      </p>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 2.1 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 2.1</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts21">
+      <div class="ts-number">Task Statement 2.1</div>
+      <h3>Design effective tool interfaces with clear descriptions and boundaries</h3>
+      <div class="ts-desc">Tool descriptions are the decision boundary that determines whether Claude picks the right tool. Minimal descriptions don't just underperform — they actively cause routing failures in production.</div>
+    </div>
+
+    <!-- 2.1 Concept -->
+    <section class="section" id="ts21-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>When Claude encounters multiple tools, it has no access to their source code or runtime behavior — only the <strong>description text</strong> you provide. That description is re-evaluated on <strong>every single tool call</strong>, making it the most leveraged piece of configuration in your agent design.</p>
+      <p>The problem compounds with overlapping capabilities. When two tools could plausibly answer the same request, the model falls back to heuristics — and those heuristics are not predictable across invocations.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body">
+          <strong>The Exam Principle:</strong> Tool descriptions are the primary mechanism LLMs use for tool selection. Minimal descriptions lead to unreliable selection among similar tools. This is the foundational rule for every tool design question in Domain 2.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.1 Knowledge -->
+    <section class="section" id="ts21-knowledge">
+      <h3 class="section-title blue">Knowledge the Exam Tests</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">🎯</div>
+          <h4>Descriptions as Selection Mechanism</h4>
+          <p>Minimal descriptions → unreliable selection. The model has nothing else to differentiate between similar tools.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📋</div>
+          <h4>Required Description Components</h4>
+          <p>Input formats, example queries, edge cases, boundary explanations, and explicit when-to-use-vs-alternatives.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">⚠️</div>
+          <h4>Ambiguity Causes Misrouting</h4>
+          <p><code>analyze_content</code> vs <code>analyze_document</code> with near-identical descriptions → unpredictable routing failures.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">💬</div>
+          <h4>System Prompt Interference</h4>
+          <p>Keyword-sensitive instructions in the system prompt create unintended tool associations that override well-written descriptions.</p>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem;">
+        <div class="section-title green" style="font-size: 1rem; margin-bottom: 0.75rem;">Skills the Exam Tests</div>
+        <ul class="skill-list">
+          <li>Writing descriptions that differentiate purpose, expected inputs, outputs, and when-to-use vs alternatives</li>
+          <li>Renaming tools to eliminate functional overlap (e.g., <code>analyze_content</code> → <code>extract_web_results</code>)</li>
+          <li>Splitting generic tools into purpose-specific tools with defined input/output contracts (<code>analyze_document</code> → <code>extract_data_points</code> + <code>summarize_content</code> + <code>verify_claim_against_source</code>)</li>
+          <li>Reviewing system prompts for keyword-sensitive instructions that might override well-written descriptions</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2.1 Anatomy -->
+    <section class="section" id="ts21-anatomy">
+      <h3 class="section-title">Anatomy of a Production Tool Description</h3>
+      <p>A complete tool description has five required components. Missing any one of them degrades routing reliability.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">python — Complete Tool Definition</span>
+          <span class="code-tag tag-good">PRODUCTION GRADE</span>
+        </div>
+        <pre>{
+  <span class="hl-key">"name"</span>: <span class="hl-str">"search_customer_orders"</span>,
+  <span class="hl-key">"description"</span>: <span class="hl-str">"""
+  Search for a customer's order history by customer ID or email.
+
+  Use this tool when:
+  - User asks about their orders, deliveries, or purchases
+  - You need order IDs before calling process_refund
+  - User references a specific order number
+
+  Do NOT use this tool for:
+  - Checking inventory (use check_inventory instead)
+  - Looking up product descriptions (use get_product_details)
+
+  Input formats accepted:
+  - customer_id: "cust_12345" or integer 12345
+  - email: full address, case-insensitive
+
+  Returns: List of orders with order_id, status, total, items[], created_at
+
+  Edge cases:
+  - Returns empty list if customer has no orders (not an error)
+  - If both customer_id and email provided, customer_id takes precedence
+  """</span>,
+  <span class="hl-key">"input_schema"</span>: {
+    <span class="hl-key">"type"</span>: <span class="hl-str">"object"</span>,
+    <span class="hl-key">"properties"</span>: {
+      <span class="hl-key">"customer_id"</span>: { <span class="hl-key">"type"</span>: <span class="hl-str">"string"</span>, <span class="hl-key">"description"</span>: <span class="hl-str">"e.g. 'cust_12345'"</span> },
+      <span class="hl-key">"email"</span>:       { <span class="hl-key">"type"</span>: <span class="hl-str">"string"</span>, <span class="hl-key">"description"</span>: <span class="hl-str">"Customer email address"</span> }
+    }
+  }
+}</pre>
+      </div>
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">The <strong>"Do NOT use this tool for"</strong> section is one of the highest-leverage additions. It explicitly routes the model away from ambiguous cases without requiring inference.</div>
+      </div>
+    </section>
+
+    <!-- 2.1 Comparison -->
+    <section class="section" id="ts21-comparison">
+      <h3 class="section-title red">Weak vs Strong Descriptions</h3>
+      <p>The exam frequently presents minimal descriptions and asks what's wrong, or asks which description causes misrouting. Internalize this contrast.</p>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ WEAK — Causes Routing Failures</div>
+          <div class="compare-body">
+            <span class="hl-warn">"name"</span>: <span class="hl-warn">"analyze_content"</span><br>
+            <span class="hl-warn">"description"</span>: <span class="hl-warn">"Analyzes content<br>and returns results"</span>
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ STRONG — Deterministic Routing</div>
+          <div class="compare-body">
+            <span class="hl-ok">"name"</span>: <span class="hl-ok">"extract_web_results"</span><br>
+            <span class="hl-ok">"description"</span>: <span class="hl-ok">"Parses structured data<br>from web search result JSON.<br>Use ONLY for raw search API<br>output. NOT for PDFs, uploads,<br>or documents — use<br>analyze_document for those."</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.1 Split Pattern -->
+    <section class="section" id="ts21-split">
+      <h3 class="section-title green">The Split Pattern</h3>
+      <p>Generic tools that accept a <code>mode</code> parameter are a routing antipattern. The model must guess the correct mode from within a single tool call — the same disambiguation problem that descriptions are supposed to solve, now embedded deeper inside.</p>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ BEFORE — Generic with Mode</div>
+          <div class="compare-body">
+            <code>analyze_document(doc_id, mode=<br>"extract"|"summarize"|"verify")</code><br><br>
+            30% of extraction requests<br>trigger summarization mode.
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ AFTER — Purpose-Specific Tools</div>
+          <div class="compare-body">
+            <span class="hl-ok">extract_data_points(doc_id)</span><br>
+            <span class="hl-ok">summarize_content(doc_id)</span><br>
+            <span class="hl-ok">verify_claim_against_source(<br>  claim, doc_id)</span><br><br>
+            Each tool = one purpose.
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>Balance with 2.3:</strong> Task 2.3 teaches that too many tools (18 instead of 4–5) degrades selection. The rule is: split by <em>distinct purpose</em> only. Each resulting tool should be describable in a single sentence without mentioning another tool.</div>
+      </div>
+    </section>
+
+    <!-- 2.1 System Prompt -->
+    <section class="section" id="ts21-sysprompt">
+      <h3 class="section-title">System Prompt Interference</h3>
+      <p>This is the least obvious knowledge point in 2.1 and therefore high-probability on the exam. Keyword-sensitive instructions in the system prompt can fire on partial matches and override tool selection logic.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">Keyword collision — system prompt + tool names</span>
+          <span class="code-tag tag-bad">PROBLEMATIC</span>
+        </div>
+        <pre><span class="hl-comment">// System prompt instruction:</span>
+<span class="hl-warn">"When users ask about orders, prioritize the order tool."</span>
+
+<span class="hl-comment">// Tools available:</span>
+<span class="hl-key">search_orders</span>      <span class="hl-comment">— "Search customer order history"</span>
+<span class="hl-key">process_refund</span>     <span class="hl-comment">— "Process refunds for order items"</span>
+<span class="hl-key">lookup_invoice</span>     <span class="hl-comment">— "Retrieve invoice for order billing"</span>
+
+<span class="hl-comment">// User: "I need my order invoice for tax purposes"
+// Expected: lookup_invoice
+// Actual:   search_orders (keyword "order" fires the instruction)</span></pre>
+      </div>
+      <p>The fix: rewrite the system prompt to use specific, unambiguous criteria. <em>"When users ask about order status or tracking, use search_orders."</em> Specificity in the system prompt is as important as specificity in descriptions.</p>
+    </section>
+
+    <!-- 2.1 Traps -->
+    <section class="section" id="ts21-traps">
+      <h3 class="section-title red">Exam Traps for Task 2.1</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Add prompt instructions to clarify which tool to use</td>
+            <td class="col-why">Prompts are evaluated alongside descriptions; keyword instructions often create new collisions</td>
+            <td class="col-correct">Rewrite descriptions to be unambiguous. Rename if needed.</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Consolidate overlapping tools into one generic tool</td>
+            <td class="col-why">One tool doing multiple things via hidden modes moves disambiguation inside the tool — same root problem</td>
+            <td class="col-correct">Split into purpose-specific tools, each with a single clear contract</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Keep description short — "less noise for the model"</td>
+            <td class="col-why">No — detailed descriptions reduce ambiguity. The model needs signal, not silence</td>
+            <td class="col-correct">Include input formats, outputs, edge cases, and negative examples</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Keep the vague name, improve only the description</td>
+            <td class="col-why">Tool names carry semantic signal too. A vague name undermines even a perfect description</td>
+            <td class="col-correct">Rename to match the scope of the description (<code>analyze_content</code> → <code>extract_web_results</code>)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2.1 Task -->
+    <section class="section" id="ts21-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T1</div>
+          <h3>Build a Tool Suite with Routing Disambiguation</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Build a 4-tool customer support suite and achieve deterministic routing across all ambiguous user requests.</p>
+        <ul class="task-steps">
+          <li>Create 4 tools: <code>search_orders</code>, <code>process_refund</code>, <code>check_shipping_status</code>, <code>escalate_to_human</code></li>
+          <li>Write each description with: use-when, do-not-use-when, input format, output structure, edge cases</li>
+          <li>Write a system prompt with a keyword-sensitive instruction that causes a collision — then fix it</li>
+          <li>Write 3 ambiguous test prompts (e.g., "where is my stuff") and verify routing is deterministic</li>
+          <li>Find a tool doing two things, split it, and prove routing accuracy improves</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2.1 Questions -->
+    <section class="section" id="ts21-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 2.1</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 2.1</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A customer support agent has two tools: <code>analyze_content</code> (description: "Analyzes content") and <code>analyze_document</code> (description: "Analyzes documents and content"). During testing, requests for customer order PDFs are routed to <code>analyze_content</code> 40% of the time. What is the most effective fix?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q11')"><span class="option-letter">A</span>Add a system prompt instruction: "Always use analyze_document for PDF files"</li>
+            <li class="exam-option" onclick="pick(this,true,'q11')"><span class="option-letter">B</span>Rename <code>analyze_content</code> to <code>extract_web_results</code> and rewrite its description to specify it handles web API responses only, explicitly noting it should not be used for uploaded files or PDFs</li>
+            <li class="exam-option" onclick="pick(this,false,'q11')"><span class="option-letter">C</span>Merge both tools into a single <code>analyze</code> tool with a mode parameter</li>
+            <li class="exam-option" onclick="pick(this,false,'q11')"><span class="option-letter">D</span>Increase the temperature of the model to reduce deterministic routing bias</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r11')">Show explanation</button>
+          <div class="exam-reveal" id="r11">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> Both descriptions overlap — the model can't distinguish them. The fix is to rename and rewrite to draw a clear boundary at the description level. <strong>A is wrong:</strong> System prompt instructions don't reliably override description logic and often create new keyword collisions. <strong>C is wrong:</strong> A mode parameter moves the disambiguation problem inside the tool — the model still has to guess. <strong>D is wrong:</strong> Temperature controls output variability, not tool selection logic.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 2.1</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A research agent has a single <code>analyze_document</code> tool with a <code>mode</code> parameter accepting "extract_data", "summarize", and "verify_claim". The team finds 30% of extraction requests trigger summarization. Without changing underlying logic, what restructuring best resolves this?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q12')"><span class="option-letter">A</span>Add more detailed parameter descriptions to the mode field explaining when each value should be used</li>
+            <li class="exam-option" onclick="pick(this,false,'q12')"><span class="option-letter">B</span>Add a system prompt that maps user intent keywords to the correct mode values</li>
+            <li class="exam-option" onclick="pick(this,true,'q12')"><span class="option-letter">C</span>Split into three separate tools — <code>extract_data_points</code>, <code>summarize_content</code>, and <code>verify_claim_against_source</code> — each with a single-purpose description</li>
+            <li class="exam-option" onclick="pick(this,false,'q12')"><span class="option-letter">D</span>Use <code>tool_choice: {"type": "tool", "name": "analyze_document"}</code> to force the tool call and let the model infer the correct mode</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r12')">Show explanation</button>
+          <div class="exam-reveal" id="r12">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> Splitting eliminates modes entirely — each tool has one purpose and one description that can't be confused. <strong>A is wrong:</strong> Better mode descriptions help marginally but don't solve the structural problem. <strong>B is wrong:</strong> Keyword mapping is brittle and adds new collision risks. <strong>D is wrong:</strong> Forcing the tool call solves <em>which</em> tool to call, not which mode — the ambiguity persists.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 3 — Task 2.1</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A support agent system prompt says: "When users ask about orders, prioritize the order tool." Three tools exist: <code>search_orders</code>, <code>process_refund</code> (mentions "order refunds"), and <code>lookup_invoice</code> (mentions "order invoices"). User asks "I need my order invoice for tax purposes" — agent routes to <code>search_orders</code>. What is the primary cause?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q13')"><span class="option-letter">A</span>The model is ignoring the system prompt instructions</li>
+            <li class="exam-option" onclick="pick(this,false,'q13')"><span class="option-letter">B</span><code>search_orders</code> has a higher priority weight than <code>lookup_invoice</code></li>
+            <li class="exam-option" onclick="pick(this,true,'q13')"><span class="option-letter">C</span>The system prompt's keyword "order" creates an unintended association with <code>search_orders</code>, overriding the more specific tool match</li>
+            <li class="exam-option" onclick="pick(this,false,'q13')"><span class="option-letter">D</span>The <code>lookup_invoice</code> tool description needs to be placed before <code>search_orders</code> in the tool list</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r13')">Show explanation</button>
+          <div class="exam-reveal" id="r13">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> The system prompt instruction fires on the keyword "order" in the user message and routes to <code>search_orders</code> — the model is following the instruction correctly, but the instruction is too broad. Fix: rewrite the system prompt to use specific criteria. <strong>A is wrong:</strong> The model is obeying the prompt — that's the problem. <strong>B is wrong:</strong> Tools have no explicit priority weights. <strong>D is wrong:</strong> List ordering has marginal effect; the keyword collision is dominant.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 2.2 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 2.2</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts22">
+      <div class="ts-number">Task Statement 2.2</div>
+      <h3>Implement structured error responses for MCP tools</h3>
+      <div class="ts-desc">Generic error responses ("Operation failed") are invisible walls — the agent can't reason about them. Structured errors are the difference between a dead end and an intelligent recovery decision.</div>
+    </div>
+
+    <!-- 2.2 Concept -->
+    <section class="section" id="ts22-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>When an MCP tool fails, the agent must decide: <em>retry with same inputs? retry with modified inputs? try an alternative? escalate to the coordinator? inform the user?</em> Every one of those decisions requires knowing <strong>what kind of failure happened</strong> and <strong>whether retrying makes sense</strong>.</p>
+      <p>A generic status string like <code>"error": "Operation failed"</code> forces the agent to guess — or worse, to blindly retry a non-retryable failure in an infinite loop. Structured error responses hand the coordinator the data it needs to route appropriately.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Exam Principle:</strong> Uniform error responses prevent the agent from making appropriate recovery decisions. Structured errors must include category, retryability, and a human-readable message. This applies to all MCP tool failures.</div>
+      </div>
+    </section>
+
+    <!-- 2.2 Categories -->
+    <section class="section" id="ts22-categories">
+      <h3 class="section-title blue">Error Categories</h3>
+      <p>The exam tests knowledge of these four distinct error types and their recovery implications. Confusing transient with validation errors — or failing to mark business errors as non-retryable — are the primary failure modes.</p>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">⏱️</div>
+          <h4>Transient</h4>
+          <p>Timeouts, service unavailability, network interruptions. <strong>Retryable.</strong> The subagent should attempt local recovery before escalating.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔍</div>
+          <h4>Validation</h4>
+          <p>Invalid input, malformed parameters, missing required fields. <strong>Not retryable</strong> without modifying input. Surface to coordinator for correction.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">📋</div>
+          <h4>Business</h4>
+          <p>Policy violations — refund exceeds threshold, restricted action. <strong>Not retryable.</strong> Requires a customer-friendly explanation and potentially human escalation.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔒</div>
+          <h4>Permission</h4>
+          <p>Insufficient access rights, auth token expired. <strong>Conditionally retryable</strong> after re-authentication. Always propagate to coordinator with context.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.2 Schema -->
+    <section class="section" id="ts22-schema">
+      <h3 class="section-title">The Required Error Schema</h3>
+      <p>The exam tests both the field names and what each field enables. Know all four fields and why each one exists.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">json — MCP structured error response</span>
+          <span class="code-tag tag-good">REQUIRED FORMAT</span>
+        </div>
+        <pre>{
+  <span class="hl-key">"isError"</span>: <span class="hl-num">true</span>,                          <span class="hl-comment">// MCP isError flag — signals failure to agent</span>
+  <span class="hl-key">"errorCategory"</span>: <span class="hl-str">"transient"</span>,             <span class="hl-comment">// transient | validation | permission | business</span>
+  <span class="hl-key">"isRetryable"</span>: <span class="hl-num">true</span>,                     <span class="hl-comment">// drives coordinator retry decision</span>
+  <span class="hl-key">"message"</span>: <span class="hl-str">"Order service timed out. Retry is safe."</span>,
+  <span class="hl-key">"attemptedQuery"</span>: <span class="hl-str">"order_id: ORD-8821"</span>,  <span class="hl-comment">// what was tried (for coordinator context)</span>
+  <span class="hl-key">"partialResults"</span>: <span class="hl-num">null</span>                    <span class="hl-comment">// any partial data recovered before failure</span>
+}</pre>
+      </div>
+
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Business Error — Wrong</div>
+          <div class="compare-body">
+{<br>
+&nbsp;&nbsp;"isError": true,<br>
+&nbsp;&nbsp;"message": "Operation failed"<br>
+}<br><br>
+<span class="hl-warn">Agent cannot determine if retrying<br>makes sense. Will loop or stall.</span>
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Business Error — Correct</div>
+          <div class="compare-body">
+{<br>
+&nbsp;&nbsp;"isError": true,<br>
+&nbsp;&nbsp;"errorCategory": "business",<br>
+&nbsp;&nbsp;"isRetryable": false,<br>
+&nbsp;&nbsp;"message": "Refund exceeds $500<br>&nbsp;&nbsp;&nbsp;policy limit. Requires manager<br>&nbsp;&nbsp;&nbsp;approval."<br>
+}<br>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-icon">🚨</div>
+        <div class="callout-body"><strong>Critical distinction:</strong> An empty result set from a successful query (e.g., "customer has no orders") is <strong>NOT</strong> an error — it is a valid response. Returning <code>isError: true</code> for an empty result is a common mistake that causes the agent to retry a perfectly valid response.</div>
+      </div>
+    </section>
+
+    <!-- 2.2 Recovery -->
+    <section class="section" id="ts22-recovery">
+      <h3 class="section-title green">Recovery Strategy</h3>
+      <p>The exam tests the layered recovery pattern: subagents handle what they can locally, and only propagate what they can't resolve — along with everything the coordinator needs to make a good decision.</p>
+      <ul class="skill-list">
+        <li>For <strong>transient errors</strong>: subagent implements local retry with exponential backoff. Only propagates to coordinator after local retries exhausted — includes partial results and what was attempted</li>
+        <li>For <strong>validation errors</strong>: subagent returns immediately with structured error and the specific invalid parameter — coordinator must correct input before re-delegating</li>
+        <li>For <strong>business errors</strong>: subagent returns with <code>isRetryable: false</code> and a customer-friendly explanation — coordinator decides whether to escalate to human</li>
+        <li>For <strong>permission errors</strong>: subagent returns with context about what access was needed — coordinator handles re-authentication and re-delegation</li>
+      </ul>
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Partial results matter.</strong> If a subagent completes 3 of 5 document analyses before timing out, those 3 results are valuable. Always include <code>partialResults</code> in the error payload so the coordinator can use what was retrieved rather than starting over.</div>
+      </div>
+    </section>
+
+    <!-- 2.2 Traps -->
+    <section class="section" id="ts22-traps">
+      <h3 class="section-title red">Exam Traps for Task 2.2</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Return generic "Operation failed" status</td>
+            <td class="col-why">Hides failure type and retryability — agent can't make recovery decisions</td>
+            <td class="col-correct">Return errorCategory + isRetryable + descriptive message</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Return isError: true for an empty result set</td>
+            <td class="col-why">Empty results from a valid query are a success, not an error — triggers unnecessary retries</td>
+            <td class="col-correct">Return success with empty array; use isError only for actual failures</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Subagent terminates entire workflow on timeout</td>
+            <td class="col-why">Kills all work done so far; coordinator may have recovery strategies available</td>
+            <td class="col-correct">Local retry first; propagate structured error + partial results if unresolved</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Mark business rule violations as retryable</td>
+            <td class="col-why">Causes infinite retry loops — policy violations won't resolve themselves on retry</td>
+            <td class="col-correct">isRetryable: false + customer-friendly message for all business errors</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2.2 Task -->
+    <section class="section" id="ts22-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T2</div>
+          <h3>Build a Structured Error Handler for an Order Tool</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Implement a <code>process_refund</code> MCP tool that returns correctly structured errors for all four error categories.</p>
+        <ul class="task-steps">
+          <li>Implement transient error handling: timeout after 5s returns retryable error with attempted query and any partial results</li>
+          <li>Implement validation error: missing or invalid order_id returns non-retryable error with specific invalid field named</li>
+          <li>Implement business error: refund amount &gt; $500 returns non-retryable error with customer-friendly policy explanation</li>
+          <li>Implement permission error: expired token returns structured error guiding coordinator to re-authenticate</li>
+          <li>Implement empty result handling: customer with no orders returns success with empty array, NOT an error</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2.2 Questions -->
+    <section class="section" id="ts22-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 2.2</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 2.2</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">The web search subagent times out while researching a complex topic. You need to design how this failure flows back to the coordinator. Which error propagation approach best enables intelligent recovery?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,true,'q21')"><span class="option-letter">A</span>Return structured error context to the coordinator including the failure type, the attempted query, any partial results, and potential alternative approaches</li>
+            <li class="exam-option" onclick="pick(this,false,'q21')"><span class="option-letter">B</span>Implement automatic retry with exponential backoff within the subagent, returning a generic "search unavailable" status only after all retries are exhausted</li>
+            <li class="exam-option" onclick="pick(this,false,'q21')"><span class="option-letter">C</span>Catch the timeout within the subagent and return an empty result set marked as successful</li>
+            <li class="exam-option" onclick="pick(this,false,'q21')"><span class="option-letter">D</span>Propagate the timeout exception directly to a top-level handler that terminates the entire research workflow</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r21')">Show explanation</button>
+          <div class="exam-reveal" id="r21">
+            <div class="reveal-label">Correct: A</div>
+            <div class="reveal-text"><strong>A is correct.</strong> Structured error context gives the coordinator what it needs to choose among: retry with modified query, try an alternative approach, or proceed with partial results. <strong>B is wrong:</strong> After retries, a generic status hides all context — the coordinator knows nothing about what was tried. <strong>C is wrong:</strong> Masking failure as success prevents any recovery and may produce silently incomplete research. <strong>D is wrong:</strong> Terminating the full workflow on a single subagent failure wastes all work completed so far.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 2.2</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A <code>process_refund</code> tool is called for a $750 refund but the policy maximum is $500. The tool currently returns <code>{"error": "Operation failed"}</code>. The agent retries the call four times before stalling. What is the correct fix?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q22')"><span class="option-letter">A</span>Add retry limit logic — stop after 3 attempts regardless of error type</li>
+            <li class="exam-option" onclick="pick(this,true,'q22')"><span class="option-letter">B</span>Return <code>{"isError": true, "errorCategory": "business", "isRetryable": false, "message": "Refund amount exceeds $500 policy maximum. Manager approval required."}</code></li>
+            <li class="exam-option" onclick="pick(this,false,'q22')"><span class="option-letter">C</span>Return <code>{"isError": true, "errorCategory": "validation", "isRetryable": true}</code> to signal input needs correction</li>
+            <li class="exam-option" onclick="pick(this,false,'q22')"><span class="option-letter">D</span>Add a system prompt instruction: "Do not retry refund calls more than twice"</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r22')">Show explanation</button>
+          <div class="exam-reveal" id="r22">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> A business rule violation is non-retryable — <code>isRetryable: false</code> tells the agent to stop immediately and take a different action (human escalation). The customer-friendly message enables the agent to communicate the reason clearly. <strong>A is wrong:</strong> A retry cap is a band-aid; it doesn't tell the agent why it failed or what to do next. <strong>C is wrong:</strong> This is a business error, not a validation error — and marking it retryable causes unnecessary retries. <strong>D is wrong:</strong> System prompt instructions are probabilistic; structured error metadata is deterministic.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 3 — Task 2.2</span>
+          <span class="exam-scenario">Customer Support Agent</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A <code>search_orders</code> tool returns <code>{"isError": true, "message": "No orders found"}</code> when a customer has no order history. The coordinator agent keeps retrying the call assuming it's a transient failure. What is the root cause and fix?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q23')"><span class="option-letter">A</span>The coordinator's retry logic is incorrect — it should check for "No orders found" in the message string to detect empty results</li>
+            <li class="exam-option" onclick="pick(this,true,'q23')"><span class="option-letter">B</span>The tool incorrectly returns <code>isError: true</code> for an empty result — an empty result set is a valid successful response and should return success with an empty array</li>
+            <li class="exam-option" onclick="pick(this,false,'q23')"><span class="option-letter">C</span>Add <code>isRetryable: false</code> to the error response so the coordinator knows to stop retrying</li>
+            <li class="exam-option" onclick="pick(this,false,'q23')"><span class="option-letter">D</span>Add a system prompt instruction telling the coordinator not to retry when no orders are found</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r23')">Show explanation</button>
+          <div class="exam-reveal" id="r23">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> This is a structural design error — empty results are a valid outcome, not a failure. The tool should return <code>{"orders": [], "total": 0}</code> with a 200-equivalent success status. Marking it as an error corrupts the signal the coordinator uses to make decisions. <strong>A is wrong:</strong> Parsing error message strings to detect empty results is fragile and bypasses the structured error system. <strong>C is wrong:</strong> Adding isRetryable: false treats the symptom but not the cause — it's still being reported as an error when it isn't one. <strong>D is wrong:</strong> System prompt instruction is probabilistic and doesn't fix the corrupted data signal.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 2.3 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 2.3</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts23">
+      <div class="ts-number">Task Statement 2.3</div>
+      <h3>Distribute tools appropriately across agents and configure tool_choice</h3>
+      <div class="ts-desc">Giving an agent the wrong tools — too many, or the wrong kind — degrades its performance just as much as poorly written descriptions. Role-scoped tool access and correct tool_choice configuration are the two levers here.</div>
+    </div>
+
+    <!-- 2.3 Concept -->
+    <section class="section" id="ts23-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Tool selection reliability degrades as tool count increases. With 4–5 focused tools, a well-described agent routes correctly and consistently. With 18 tools, the model's decision space becomes cluttered — especially when several tools are broadly described or outside the agent's specialization.</p>
+      <p>The second problem is specialization boundary violations: a synthesis agent that also has web search tools will occasionally use them when it should be synthesizing — because the tools are available and the user query contains search-like phrasing.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>The Exam Principle:</strong> Give each agent only the tools needed for its role. 18 tools degrades selection reliability. 4–5 role-specific tools with clear descriptions produces reliable selection. Exceptions are narrow: a scoped cross-role tool (like <code>verify_fact</code>) for a high-frequency need is acceptable.</div>
+      </div>
+    </section>
+
+    <!-- 2.3 Tool Count -->
+    <section class="section" id="ts23-toolcount">
+      <h3 class="section-title blue">Tool Count Impact</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">📊</div>
+          <h4>Too Many Tools (18)</h4>
+          <p>Decision complexity overwhelms description clarity. Models begin selecting based on superficial name matches rather than description logic.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🎯</div>
+          <h4>Role-Scoped (4–5)</h4>
+          <p>Each tool is clearly the best choice for its use case. The model routes correctly because ambiguity is structurally eliminated.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔄</div>
+          <h4>Cross-Specialization Risk</h4>
+          <p>A synthesis agent with web search tools will attempt web searches for fact-checking instead of flagging uncertainty to the coordinator.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">✂️</div>
+          <h4>Constrained Alternatives</h4>
+          <p>Replace generic tools with scoped versions: <code>fetch_url</code> → <code>load_document</code> that validates document URLs only, preventing misuse.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.3 tool_choice -->
+    <section class="section" id="ts23-toolchoice">
+      <h3 class="section-title"><code>tool_choice</code> Configuration</h3>
+      <p>Three options with very different behaviors. The exam will test whether you can select the right one for a given scenario.</p>
+      <table class="matrix">
+        <thead>
+          <tr><th>Value</th><th>Behavior</th><th>Use When</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="val">"auto"</td>
+            <td class="behavior">Model may call a tool OR return plain text — its choice</td>
+            <td class="use-when">Normal conversational agent; the model decides if tools are needed</td>
+          </tr>
+          <tr>
+            <td class="val">"any"</td>
+            <td class="behavior">Model must call some tool — cannot return conversational text</td>
+            <td class="use-when">Structured output extraction where text responses are invalid; guarantee a tool is invoked</td>
+          </tr>
+          <tr>
+            <td class="val">{"type":"tool",<br>"name":"X"}</td>
+            <td class="behavior">Model must call exactly the named tool</td>
+            <td class="use-when">Force a prerequisite step before enrichment tools (e.g., always run <code>extract_metadata</code> first); subsequent steps handled in follow-up turns</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Forced selection + follow-up turns:</strong> When you use <code>tool_choice: {"type":"tool","name":"extract_metadata"}</code>, that call returns. You then send a follow-up turn to process the result and call enrichment tools. The forced selection only controls the first call.</div>
+      </div>
+    </section>
+
+    <!-- 2.3 Scoping -->
+    <section class="section" id="ts23-scoping">
+      <h3 class="section-title green">Scoped Tool Access Pattern</h3>
+      <p>The solution to the 85%/15% verification problem — where a synthesis agent needs simple fact-checks 85% of the time — is a scoped cross-role tool rather than full web search access.</p>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Over-Provisioned</div>
+          <div class="compare-body">
+            Synthesis agent tools:<br>
+            - <span class="hl-warn">web_search</span><br>
+            - <span class="hl-warn">fetch_url</span><br>
+            - <span class="hl-warn">search_database</span><br>
+            - synthesize_findings<br>
+            - format_report<br><br>
+            Agent attempts web searches<br>instead of synthesizing.
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Role-Scoped</div>
+          <div class="compare-body">
+            Synthesis agent tools:<br>
+            - synthesize_findings<br>
+            - format_report<br>
+            - <span class="hl-ok">verify_fact</span> (scoped lookup)<br><br>
+            85% of verifications handled<br>directly. 15% escalated to<br>coordinator → web search agent.
+          </div>
+        </div>
+      </div>
+      <ul class="skill-list">
+        <li>Restrict each subagent's tool set to those relevant to its role, preventing cross-specialization misuse</li>
+        <li>Replace generic tools with constrained alternatives (e.g., <code>fetch_url</code> → <code>load_document</code> that validates document URLs)</li>
+        <li>Provide scoped cross-role tools for high-frequency needs while routing complex cases through the coordinator</li>
+        <li>Use <code>tool_choice: "any"</code> to guarantee the model calls a tool rather than returning conversational text</li>
+        <li>Use forced <code>tool_choice</code> to ensure prerequisite tools are called first; process subsequent steps in follow-up turns</li>
+      </ul>
+    </section>
+
+    <!-- 2.3 Traps -->
+    <section class="section" id="ts23-traps">
+      <h3 class="section-title red">Exam Traps for Task 2.3</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Give synthesis agent all web search tools for "flexibility"</td>
+            <td class="col-why">Over-provisioned agents misuse tools outside their specialization — synthesis agent will web search instead of synthesizing</td>
+            <td class="col-correct">Scoped <code>verify_fact</code> tool for the 85% common case; complex verifications route through coordinator</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Use <code>tool_choice: "auto"</code> when structured output is required</td>
+            <td class="col-why">"auto" allows the model to return plain text instead of calling the extraction tool</td>
+            <td class="col-correct">Use <code>tool_choice: "any"</code> to guarantee a tool call; or force the specific extraction tool</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Give all agents the same complete tool set for consistency</td>
+            <td class="col-why">Consistency at the cost of scoping — every agent's decision space is bloated and cross-specialization errors multiply</td>
+            <td class="col-correct">Each agent gets only the tools for its role; coordinator routes tasks requiring different tools to appropriate agents</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2.3 Task -->
+    <section class="section" id="ts23-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T3</div>
+          <h3>Design a Role-Scoped Multi-Agent Tool Architecture</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Design the tool distribution for a 3-agent research system: coordinator, web search agent, synthesis agent.</p>
+        <ul class="task-steps">
+          <li>List the tools each of the 3 agents receives — verify no agent has more than 5 tools and none have tools outside their specialization</li>
+          <li>Identify the high-frequency cross-role need in the synthesis agent and design a scoped tool for it</li>
+          <li>Write a scenario where <code>tool_choice: "any"</code> is the correct choice and explain why "auto" would fail</li>
+          <li>Write a scenario where forced tool selection is required — implement the prerequisite chain across two turns</li>
+          <li>Replace one generic tool (<code>fetch_url</code>) with a constrained alternative and explain what misuse it prevents</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2.3 Questions -->
+    <section class="section" id="ts23-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 2.3</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 2.3</span>
+          <span class="exam-scenario">Multi-Agent Research System</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">The synthesis agent frequently needs to verify specific claims while combining findings. Currently, every verification requires 2–3 round trips through the coordinator (+40% latency). Evaluation shows 85% of verifications are simple fact-checks; 15% require deeper web investigation. What is the most effective approach?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,true,'q31')"><span class="option-letter">A</span>Give the synthesis agent a scoped <code>verify_fact</code> tool for simple lookups, while complex verifications continue delegating through the coordinator to the web search agent</li>
+            <li class="exam-option" onclick="pick(this,false,'q31')"><span class="option-letter">B</span>Have the synthesis agent accumulate all verification needs and return them as a batch to the coordinator at the end of its pass</li>
+            <li class="exam-option" onclick="pick(this,false,'q31')"><span class="option-letter">C</span>Give the synthesis agent access to all web search tools so it can handle any verification need directly without coordinator round-trips</li>
+            <li class="exam-option" onclick="pick(this,false,'q31')"><span class="option-letter">D</span>Have the web search agent proactively cache extra context during initial research, anticipating what the synthesis agent might verify</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r31')">Show explanation</button>
+          <div class="exam-reveal" id="r31">
+            <div class="reveal-label">Correct: A</div>
+            <div class="reveal-text"><strong>A is correct.</strong> Principle of least privilege: give synthesis agent only what it needs for the 85% common case. Complex verifications remain correctly routed through the coordinator. <strong>B is wrong:</strong> Batching all verifications to the end creates blocking dependencies — synthesis steps may depend on earlier verified facts. <strong>C is wrong:</strong> Over-provisioning the synthesis agent with all web search tools violates role separation and causes misuse. <strong>D is wrong:</strong> Speculative caching cannot reliably predict what will need verification.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 2.3</span>
+          <span class="exam-scenario">Structured Data Extraction</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">An extraction agent is configured with <code>tool_choice: "auto"</code> and has one tool: <code>extract_invoice_data</code>. During testing, 15% of calls return a text response saying "I'll analyze this invoice" instead of calling the tool. What is the correct fix?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q32')"><span class="option-letter">A</span>Add a system prompt instruction: "You must always call the extract_invoice_data tool"</li>
+            <li class="exam-option" onclick="pick(this,true,'q32')"><span class="option-letter">B</span>Change <code>tool_choice</code> to <code>"any"</code> to guarantee the model calls a tool on every invocation</li>
+            <li class="exam-option" onclick="pick(this,false,'q32')"><span class="option-letter">C</span>Change <code>tool_choice</code> to <code>"none"</code> to prevent the model from defaulting to conversational text responses</li>
+            <li class="exam-option" onclick="pick(this,false,'q32')"><span class="option-letter">D</span>Add more tools to the agent so the model has more choices and is less likely to default to text responses</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r32')">Show explanation</button>
+          <div class="exam-reveal" id="r32">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> Setting <code>tool_choice: "any"</code> guarantees the model calls one of the available tools on every invocation — it cannot return plain text. With a single tool, this is the cleanest guarantee. <strong>A is wrong:</strong> <code>tool_choice: "auto"</code> is the current configuration that's already failing — it allows the model to choose text when it judges it appropriate. <strong>C is wrong:</strong> <code>"none"</code> forces the model to return <em>only</em> text with no tool calls — the exact opposite of what's needed. <strong>D is wrong:</strong> Adding more tools increases choice but doesn't change the fundamental behavior of <code>"auto"</code> mode.</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 2.3</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A research coordinator has 8 tools: <code>web_search</code>, <code>fetch_document</code>, <code>extract_quotes</code>, <code>validate_claim</code>, <code>cross_reference</code>, <code>summarize_section</code>, <code>calculate_statistics</code>, and <code>format_output</code>. During testing, the coordinator occasionally calls <code>format_output</code> mid-analysis (generating partial formatted results before research completes) and calls <code>calculate_statistics</code> before all data is available. What is the most architecturally sound fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q23c')"><span class="option-letter">A</span>Add to the system prompt: "Tools must be called in this order: research tools first, then analysis tools, then <code>format_output</code> last"</li>
+          <li class="exam-option" onclick="pick(this,false,'q23c')"><span class="option-letter">B</span>Remove <code>format_output</code> and <code>calculate_statistics</code> from the coordinator and call them as a post-processing step after the coordinator finishes</li>
+          <li class="exam-option" onclick="pick(this,false,'q23c')"><span class="option-letter">C</span>Use <code>tool_choice: "auto"</code> and add detailed documentation to each tool describing when in the workflow it should be called</li>
+          <li class="exam-option" onclick="pick(this,true,'q23c')"><span class="option-letter">D</span>Distribute tools across agents by workflow stage: the coordinator gets only research and validation tools; a separate analysis agent gets <code>calculate_statistics</code> and <code>cross_reference</code>; a final presentation agent gets <code>format_output</code> — invoked by the coordinator only after analysis completes</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r23c')">Show explanation</button>
+        <div class="exam-reveal" id="r23c">
+          <div class="reveal-label">Correct: D</div>
+          <div class="reveal-text"><strong>D is correct.</strong> Distributing tools across agents by workflow stage enforces correct ordering through architecture: a coordinator without <code>format_output</code> physically cannot call it prematurely. The stage-gating is structural, not instructional. <strong>A is wrong:</strong> The premature calls show prompt instructions aren't reliably followed for tool ordering — the same failure pattern continues. <strong>B is partially right</strong> (removing <code>format_output</code> from the coordinator is correct) but doesn't solve the <code>calculate_statistics</code> problem and leaves the analysis stage fragmented. <strong>C makes no change</strong> to the architecture — <code>tool_choice: "auto"</code> is already the default, and better documentation is the same approach that already failed.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 2.4 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 2.4</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts24">
+      <div class="ts-number">Task Statement 2.4</div>
+      <h3>Integrate MCP servers into Claude Code and agent workflows</h3>
+      <div class="ts-desc">MCP connects your agents to external systems. This task statement covers where configuration lives, how credentials are managed securely, and why your MCP tool descriptions may need enhancement to compete with Claude's built-in tools.</div>
+    </div>
+
+    <!-- 2.4 Concept -->
+    <section class="section" id="ts24-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>MCP (Model Context Protocol) is the mechanism for exposing external services — GitHub, databases, Jira, custom APIs — as tools available to Claude. The exam tests two layers: <strong>where</strong> configuration belongs (project vs user scope) and <strong>how</strong> to make MCP tools reliable in production (descriptions, resources, credential management).</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>Key Distinction:</strong> <code>.mcp.json</code> is version-controlled and shared across the team. <code>~/.claude.json</code> is personal and never shared. Understanding which configuration to use for which purpose is the #1 tested knowledge point in 2.4.</div>
+      </div>
+    </section>
+
+    <!-- 2.4 Scoping -->
+    <section class="section" id="ts24-scoping">
+      <h3 class="section-title blue">Server Scoping Rules</h3>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">📁</div>
+          <h4>Project-Level: <code>.mcp.json</code></h4>
+          <p>Shared team tooling. Version controlled. Available to all developers who clone the repo. Use for: GitHub, Jira, databases, any team-standard external tools.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">👤</div>
+          <h4>User-Level: <code>~/.claude.json</code></h4>
+          <p>Personal or experimental servers. Never shared via version control. Use for: personal integrations, tools under development, anything not yet ready for team-wide use.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🔗</div>
+          <h4>Discovery at Connection Time</h4>
+          <p>Tools from all configured MCP servers are discovered simultaneously at connection time and all become available to the agent at once — no per-request server selection.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">🌐</div>
+          <h4>Community vs Custom</h4>
+          <p>Use existing community MCP servers for standard integrations (Jira, GitHub). Reserve custom MCP server development for team-specific workflows without community alternatives.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.4 Config -->
+    <section class="section" id="ts24-config">
+      <h3 class="section-title">Configuration & Credential Management</h3>
+      <p>Never hardcode credentials in <code>.mcp.json</code>. Use environment variable expansion. The <code>${VAR}</code> syntax is expanded at runtime from the shell environment — the config file itself contains no secrets and is safe to commit.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">.mcp.json — project-scoped configuration</span>
+          <span class="code-tag tag-good">CORRECT PATTERN</span>
+        </div>
+        <pre>{
+  <span class="hl-key">"mcpServers"</span>: {
+    <span class="hl-key">"github"</span>: {
+      <span class="hl-key">"type"</span>: <span class="hl-str">"url"</span>,
+      <span class="hl-key">"url"</span>: <span class="hl-str">"https://github.mcp.example.com/sse"</span>,
+      <span class="hl-key">"env"</span>: {
+        <span class="hl-key">"GITHUB_TOKEN"</span>: <span class="hl-str">"${GITHUB_TOKEN}"</span>    <span class="hl-comment">// ✓ expanded from shell env</span>
+      }
+    },
+    <span class="hl-key">"jira"</span>: {
+      <span class="hl-key">"type"</span>: <span class="hl-str">"url"</span>,
+      <span class="hl-key">"url"</span>: <span class="hl-str">"https://jira.mcp.example.com/sse"</span>,
+      <span class="hl-key">"env"</span>: {
+        <span class="hl-key">"JIRA_API_KEY"</span>: <span class="hl-str">"${JIRA_API_KEY}"</span>   <span class="hl-comment">// ✓ never commit actual keys</span>
+      }
+    }
+  }
+}</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">.mcp.json — what NOT to do</span>
+          <span class="code-tag tag-bad">NEVER DO THIS</span>
+        </div>
+        <pre>{
+  <span class="hl-key">"mcpServers"</span>: {
+    <span class="hl-key">"github"</span>: {
+      <span class="hl-key">"env"</span>: {
+        <span class="hl-key">"GITHUB_TOKEN"</span>: <span class="hl-warn">"ghp_abc123xyz789actual_token_value"</span>  <span class="hl-comment">// ✗ secret in git</span>
+      }
+    }
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- 2.4 Resources -->
+    <section class="section" id="ts24-resources">
+      <h3 class="section-title green">MCP Resources — The Often-Missed Knowledge Point</h3>
+      <p>MCP resources are a mechanism for exposing <strong>content catalogs</strong> to agents — not as callable tools, but as structured data the agent can read at startup. This reduces exploratory tool calls because the agent already knows what data is available before deciding what to look up.</p>
+      <div class="knowledge-grid">
+        <div class="k-card">
+          <div class="k-card-icon">📚</div>
+          <h4>What Resources Expose</h4>
+          <p>Issue summaries, documentation hierarchies, database schemas, file catalogs — anything that helps the agent understand the landscape before making tool calls.</p>
+        </div>
+        <div class="k-card">
+          <div class="k-card-icon">⚡</div>
+          <h4>Why It Matters</h4>
+          <p>Without resources, agents spend multiple tool calls exploring what exists. With resources, the agent reads the catalog once and makes targeted calls directly.</p>
+        </div>
+      </div>
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Description enhancement for MCP tools:</strong> If your MCP tools are being ignored in favor of Claude's built-in tools (like Grep), it's because the MCP descriptions don't explain the tool's capabilities clearly enough. Enhance descriptions to explain what the MCP tool does that built-in tools cannot — making the advantage explicit prevents the agent from defaulting to familiar built-ins.</div>
+      </div>
+    </section>
+
+    <!-- 2.4 Traps -->
+    <section class="section" id="ts24-traps">
+      <h3 class="section-title red">Exam Traps for Task 2.4</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Put team-shared MCP servers in <code>~/.claude.json</code></td>
+            <td class="col-why">User-level config is personal and not shared via version control — teammates won't have the server</td>
+            <td class="col-correct">Shared team tooling goes in project-level <code>.mcp.json</code>, committed to the repo</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Hardcode API tokens in <code>.mcp.json</code></td>
+            <td class="col-why">Secrets in version control — major security violation</td>
+            <td class="col-correct">Use <code>${ENV_VAR}</code> expansion. The variable is set in shell environment, not in the file.</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Build a custom MCP server for Jira integration</td>
+            <td class="col-why">Jira has a community MCP server — building a custom one wastes effort and creates maintenance burden</td>
+            <td class="col-correct">Use existing community MCP servers for standard integrations; custom only for team-specific workflows</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Leave MCP tool descriptions minimal (same mistake as 2.1)</td>
+            <td class="col-why">Claude will prefer its familiar built-in tools (Grep, Bash) over MCP tools with weak descriptions</td>
+            <td class="col-correct">Enhance MCP descriptions to explicitly explain what the MCP tool provides that built-ins cannot</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2.4 Task -->
+    <section class="section" id="ts24-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T4</div>
+          <h3>Configure a Multi-Server MCP Setup for a Development Team</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Configure a project with GitHub and a custom documentation MCP server — with correct scoping and secure credential management.</p>
+        <ul class="task-steps">
+          <li>Write a <code>.mcp.json</code> with GitHub (community server) and a team-custom documentation server — using env var expansion for both tokens</li>
+          <li>Write a <code>~/.claude.json</code> entry for a personal experimental server you're testing — explain why it goes here and not in <code>.mcp.json</code></li>
+          <li>Write enhanced descriptions for both MCP tools that explicitly explain what they provide beyond Claude's built-in Grep and Bash tools</li>
+          <li>Design one MCP resource that exposes a documentation hierarchy — write what the resource catalog would contain and explain how it reduces exploratory tool calls</li>
+          <li>Identify which of your tool descriptions from step 3 could collide with Claude's built-in tools and fix the collision</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2.4 Questions -->
+    <section class="section" id="ts24-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 2.4</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 2.4</span>
+          <span class="exam-scenario">Developer Productivity with Claude</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">A lead developer configured a shared GitHub MCP server for the team. A new developer clones the project and reports the GitHub MCP tools are completely absent — none of the GitHub tools appear in their Claude Code session. The lead developer used their own workstation's configuration to set this up. What is the most likely cause of this problem?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,true,'q41')"><span class="option-letter">A</span>The server was configured in <code>~/.claude.json</code> on the lead developer's machine only — user-level config is not shared via version control</li>
+            <li class="exam-option" onclick="pick(this,false,'q41')"><span class="option-letter">B</span>The server should be in <code>.mcp.json</code> at the project root, committed to the repository — this makes it automatically available to all developers on clone</li>
+            <li class="exam-option" onclick="pick(this,false,'q41')"><span class="option-letter">C</span>The server should be defined inside <code>CLAUDE.md</code> so it's loaded with other project configuration</li>
+            <li class="exam-option" onclick="pick(this,false,'q41')"><span class="option-letter">D</span>Each developer must manually install the MCP server — there is no shared configuration mechanism in Claude Code</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r41')">Show explanation</button>
+          <div class="exam-reveal" id="r41">
+            <div class="reveal-label">Correct: A</div>
+            <div class="reveal-text"><strong>A is correct.</strong> The lead developer configured the server in <code>~/.claude.json</code> (user-level config on their local machine), which is not committed to version control and doesn't exist on any other developer's machine. User-level configuration is personal and non-shareable. <strong>B is wrong:</strong> <code>.mcp.json</code> at the project root IS the correct solution — but the question asks for the cause of the problem, not the fix. <strong>C is wrong:</strong> CLAUDE.md does not configure MCP servers — it provides instructions and conventions for Claude Code, not server definitions. <strong>D is wrong:</strong> Shared MCP configuration is a real feature of Claude Code via project-level <code>.mcp.json</code> committed to the repository.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 2.4</span>
+          <span class="exam-scenario">Developer Productivity with Claude</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">Your agent consistently uses Claude's built-in <code>Grep</code> tool to search the codebase instead of a configured MCP <code>search_codebase</code> server that provides richer results including test coverage data, dependency graphs, and usage frequency. The MCP tool description currently reads: "Searches the codebase." What is the best fix?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q42')"><span class="option-letter">A</span>Add a system prompt instruction: "Always prefer the MCP search_codebase tool over built-in Grep"</li>
+            <li class="exam-option" onclick="pick(this,false,'q42')"><span class="option-letter">B</span>Remove the built-in Grep tool from the agent's available tools</li>
+            <li class="exam-option" onclick="pick(this,true,'q42')"><span class="option-letter">C</span>Enhance the MCP tool description to explicitly explain the richer capabilities it provides (coverage data, dependency graphs, usage frequency) that Grep cannot return — and specify the input formats it accepts</li>
+            <li class="exam-option" onclick="pick(this,false,'q42')"><span class="option-letter">D</span>Move the MCP server from <code>.mcp.json</code> to <code>~/.claude.json</code> to give it higher priority</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r42')">Show explanation</button>
+          <div class="exam-reveal" id="r42">
+            <div class="reveal-label">Correct: C</div>
+            <div class="reveal-text"><strong>C is correct.</strong> This is the same root principle as 2.1 — descriptions are the selection mechanism. "Searches the codebase" is indistinguishable from what Grep does. Enhancing the description to make MCP's unique capabilities explicit gives the model a clear reason to choose it. <strong>A is wrong:</strong> System prompt instructions are probabilistic and create keyword risks. <strong>B is wrong:</strong> Removing Grep may break other workflows that legitimately need it. <strong>D is wrong:</strong> Configuration scope does not affect tool selection priority.</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 2.4</span>
+        <span class="exam-scenario">Developer Productivity with Claude</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your team's Claude Code workflow uses 3 MCP servers: GitHub (PR management), Linear (ticket tracking), and Datadog (deployment monitoring). All three are configured — GitHub and Linear in the project's <code>.mcp.json</code>, Datadog in the user's <code>~/.claude.json</code>. After onboarding a new developer, they report GitHub and Linear work correctly but Datadog tools are not available. What is the most likely cause?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q24c')"><span class="option-letter">A</span>User-level <code>~/.claude.json</code> configuration is overridden by project-level <code>.mcp.json</code> when both exist — move Datadog to <code>.mcp.json</code></li>
+          <li class="exam-option" onclick="pick(this,false,'q24c')"><span class="option-letter">B</span>User-level MCP servers are scoped to the home directory — Datadog tools are unavailable when working in project subdirectories</li>
+          <li class="exam-option" onclick="pick(this,true,'q24c')"><span class="option-letter">C</span>The Datadog server is configured in <code>~/.claude.json</code> on the original developer's machine — this file is not shared via version control and doesn't exist on the new developer's machine</li>
+          <li class="exam-option" onclick="pick(this,false,'q24c')"><span class="option-letter">D</span>The Datadog MCP server requires authentication credentials that expired — re-authenticate to restore access</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r24c')">Show explanation</button>
+        <div class="exam-reveal" id="r24c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> <code>~/.claude.json</code> is a user-level configuration file stored on the individual developer's machine and not committed to version control. When a new developer clones the repo, they get the project's <code>.mcp.json</code> (GitHub, Linear) but not the original developer's personal <code>~/.claude.json</code> (Datadog). <strong>A is wrong:</strong> User-level and project-level configs are loaded additively — one doesn't override the other. Both GitHub/Linear and Datadog should be available if both config files exist. <strong>B is wrong:</strong> User-level MCP servers are available in all directories, not just the home directory. <strong>D is plausible but specific</strong> — authentication expiry would affect the original developer too. The pattern of GitHub/Linear working but Datadog absent points to the configuration not existing on the new machine, not to credential expiry.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TASK STATEMENT 2.5 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="ts-divider">
+      <div class="ts-divider-line"></div>
+      <div class="ts-divider-label">Task Statement 2.5</div>
+      <div class="ts-divider-line"></div>
+    </div>
+
+    <div class="ts-title-block" id="ts25">
+      <div class="ts-number">Task Statement 2.5</div>
+      <h3>Select and apply built-in tools (Read, Write, Edit, Bash, Grep, Glob) effectively</h3>
+      <div class="ts-desc">Six tools. Each has a precise use case. Knowing when to use Grep vs Glob, and when Edit fails and you must fall back to Read + Write, is what the exam tests here.</div>
+    </div>
+
+    <!-- 2.5 Concept -->
+    <section class="section" id="ts25-concept">
+      <h3 class="section-title">The Core Concept</h3>
+      <p>Claude Code's built-in tools are the primary interface for file and codebase operations. The exam tests <strong>precise selection</strong> — not just "which tool reads files" but "given this specific task, which combination of tools is correct, and what do you do when your first choice fails?"</p>
+      <p>The two most commonly confused pairs: <strong>Grep vs Glob</strong> (content search vs path matching) and <strong>Edit vs Read+Write</strong> (targeted modification vs full file replacement fallback).</p>
+    </section>
+
+    <!-- 2.5 Tool Reference -->
+    <section class="section" id="ts25-tools">
+      <h3 class="section-title blue">Built-in Tool Reference</h3>
+      <div class="builtin-grid">
+        <div class="builtin-card">
+          <div class="builtin-card-header">
+            <span class="builtin-name">Grep</span>
+            <span style="font-family: var(--mono); font-size: 10px; color: var(--text-muted);">content search</span>
+          </div>
+          <div class="builtin-card-body">
+            <p>Searches <strong>inside</strong> files for text patterns. Use for: finding all callers of a function, locating error messages, finding import statements, searching for variable names across the codebase.</p>
+            <div class="fallback">Input: pattern + optional path glob</div>
+          </div>
+        </div>
+        <div class="builtin-card">
+          <div class="builtin-card-header">
+            <span class="builtin-name">Glob</span>
+            <span style="font-family: var(--mono); font-size: 10px; color: var(--text-muted);">path matching</span>
+          </div>
+          <div class="builtin-card-body">
+            <p>Matches <strong>file paths</strong> by name or extension patterns. Use for: finding all test files, locating all config files, getting a list of all TypeScript files in a directory.</p>
+            <div class="fallback">Example: **/*.test.tsx, src/**/*.config.js</div>
+          </div>
+        </div>
+        <div class="builtin-card">
+          <div class="builtin-card-header">
+            <span class="builtin-name">Read</span>
+            <span style="font-family: var(--mono); font-size: 10px; color: var(--text-muted);">full file load</span>
+          </div>
+          <div class="builtin-card-body">
+            <p>Loads the complete content of a file into context. Use for: understanding a complete module, loading a config file, or as the first step in a Read → Write fallback when Edit fails.</p>
+            <div class="fallback">Loads entire file — be selective about large files</div>
+          </div>
+        </div>
+        <div class="builtin-card">
+          <div class="builtin-card-header">
+            <span class="builtin-name">Write</span>
+            <span style="font-family: var(--mono); font-size: 10px; color: var(--text-muted);">full file replace</span>
+          </div>
+          <div class="builtin-card-body">
+            <p>Writes complete file content. Use for: creating new files, or as the second step in a Read → Write fallback when Edit cannot find a unique anchor.</p>
+            <div class="fallback">Replaces entire file — use Edit for targeted changes</div>
+          </div>
+        </div>
+        <div class="builtin-card">
+          <div class="builtin-card-header">
+            <span class="builtin-name">Edit</span>
+            <span style="font-family: var(--mono); font-size: 10px; color: var(--text-muted);">targeted modify</span>
+          </div>
+          <div class="builtin-card-body">
+            <p>Modifies a file by matching unique anchor text and replacing it. Use for: targeted bug fixes, adding a conditional, changing a specific line. <strong>Fails</strong> if the anchor text appears more than once.</p>
+            <div class="fallback">Fallback: Read → modify → Write when anchor not unique</div>
+          </div>
+        </div>
+        <div class="builtin-card">
+          <div class="builtin-card-header">
+            <span class="builtin-name">Bash</span>
+            <span style="font-family: var(--mono); font-size: 10px; color: var(--text-muted);">shell execution</span>
+          </div>
+          <div class="builtin-card-body">
+            <p>Executes shell commands. Use for: running tests, executing scripts, git operations, package installs, anything requiring system-level execution.</p>
+            <div class="fallback">Use thoughtfully — executes with shell permissions</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.5 Patterns -->
+    <section class="section" id="ts25-patterns">
+      <h3 class="section-title green">Critical Usage Patterns</h3>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><strong>Grep vs Glob Decision Rule:</strong> Ask "am I searching for text inside files or am I searching for files by name?" If text content → Grep. If file paths/names → Glob. These are the most commonly confused tools on the exam.</div>
+      </div>
+
+      <p><strong>The Edit → Read + Write Fallback:</strong></p>
+      <div class="comparison">
+        <div class="compare-block">
+          <div class="compare-header bad">✗ Edit Fails (Non-Unique Anchor)</div>
+          <div class="compare-body">
+            File has 5 identical lines:<br>
+            <code>return null;</code><br><br>
+            Edit cannot determine which<br>one to modify. Throws error:<br>
+            "Anchor text not unique"
+          </div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-header good">✓ Read → Modify → Write Fallback</div>
+          <div class="compare-body">
+            1. Read full file contents<br>
+            2. Identify correct occurrence<br>&nbsp;&nbsp;&nbsp;by context (line number/surroundings)<br>
+            3. Write complete modified file<br><br>
+            Reliable. Always works.
+          </div>
+        </div>
+      </div>
+
+      <p><strong>Incremental Codebase Understanding:</strong></p>
+      <ul class="skill-list">
+        <li><strong>Start with Grep</strong> to find entry points — search for main function names, entry module exports, top-level imports</li>
+        <li><strong>Use Read</strong> selectively to follow imports and trace flows from those entry points — not reading all files upfront</li>
+        <li>For function usage tracing: first use Grep to identify all exported names, then search for each name across the codebase</li>
+        <li>Never use Read on every file in a large codebase — build understanding incrementally from the most relevant starting points</li>
+      </ul>
+    </section>
+
+    <!-- 2.5 Traps -->
+    <section class="section" id="ts25-traps">
+      <h3 class="section-title red">Exam Traps for Task 2.5</h3>
+      <table class="trap-table">
+        <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="col-trap">Use Grep to find all <code>*.test.tsx</code> files</td>
+            <td class="col-why">Grep searches file contents, not file names — wrong tool for path matching</td>
+            <td class="col-correct">Use Glob with pattern <code>**/*.test.tsx</code></td>
+          </tr>
+          <tr>
+            <td class="col-trap">Use Glob to find all files that import React</td>
+            <td class="col-why">Glob matches file paths, not file contents — can't search inside files</td>
+            <td class="col-correct">Use Grep with pattern <code>import.*React</code></td>
+          </tr>
+          <tr>
+            <td class="col-trap">Retry Edit after "anchor not unique" error</td>
+            <td class="col-why">The anchor won't become unique on retry — structural problem</td>
+            <td class="col-correct">Fall back to Read → modify → Write immediately</td>
+          </tr>
+          <tr>
+            <td class="col-trap">Read all files in a large codebase upfront for context</td>
+            <td class="col-why">Fills context window with irrelevant content; context degradation follows</td>
+            <td class="col-correct">Grep to find entry points → Read selectively to follow specific imports</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2.5 Task -->
+    <section class="section" id="ts25-task">
+      <h3 class="section-title">🔨 Implementation Task</h3>
+      <div class="task-box">
+        <div class="task-box-header">
+          <div class="task-number">T5</div>
+          <h3>Navigate and Modify a Real Codebase Using Built-in Tools Only</h3>
+        </div>
+        <p style="font-size: 13.5px; margin-bottom: 1.25rem;">Using only Claude Code's built-in tools, complete these codebase operations on a sample project.</p>
+        <ul class="task-steps">
+          <li>Find all test files in the project — use the correct tool (Glob) and write the glob pattern</li>
+          <li>Find all files that import a specific utility function — use the correct tool (Grep) and write the search pattern</li>
+          <li>Make a targeted edit to a unique line — use Edit. Then intentionally trigger the non-unique anchor failure and implement the Read + Write fallback</li>
+          <li>Trace the full usage of an exported function: find all exported names → grep for each across the codebase → document the dependency graph</li>
+          <li>Build understanding of an unfamiliar module incrementally: start with one Grep, identify the 3 most relevant files, Read only those 3</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2.5 Questions -->
+    <section class="section" id="ts25-questions">
+      <h3 class="section-title blue">Exam Simulation — Task 2.5</h3>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 1 — Task 2.5</span>
+          <span class="exam-scenario">Developer Productivity with Claude</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">You need to apply a consistent testing convention to all test files in a project. The test files are spread across every directory, always named with the <code>.test.tsx</code> suffix. Which built-in tool and approach correctly finds all of these files?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q51')"><span class="option-letter">A</span>Grep with pattern <code>.test.tsx</code> across the entire codebase</li>
+            <li class="exam-option" onclick="pick(this,true,'q51')"><span class="option-letter">B</span>Glob with pattern <code>**/*.test.tsx</code> to match all test files regardless of directory location</li>
+            <li class="exam-option" onclick="pick(this,false,'q51')"><span class="option-letter">C</span>Read the root directory listing and recursively Read each subdirectory to find test files manually</li>
+            <li class="exam-option" onclick="pick(this,false,'q51')"><span class="option-letter">D</span>Bash with <code>find . -name "*.test.tsx"</code> — equivalent to Glob but more explicit</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r51')">Show explanation</button>
+          <div class="exam-reveal" id="r51">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> Glob is the correct tool for file path pattern matching — finding files by name or extension across directory hierarchies. <code>**/*.test.tsx</code> matches all test files regardless of location. <strong>A is wrong:</strong> Grep searches file <em>contents</em> for patterns, not file names — using it to find files named <code>.test.tsx</code> is the wrong tool. <strong>C is wrong:</strong> Manually recursing directories is inefficient and fills context unnecessarily. <strong>D may work</strong> but Bash is a lower-level fallback — when a dedicated tool (Glob) exists for the task, use it. The exam expects you to know the purpose-built tool for each operation.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-question">
+        <div class="exam-header">
+          <span class="exam-q-label">Question 2 — Task 2.5</span>
+          <span class="exam-scenario">Developer Productivity with Claude</span>
+        </div>
+        <div class="exam-body">
+          <div class="exam-stem">You use the Edit tool to fix a bug in a utility file. The tool returns an error: "Anchor text is not unique — found 4 matches." What is the correct next step?</div>
+          <ul class="exam-options">
+            <li class="exam-option" onclick="pick(this,false,'q52')"><span class="option-letter">A</span>Retry the Edit call with a longer anchor text that includes more surrounding context</li>
+            <li class="exam-option" onclick="pick(this,true,'q52')"><span class="option-letter">B</span>Use Read to load the full file, identify the correct occurrence by surrounding context, then use Write to save the modified file</li>
+            <li class="exam-option" onclick="pick(this,false,'q52')"><span class="option-letter">C</span>Use Grep to find the line number of the correct occurrence, then pass the line number to Edit as additional context</li>
+            <li class="exam-option" onclick="pick(this,false,'q52')"><span class="option-letter">D</span>Use Bash with <code>sed</code> to perform the replacement with a line number reference</li>
+          </ul>
+          <button class="show-answer-btn" onclick="showReveal('r52')">Show explanation</button>
+          <div class="exam-reveal" id="r52">
+            <div class="reveal-label">Correct: B</div>
+            <div class="reveal-text"><strong>B is correct.</strong> When Edit fails due to non-unique anchor text, the documented fallback is Read to load full contents, then Write to save the complete modified file. This is the explicit skill from the exam guide. <strong>A is wrong:</strong> If the anchor text appears 4 times in the file, extending it may help, but the reliable fallback is Read + Write — don't keep retrying Edit. <strong>C is wrong:</strong> Edit does not accept line number parameters. <strong>D may work</strong> but Bash/sed is not the documented fallback for this specific failure mode — the exam expects the Read + Write pattern.</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 2.5</span>
+        <span class="exam-scenario">Developer Productivity with Claude</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer needs to update 47 TypeScript files to use a new API client interface. The changes are mechanical but not identical — each file uses the old interface slightly differently. They run Claude Code with the full task and return 30 minutes later to find Claude made 12 of the 47 changes correctly before context was exhausted. What is the most effective approach for completing the remaining 35 files?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q25c')"><span class="option-letter">A</span>Restart Claude Code with a larger context window model and resubmit the same task from the beginning</li>
+          <li class="exam-option" onclick="pick(this,false,'q25c')"><span class="option-letter">B</span>Use the Edit tool in a loop: for each remaining file, read the file, compute the change, write the result — 35 sequential operations</li>
+          <li class="exam-option" onclick="pick(this,true,'q25c')"><span class="option-letter">C</span>Use Glob to find the 35 remaining files, then process them in batches of 8–10 per Claude Code session with a precise task description specifying the exact interface change — each batch session is self-contained and doesn't require prior session history</li>
+          <li class="exam-option" onclick="pick(this,false,'q25c')"><span class="option-letter">D</span>Write a Bash script using <code>sed</code> to apply the transformation mechanically without Claude, since the changes are described as mechanical</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r25c')">Show explanation</button>
+        <div class="exam-reveal" id="r25c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Bounded batches ensure each session stays within context limits, and a precise self-contained task description makes each batch independently executable without needing prior session history. Glob first gives an exact file list so no files are skipped or doubled. <strong>A is wrong:</strong> A larger context window hits the same limit — with 47 files of TypeScript, even a 200k-token model may exhaust context, and the session still has to start from scratch. <strong>B is technically viable</strong> but pure Edit/Write loops can't handle the "not identical" variation — the stem explicitly says each file uses the interface differently, which requires Claude's judgment, not mechanical string replacement. <strong>D is wrong for the same reason:</strong> <code>sed</code> is a pattern-replacement tool. It cannot handle semantic variation in how different files use the old interface.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-meta">Domain 2 · All 5 Task Statements · Claude Certified Architect – Foundations</div>
+      <a class="next-btn" href="#">Next: Domain 3 — Claude Code Configuration →</a>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Universal answer handler — uses data attributes to find correct answer
+  const _DOMAIN = 2;
+  function saEvent(name, meta) {
+    if (typeof window.sa_event === 'function') window.sa_event(name, meta);
+  }
+  function _taskFromId(id) {
+    const m = id.match(/^[qr](\d)(\d)/);
+    return m ? m[1] + '.' + m[2] : id;
+  }
+
+  function pick(el, correct, qid) {
+    const parent = el.closest('.exam-options');
+    parent.querySelectorAll('.exam-option').forEach(o => o.classList.remove('correct','wrong'));
+    el.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      // Find and highlight the correct option in this question
+      parent.querySelectorAll('.exam-option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true')) {
+          o.classList.add('correct');
+        }
+      });
+    }
+    // Show reveal
+    const reveal = el.closest('.exam-body').querySelector('.exam-reveal');
+    if (reveal) reveal.classList.add('visible');
+    saEvent('domain_question_answered', { domain: _DOMAIN, task: _taskFromId(qid), qid: qid, correct: correct ? 'yes' : 'no' });
+  }
+
+  function showReveal(id) {
+    document.getElementById(id).classList.add('visible');
+    saEvent('domain_explanation_viewed', { domain: _DOMAIN, task: _taskFromId(id) });
+  }
+
+  saEvent('domain_opened', { domain: _DOMAIN });
+
+  // Active sidebar highlighting on scroll
+  const allSections = document.querySelectorAll('[id]');
+  const allLinks = document.querySelectorAll('.sidebar-nav a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    allLinks.forEach(l => {
+      l.classList.remove('active');
+      const href = l.getAttribute('href');
+      if (href && href === '#' + current) l.classList.add('active');
+    });
+  }, { passive: true });
+</script>
+
+<script>
+function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
+(function(){
+  var p=location.pathname.split('/').pop()||'index.html';
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    if(a.getAttribute('href').split('/').pop()===p) a.classList.add('nav-active');
+  });
+})();
+</script>
+</body>
+</html>

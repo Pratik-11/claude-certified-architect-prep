@@ -1,0 +1,127 @@
+{
+  "sha": "c9212826a167c27c65850e638b0109793dcfa8e6",
+  "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/trees/c9212826a167c27c65850e638b0109793dcfa8e6",
+  "tree": [
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81528937e92442ad9497931f81883489498207d0",
+      "size": 199,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/81528937e92442ad9497931f81883489498207d0"
+    },
+    {
+      "path": "CLAUDE.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a85053692dbc605a684adfcf87b9808466b7212",
+      "size": 2145,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/7a85053692dbc605a684adfcf87b9808466b7212"
+    },
+    {
+      "path": "_headers",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c7695d2bb9f09ca059a1cb625798a2a5b92a91f0",
+      "size": 177,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/c7695d2bb9f09ca059a1cb625798a2a5b92a91f0"
+    },
+    {
+      "path": "_redirects",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "089ca4332a4167511daf75411e5ab5d2d699df0d",
+      "size": 318,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/089ca4332a4167511daf75411e5ab5d2d699df0d"
+    },
+    {
+      "path": "architect_exam_checklist.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1fb0a05acee7b9e17627837e9e3a4f196b1199a6",
+      "size": 13458,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/1fb0a05acee7b9e17627837e9e3a4f196b1199a6"
+    },
+    {
+      "path": "domain1.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d57727dfca581c8cc525fcae489ccfbf9b788a85",
+      "size": 136055,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/d57727dfca581c8cc525fcae489ccfbf9b788a85"
+    },
+    {
+      "path": "domain2.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d8d05a13818cdaa30ec28da17e032562bd5c49f",
+      "size": 124581,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/6d8d05a13818cdaa30ec28da17e032562bd5c49f"
+    },
+    {
+      "path": "domain3.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1402a37ccc04b62822ba44744e1cda0c26ccfac",
+      "size": 125907,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/e1402a37ccc04b62822ba44744e1cda0c26ccfac"
+    },
+    {
+      "path": "domain4.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ebd0ae80ea282858c4e32a4b556e8a811e11eefa",
+      "size": 127082,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/ebd0ae80ea282858c4e32a4b556e8a811e11eefa"
+    },
+    {
+      "path": "domain5.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "902f5f3ff3f1c465da97630f9eb1a4c200058f4f",
+      "size": 125771,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/902f5f3ff3f1c465da97630f9eb1a4c200058f4f"
+    },
+    {
+      "path": "exam.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd0731199a7ff78d81871b4a2ed90409e80dc789",
+      "size": 50525,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/fd0731199a7ff78d81871b4a2ed90409e80dc789"
+    },
+    {
+      "path": "index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b248f8bc95d8e52255bf4bfe245469ef3d7da8d",
+      "size": 20950,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/6b248f8bc95d8e52255bf4bfe245469ef3d7da8d"
+    },
+    {
+      "path": "package.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a262cead21b0f4b72cf9e3330f94f083c8e25069",
+      "size": 190,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/a262cead21b0f4b72cf9e3330f94f083c8e25069"
+    },
+    {
+      "path": "progress.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0318e80570b89281a541268bce804c9d0dff81fa",
+      "size": 17272,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/0318e80570b89281a541268bce804c9d0dff81fa"
+    },
+    {
+      "path": "questions.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "080bdde98785b5bfe60a989d21d2f16016267082",
+      "size": 111906,
+      "url": "https://api.github.com/repos/moisesprat/claude-certified-architect-guide/git/blobs/080bdde98785b5bfe60a989d21d2f16016267082"
+    }
+  ],
+  "truncated": false
+}

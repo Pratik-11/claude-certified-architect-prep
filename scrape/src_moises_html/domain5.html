@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 5: Context Management & Reliability | Claude Certified Architect Guide</title>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1b1f27;
+    --border: #252a35;
+    --accent: #6f9ceb;
+    --accent-warm: #e8b84b;
+    --accent2: #61c99b;
+    --accent3: #e86b5f;
+    --accent4: #b57bee;
+    --accent5: #f9a45c;
+    --text: #e8e6e0;
+    --text-dim: #8891a4;
+    --text-muted: #4a5366;
+    --mono: 'Cascadia Code','Fira Code','JetBrains Mono','SF Mono','Menlo','Consolas',monospace;
+    --serif: 'Palatino Linotype','Book Antiqua','Georgia','Cambria',serif;
+    --sans: -apple-system,'BlinkMacSystemFont','Segoe UI','Helvetica Neue','Arial',sans-serif;
+    --nav-h: 52px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top: calc(var(--nav-h) + 65px); }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.7; min-height:100vh; padding-top:var(--nav-h); }
+
+  .header { border-bottom:1px solid var(--border); padding:1.1rem 3rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:var(--nav-h); background:rgba(13,15,18,.95); backdrop-filter:blur(12px); z-index:100; height:65px; }
+  .header-left { display:flex; align-items:center; gap:1.2rem; }
+  .badge { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; padding:4px 10px; border-radius:4px; border:1px solid; }
+  .badge-domain { color:var(--accent5); border-color:rgba(249,164,92,.3); background:rgba(249,164,92,.06); }
+  .badge-weight { color:var(--accent-warm); border-color:rgba(232,184,75,.3); background:rgba(232,184,75,.06); }
+  .header h1 { font-family:var(--serif); font-size:1.05rem; font-weight:300; color:var(--text-dim); }
+  .header h1 strong { color:var(--text); font-weight:600; }
+  .progress-bar { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .progress-dots { display:flex; gap:4px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--border); }
+  .dot.done { background:var(--accent5); }
+
+  .layout { display:grid; grid-template-columns:250px 1fr; min-height:calc(100vh - 65px); }
+
+  .sidebar { border-right:1px solid var(--border); padding:2rem 0; position:sticky; top:calc(var(--nav-h) + 65px); height:calc(100vh - var(--nav-h) - 65px); overflow-y:auto; }
+  .sidebar-section { padding:0 1.5rem; margin-bottom:1.75rem; }
+  .sidebar-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.75rem; }
+  .sidebar-nav a { display:block; padding:6px 10px; border-radius:4px; color:var(--text-muted); text-decoration:none; font-size:13px; transition:all .15s; border-left:2px solid transparent; line-height:1.4; }
+  .sidebar-nav a:hover { color:var(--text); background:var(--surface); }
+  .sidebar-nav a.active { color:var(--accent5); border-left-color:var(--accent5); background:rgba(249,164,92,.05); }
+  .ts-badge { display:inline-block; font-family:var(--mono); font-size:9px; padding:1px 5px; border-radius:3px; margin-right:4px; vertical-align:middle; background:rgba(249,164,92,.1); color:var(--accent5); border:1px solid rgba(249,164,92,.25); }
+
+  .main { padding:3rem 4rem 5rem; max-width:860px; }
+
+  .domain-hero { margin-bottom:3.5rem; padding-bottom:3rem; border-bottom:1px solid var(--border); }
+  .task-meta { display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .domain-hero h2 { font-family:var(--serif); font-size:2.4rem; font-weight:800; line-height:1.15; color:var(--text); margin-bottom:1rem; }
+  .domain-hero h2 em { font-style:italic; color:var(--accent5); }
+  .domain-hero p { font-size:15px; color:var(--text-dim); max-width:620px; line-height:1.75; margin-bottom:.75rem; }
+
+  .ts-divider { display:flex; align-items:center; gap:1rem; margin:4rem 0 2.5rem; }
+  .ts-divider-line { flex:1; height:1px; background:var(--border); }
+  .ts-divider-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+
+  .section { margin-bottom:3rem; }
+  .section-title { font-family:var(--serif); font-size:1.3rem; font-weight:600; color:var(--text); margin-bottom:1.25rem; display:flex; align-items:center; gap:.75rem; }
+  .section-title::before { content:''; display:inline-block; width:4px; height:1.3rem; background:var(--accent5); border-radius:2px; flex-shrink:0; }
+  .section-title.blue::before   { background:var(--accent); }
+  .section-title.green::before  { background:var(--accent2); }
+  .section-title.red::before    { background:var(--accent3); }
+  .section-title.purple::before { background:var(--accent4); }
+  .section-title.gold::before   { background:var(--accent-warm); }
+
+  .ts-title-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.5rem 1.75rem; margin-bottom:2rem; }
+  .ts-title-block .ts-number { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent5); margin-bottom:.5rem; }
+  .ts-title-block h3 { font-family:var(--serif); font-size:1.5rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:.75rem; }
+  .ts-title-block .ts-desc { font-size:14px; color:var(--text-dim); line-height:1.75; }
+
+  p { color:var(--text-dim); margin-bottom:1rem; line-height:1.8; }
+  p strong { color:var(--text); font-weight:500; }
+
+  .knowledge-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.25rem; }
+  .k-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1.25rem; }
+  .k-card-icon { font-size:1.3rem; margin-bottom:.6rem; }
+  .k-card h4 { font-size:13px; font-weight:500; color:var(--text); margin-bottom:.5rem; }
+  .k-card p { font-size:13px; margin:0; color:var(--text-dim); }
+
+  .skill-list { list-style:none; margin-top:1rem; }
+  .skill-list li { display:flex; gap:.75rem; align-items:flex-start; padding:.65rem 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text-dim); }
+  .skill-list li:last-child { border-bottom:none; }
+  .skill-list li::before { content:'→'; color:var(--accent5); font-family:var(--mono); flex-shrink:0; margin-top:1px; }
+
+  .code-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin:1.25rem 0; }
+  .code-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .code-label { font-family:var(--mono); font-size:11px; color:var(--text-muted); letter-spacing:.05em; }
+  .code-tag { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:3px; font-weight:500; }
+  .tag-bad     { color:var(--accent3); background:rgba(232,107,95,.1);  border:1px solid rgba(232,107,95,.25); }
+  .tag-good    { color:var(--accent2); background:rgba(97,201,155,.1);  border:1px solid rgba(97,201,155,.25); }
+  .tag-neutral { color:var(--accent);  background:rgba(111,156,235,.1); border:1px solid rgba(111,156,235,.25); }
+  .tag-orange  { color:var(--accent5); background:rgba(249,164,92,.1);  border:1px solid rgba(249,164,92,.25); }
+  pre { padding:1.25rem 1.5rem; font-family:var(--mono); font-size:12.5px; line-height:1.7; color:var(--text-dim); overflow-x:auto; white-space:pre; }
+  .hl-key     { color:var(--accent4); }
+  .hl-str     { color:var(--accent2); }
+  .hl-comment { color:var(--text-muted); font-style:italic; }
+  .hl-warn    { color:var(--accent3); }
+  .hl-ok      { color:var(--accent2); }
+  .hl-num     { color:var(--accent-warm); }
+  .hl-fn      { color:var(--accent); }
+  .hl-field   { color:var(--accent5); }
+
+  .callout { border-radius:8px; padding:1.1rem 1.4rem; margin:1.25rem 0; display:flex; gap:1rem; align-items:flex-start; }
+  .callout-warn    { background:rgba(232,184,75,.07);  border:1px solid rgba(232,184,75,.2); }
+  .callout-danger  { background:rgba(232,107,95,.07);  border:1px solid rgba(232,107,95,.2); }
+  .callout-info    { background:rgba(111,156,235,.07); border:1px solid rgba(111,156,235,.2); }
+  .callout-success { background:rgba(97,201,155,.07);  border:1px solid rgba(97,201,155,.2); }
+  .callout-orange  { background:rgba(249,164,92,.07);  border:1px solid rgba(249,164,92,.2); }
+  .callout-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+  .callout-body { font-size:13.5px; color:var(--text-dim); line-height:1.7; }
+  .callout-body strong { color:var(--text); }
+
+  .comparison { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.25rem 0; }
+  .compare-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .compare-header { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; }
+  .compare-header.bad  { background:rgba(232,107,95,.06); color:var(--accent3); }
+  .compare-header.good { background:rgba(97,201,155,.06); color:var(--accent2); }
+  .compare-body { padding:1rem 1.25rem; font-family:var(--mono); font-size:12px; line-height:1.65; color:var(--text-dim); }
+
+  .trap-table { width:100%; border-collapse:collapse; margin:1.25rem 0; font-size:13px; }
+  .trap-table th { text-align:left; padding:10px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border); }
+  .trap-table td { padding:11px 14px; border-bottom:1px solid rgba(37,42,53,.5); vertical-align:top; line-height:1.6; }
+  .trap-table tr:last-child td { border-bottom:none; }
+  .trap-table .col-trap    { color:var(--accent3); font-family:var(--mono); font-size:12px; }
+  .trap-table .col-correct { color:var(--accent2); font-size:13px; }
+  .trap-table .col-why     { color:var(--text-dim); font-size:12px; }
+
+  .task-box { background:var(--surface); border:1px solid rgba(249,164,92,.35); border-radius:10px; padding:1.75rem; margin:1.5rem 0; }
+  .task-box-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
+  .task-number { width:28px; height:28px; background:rgba(249,164,92,.15); border:1px solid rgba(249,164,92,.35); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; color:var(--accent5); flex-shrink:0; }
+  .task-box-header h3 { font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--accent5); }
+  .task-steps { list-style:none; counter-reset:task-counter; }
+  .task-steps li { counter-increment:task-counter; display:flex; gap:.85rem; padding:.55rem 0; font-size:14px; color:var(--text-dim); align-items:flex-start; }
+  .task-steps li::before { content:counter(task-counter); font-family:var(--mono); font-size:10px; color:var(--text-muted); background:var(--surface2); border:1px solid var(--border); width:20px; height:20px; border-radius:3px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+
+  .exam-question { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin:1.5rem 0; }
+  .exam-header { background:var(--surface2); padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .exam-q-label { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent5); }
+  .exam-scenario { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+  .exam-body { padding:1.5rem 1.75rem; }
+  .exam-stem { font-size:14px; color:var(--text); line-height:1.75; margin-bottom:1.25rem; }
+  .exam-options { list-style:none; display:flex; flex-direction:column; gap:.65rem; }
+  .exam-option { display:flex; gap:.85rem; padding:.85rem 1.1rem; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text-dim); cursor:pointer; transition:all .15s; align-items:flex-start; }
+  .exam-option:hover { border-color:var(--accent5); color:var(--text); background:rgba(249,164,92,.04); }
+  .exam-option.correct { border-color:var(--accent2); background:rgba(97,201,155,.06); color:var(--text); }
+  .exam-option.wrong   { border-color:rgba(232,107,95,.4); background:rgba(232,107,95,.04); }
+  .option-letter { font-family:var(--mono); font-size:11px; color:var(--text-muted); flex-shrink:0; margin-top:1px; }
+  .exam-option.correct .option-letter { color:var(--accent2); }
+  .exam-option.wrong   .option-letter { color:var(--accent3); }
+  .exam-reveal { display:none; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border); }
+  .exam-reveal.visible { display:block; }
+  .reveal-label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent2); margin-bottom:.5rem; }
+  .reveal-text { font-size:13.5px; color:var(--text-dim); line-height:1.75; }
+  .reveal-text strong { color:var(--text); }
+  .show-answer-btn { margin-top:1.1rem; background:none; border:1px solid var(--border); color:var(--text-muted); font-family:var(--mono); font-size:11px; padding:7px 14px; border-radius:5px; cursor:pointer; transition:all .15s; }
+  .show-answer-btn:hover { border-color:var(--accent5); color:var(--accent5); }
+
+  code { font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--accent5); }
+
+  .footer { margin-top:4rem; padding-top:2rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .footer-meta { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .complete-badge { display:flex; align-items:center; gap:.5rem; background:rgba(97,201,155,.1); border:1px solid rgba(97,201,155,.3); color:var(--accent2); font-family:var(--mono); font-size:12px; padding:10px 18px; border-radius:6px; }
+
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+  /* ── Top Navigation ── */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    background: rgba(13,15,18,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #252a35;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+  }
+  .top-nav-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 1.5rem; display:flex; align-items:center; gap:1.5rem; }
+  .nav-brand { font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#4ade80; text-decoration:none; white-space:nowrap; flex-shrink:0; }
+  .nav-links { display:flex; align-items:center; gap:0.25rem; flex-wrap:nowrap; margin-left:auto; }
+  .nav-links a { font-family:var(--mono); font-size:11px; color:#4a5366; text-decoration:none; padding:5px 10px; border-radius:4px; transition:color 0.15s,background 0.15s; white-space:nowrap; letter-spacing:0.06em; }
+  .nav-links a:hover { color:#e8e9eb; background:rgba(255,255,255,0.06); }
+  .nav-links a.nav-active { color:#e8e9eb; background:rgba(255,255,255,0.08); }
+  .nav-exam-btn { background:rgba(74,222,128,0.1) !important; border:1px solid rgba(74,222,128,0.3) !important; color:#4ade80 !important; }
+  .nav-exam-btn:hover { background:rgba(74,222,128,0.2) !important; }
+  .nav-hamburger { display:none; background:none; border:none; color:#8a8d94; font-size:18px; cursor:pointer; margin-left:auto; padding:4px 8px; }
+  @media (max-width:720px) {
+    .nav-hamburger { display:block; }
+    .nav-links { display:none; position:absolute; top:var(--nav-h); left:0; right:0; background:rgba(13,15,18,0.98); flex-direction:column; padding:0.75rem 1rem; gap:0.25rem; border-bottom:1px solid #252a35; }
+    .nav-links.open { display:flex; }
+    .nav-links a { width:100%; }
+  }
+</style>
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+<noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="./index.html" class="nav-brand">Claude Architect</a>
+    <a href="https://moisesprat.dev" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:10px;color:var(--text2);text-decoration:none;border-left:1px solid var(--border2);padding-left:1rem;margin-left:0.25rem;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">Guide by Moises Prat</a>
+    <button class="nav-hamburger" onclick="toggleNav()">&#9776;</button>
+    <div class="nav-links" id="nav-links">
+      <a href="./index.html">Home</a>
+      <a href="./domain1.html">Domain 1</a>
+      <a href="./domain2.html">Domain 2</a>
+      <a href="./domain3.html">Domain 3</a>
+      <a href="./domain4.html">Domain 4</a>
+      <a href="./domain5.html">Domain 5</a>
+      <a href="./progress.html">Progress</a>
+      <a href="./exam.html" class="nav-exam-btn">Exam</a>
+    </div>
+  </div>
+</nav>
+
+
+<header class="header">
+  <div class="header-left">
+    <span class="badge badge-domain">Domain 5</span>
+    <span class="badge badge-weight">15% of exam</span>
+    <h1><strong>Context Management & Reliability</strong> — Complete Lesson</h1>
+  </div>
+  <div class="progress-bar">
+    <span>Domain progress</span>
+    <div class="progress-dots">
+      <div class="dot done" title="5.1 Context Preservation"></div>
+      <div class="dot done" title="5.2 Escalation Patterns"></div>
+      <div class="dot done" title="5.3 Error Propagation"></div>
+      <div class="dot done" title="5.4 Codebase Exploration"></div>
+      <div class="dot done" title="5.5 Human Review Workflows"></div>
+      <div class="dot done" title="5.6 Information Provenance"></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Domain 5 Overview</div>
+    <nav class="sidebar-nav"><a href="#domain-overview">Introduction</a></nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 5.1</div>
+    <nav class="sidebar-nav">
+      <a href="#ts51-concept"><span class="ts-badge">5.1</span> Core Concept</a>
+      <a href="#ts51-risks"><span class="ts-badge">5.1</span> Summarisation Risks</a>
+      <a href="#ts51-lost-middle"><span class="ts-badge">5.1</span> Lost in the Middle</a>
+      <a href="#ts51-tool-bloat"><span class="ts-badge">5.1</span> Tool Result Bloat</a>
+      <a href="#ts51-traps"><span class="ts-badge">5.1</span> Exam Traps</a>
+      <a href="#ts51-task"><span class="ts-badge">5.1</span> Implementation Task</a>
+      <a href="#ts51-questions"><span class="ts-badge">5.1</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 5.2</div>
+    <nav class="sidebar-nav">
+      <a href="#ts52-concept"><span class="ts-badge">5.2</span> Core Concept</a>
+      <a href="#ts52-triggers"><span class="ts-badge">5.2</span> Escalation Triggers</a>
+      <a href="#ts52-unreliable"><span class="ts-badge">5.2</span> Unreliable Proxies</a>
+      <a href="#ts52-traps"><span class="ts-badge">5.2</span> Exam Traps</a>
+      <a href="#ts52-task"><span class="ts-badge">5.2</span> Implementation Task</a>
+      <a href="#ts52-questions"><span class="ts-badge">5.2</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 5.3</div>
+    <nav class="sidebar-nav">
+      <a href="#ts53-concept"><span class="ts-badge">5.3</span> Core Concept</a>
+      <a href="#ts53-structured-errors"><span class="ts-badge">5.3</span> Structured Error Context</a>
+      <a href="#ts53-empty-vs-error"><span class="ts-badge">5.3</span> Empty vs Error</a>
+      <a href="#ts53-traps"><span class="ts-badge">5.3</span> Exam Traps</a>
+      <a href="#ts53-task"><span class="ts-badge">5.3</span> Implementation Task</a>
+      <a href="#ts53-questions"><span class="ts-badge">5.3</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 5.4</div>
+    <nav class="sidebar-nav">
+      <a href="#ts54-concept"><span class="ts-badge">5.4</span> Core Concept</a>
+      <a href="#ts54-scratchpad"><span class="ts-badge">5.4</span> Scratchpad Files</a>
+      <a href="#ts54-crash"><span class="ts-badge">5.4</span> Crash Recovery</a>
+      <a href="#ts54-traps"><span class="ts-badge">5.4</span> Exam Traps</a>
+      <a href="#ts54-task"><span class="ts-badge">5.4</span> Implementation Task</a>
+      <a href="#ts54-questions"><span class="ts-badge">5.4</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 5.5</div>
+    <nav class="sidebar-nav">
+      <a href="#ts55-concept"><span class="ts-badge">5.5</span> Core Concept</a>
+      <a href="#ts55-aggregate"><span class="ts-badge">5.5</span> Aggregate Metric Risk</a>
+      <a href="#ts55-calibration"><span class="ts-badge">5.5</span> Confidence Calibration</a>
+      <a href="#ts55-traps"><span class="ts-badge">5.5</span> Exam Traps</a>
+      <a href="#ts55-task"><span class="ts-badge">5.5</span> Implementation Task</a>
+      <a href="#ts55-questions"><span class="ts-badge">5.5</span> Exam Questions</a>
+    </nav>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Task Statement 5.6</div>
+    <nav class="sidebar-nav">
+      <a href="#ts56-concept"><span class="ts-badge">5.6</span> Core Concept</a>
+      <a href="#ts56-claim-source"><span class="ts-badge">5.6</span> Claim-Source Mappings</a>
+      <a href="#ts56-conflicts"><span class="ts-badge">5.6</span> Conflicting Sources</a>
+      <a href="#ts56-traps"><span class="ts-badge">5.6</span> Exam Traps</a>
+      <a href="#ts56-task"><span class="ts-badge">5.6</span> Implementation Task</a>
+      <a href="#ts56-questions"><span class="ts-badge">5.6</span> Exam Questions</a>
+    </nav>
+  </div>
+</nav>
+
+<main class="main">
+
+  <div class="domain-hero" id="domain-overview">
+    <div class="task-meta">
+      <span class="badge badge-domain">Domain 5</span>
+      <span class="badge badge-weight">15% of exam · 6 Task Statements</span>
+    </div>
+    <h2>Context Management<br>&amp; <em>Reliability</em></h2>
+    <p>Domain 5 is the reliability domain — everything that prevents production systems from silently degrading. It covers how context windows fill and fail, how errors should propagate to enable intelligent recovery, how to preserve source attribution through multi-agent pipelines, and when to keep humans in the loop.</p>
+    <p>This domain appears across all six exam scenarios. The "lost in the middle" effect, structured error propagation, escalation calibration, and provenance preservation are universal concerns that appear in customer support, research pipelines, CI/CD, and extraction systems alike.</p>
+  </div>
+
+
+  <!-- ═══════════════ TS 5.1 ═══════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 5.1</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts51">
+    <div class="ts-number">Task Statement 5.1</div>
+    <h3>Manage conversation context to preserve critical information across long interactions</h3>
+    <div class="ts-desc">Context windows are finite and degrade silently. Numbers disappear in summaries, tool results bloat with irrelevant fields, and findings buried in the middle of long inputs get dropped. The exam tests whether you know how to prevent each failure mode architecturally.</div>
+  </div>
+
+  <section class="section" id="ts51-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Long conversations fail in predictable ways. Context management is the set of architectural choices that prevent those failures: extracting critical facts into a persistent layer, trimming tool outputs before they accumulate, positioning key findings where models reliably process them.</p>
+    <div class="callout callout-orange">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> Three distinct failure modes, three distinct fixes. (1) Summarisation loses numbers → extract facts into a persistent "case facts" block. (2) Tool results bloat → trim to relevant fields before storing. (3) Lost-in-the-middle → place key findings at the beginning of aggregated inputs.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts51-risks">
+    <h3 class="section-title blue">Progressive Summarisation Risks</h3>
+    <p>When conversation history is summarised to save context, quantitative information collapses. <em>"Customer reported order #ORD-4821 was delivered to the wrong address; the replacement cost is $127.49 and the expected delivery was 14 March 2025"</em> becomes <em>"Customer had a delivery issue and wants compensation."</em> The order number, the amount, and the date — the facts needed to take action — are gone.</p>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Progressive Summary (Loses Facts)</div>
+        <div class="compare-body">
+After 5 turns of conversation:
+
+Summary:
+<span class="hl-warn">"Customer had delivery issues
+with two orders and is requesting
+refunds totalling a significant
+amount. They have been frustrated
+by multiple interactions."</span>
+
+Lost: order IDs, specific amounts,
+exact dates, original complaint text,
+stated expectations
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Persistent Case Facts Block</div>
+        <div class="compare-body">
+Case Facts (always included):
+<span class="hl-ok">Order 1: ORD-4821 | $127.49
+  Status: wrong_address_delivered
+  Expected: 2025-03-14
+Order 2: ORD-5103 | $43.00
+  Status: damaged_on_arrival
+Customer expectation: full refund
+  on both + apology voucher</span>
+
+Summary: general conversation tone
+        </div>
+      </div>
+    </div>
+    <ul class="skill-list">
+      <li>Extract transactional facts (amounts, dates, order numbers, statuses) into a persistent <strong>"case facts" block</strong> that is always included in each prompt, outside the summarised history</li>
+      <li>For multi-issue sessions, extract each issue's data into a <strong>separate structured context layer</strong> — prevents individual issues from collapsing into each other during summarisation</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts51-lost-middle">
+    <h3 class="section-title green">The "Lost in the Middle" Effect</h3>
+    <p>Models reliably process information at the <strong>beginning</strong> and <strong>end</strong> of long inputs. Information in the middle sections of large aggregated inputs is processed less reliably — findings may be omitted from synthesised outputs even when they were present in the input.</p>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">📌</div>
+        <h4>Key Findings First</h4>
+        <p>Place the most critical findings summary at the <strong>beginning</strong> of aggregated inputs — not buried in the middle. If the synthesis agent must read 10 subagent reports, start with a condensed findings overview before the full reports.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🏷️</div>
+        <h4>Explicit Section Headers</h4>
+        <p>Organise long aggregated inputs with explicit section headers (## Web Search Results, ## Document Analysis, ## Prior Findings). Headers serve as attention anchors — findings under labelled sections are less likely to be dropped.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📊</div>
+        <h4>Structured Subagent Output</h4>
+        <p>Require subagents to include metadata (dates, source locations, methodological context) in structured outputs. Downstream synthesis agents need this context to interpret findings correctly.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">✂️</div>
+        <h4>Upstream Compression</h4>
+        <p>Modify upstream agents to return structured data (key facts, citations, relevance scores) instead of verbose content and reasoning chains when downstream agents have limited context budgets.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts51-tool-bloat">
+    <h3 class="section-title red">Tool Result Bloat</h3>
+    <p>Every tool result appended to conversation history consumes tokens. A single <code>lookup_order</code> call that returns 40+ fields (shipping carrier, warehouse ID, pick timestamp, scan events, carrier contract details…) when only 5 fields are relevant (status, amount, dates, address) will bloat the context in proportion to the number of order lookups made during a session.</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">python — trim tool results before appending to context</span>
+        <span class="code-tag tag-good">CONTEXT EFFICIENCY</span>
+      </div>
+      <pre><span class="hl-fn">def</span> <span class="hl-key">trim_order_result</span>(full_result):
+    <span class="hl-comment"># ✓ Keep only fields relevant to customer support</span>
+    <span class="hl-fn">return</span> {
+        <span class="hl-str">"order_id"</span>:      full_result[<span class="hl-str">"order_id"</span>],
+        <span class="hl-str">"status"</span>:        full_result[<span class="hl-str">"status"</span>],
+        <span class="hl-str">"total_amount"</span>:  full_result[<span class="hl-str">"total_amount"</span>],
+        <span class="hl-str">"expected_date"</span>: full_result[<span class="hl-str">"expected_date"</span>],
+        <span class="hl-str">"delivery_address"</span>: full_result[<span class="hl-str">"delivery_address"</span>]
+        <span class="hl-comment"># ✗ Dropped: warehouse_id, carrier_contract, scan_events,</span>
+        <span class="hl-comment">#   pick_timestamp, route_code, manifest_id, ...</span>
+        <span class="hl-comment"># These 35 fields are never needed by the support agent</span>
+    }
+
+<span class="hl-comment"># Use trimmed result when appending tool result to history</span>
+tool_results.append({
+    <span class="hl-str">"type"</span>: <span class="hl-str">"tool_result"</span>,
+    <span class="hl-str">"tool_use_id"</span>: block.id,
+    <span class="hl-str">"content"</span>: trim_order_result(raw_result)  <span class="hl-comment"># ← trimmed</span>
+})</pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts51-traps">
+    <h3 class="section-title red">Exam Traps for Task 5.1</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Summarise conversation history to save tokens</td>
+          <td class="col-why">Summaries collapse quantitative facts (amounts, dates, order IDs) into vague prose — the specific values needed for action are lost</td>
+          <td class="col-correct">Keep transactional facts in a persistent case facts block outside the summarised history; only summarise conversational context</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Place key findings in the middle of a large aggregated input</td>
+          <td class="col-why">The "lost in the middle" effect means models process middle-section content less reliably — critical findings may be dropped</td>
+          <td class="col-correct">Place key findings summary at the beginning of aggregated inputs; use explicit section headers throughout</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Append full tool result objects to conversation history</td>
+          <td class="col-why">Tool results with 40+ fields consume tokens disproportionate to their relevance — bloats context, reduces available space for actual conversation</td>
+          <td class="col-correct">Trim tool outputs to relevant fields before appending to context; only keep what the agent actually needs</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts51-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T1</div>
+        <h3>Build a Context-Managed Customer Support Session</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Implement a persistent "case facts" block: extract all transactional facts (amounts, dates, order IDs) after each tool call and maintain them in a structured block outside conversation history</li>
+        <li>Simulate 10 turns of conversation with 5 order lookups. Compare context token usage with full tool results vs trimmed results. Document the difference.</li>
+        <li>Deliberately trigger "lost in the middle": put key findings in position 5 of a 10-item aggregated input. Verify they get dropped. Then move them to position 1 and verify they're preserved.</li>
+        <li>Implement section headers in aggregated subagent outputs: ## Web Results, ## Document Analysis, ## Prior Case Facts. Measure synthesis quality improvement.</li>
+        <li>Modify the upstream order lookup to return only 5 fields relevant to support resolution. Document how many tokens are saved over a 20-turn session.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts51-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 5.1</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 5.1</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A customer support agent handles multi-issue sessions. After 8 turns, the agent incorrectly states a refund amount that the customer had mentioned explicitly in turn 2. Investigation reveals the history was summarised at turn 5, collapsing "Customer wants a $127.49 refund for order #ORD-4821" into "Customer wants refund for delivery issue." What is the correct architectural fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q51a')"><span class="option-letter">A</span>Increase the summarisation interval to every 15 turns instead of every 5, giving more context before facts are lost</li>
+          <li class="exam-option" onclick="pick(this,true,'q51a')"><span class="option-letter">B</span>Extract transactional facts (order IDs, amounts, dates, statuses) into a persistent "case facts" block that is always included in each prompt, separate from the summarised history</li>
+          <li class="exam-option" onclick="pick(this,false,'q51a')"><span class="option-letter">C</span>Switch to a larger context window model so summarisation is never needed</li>
+          <li class="exam-option" onclick="pick(this,false,'q51a')"><span class="option-letter">D</span>Include the full unsummarised conversation in every prompt to prevent fact loss</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r51a')">Show explanation</button>
+        <div class="exam-reveal" id="r51a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The case facts block is the specific exam pattern for preserving quantitative transactional facts across summarisation. It keeps exact values (amounts, order IDs, dates) in a structured layer that survives compression, while the conversational history is still summarised to save tokens. <strong>A delays</strong> the problem but doesn't solve it — facts will still be lost at turn 15 instead of turn 5. <strong>C misses</strong> the point — larger context windows don't prevent summarisation-induced fact loss if you're still summarising. <strong>D</strong> works but defeats the purpose of context management — context windows still fill up.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 5.1</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A synthesis agent receives aggregated reports from 8 subagents. Analysis shows it consistently drops findings from reports 3–6 while reliably incorporating reports 1–2 and 7–8. What is the most likely cause and correct fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q51b')"><span class="option-letter">A</span>Reports 3–6 have lower quality findings — improve the subagents assigned to those topics</li>
+          <li class="exam-option" onclick="pick(this,true,'q51b')"><span class="option-letter">B</span>The "lost in the middle" effect — the synthesis agent processes reports at the beginning and end reliably but not the middle. Fix by placing a key findings summary at the beginning of the aggregated input and using explicit section headers</li>
+          <li class="exam-option" onclick="pick(this,false,'q51b')"><span class="option-letter">C</span>The synthesis agent's context window is too small — route it to a higher-tier model</li>
+          <li class="exam-option" onclick="pick(this,false,'q51b')"><span class="option-letter">D</span>Reports 3–6 are arriving in a different format — standardise all reports to the same structure</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r51b')">Show explanation</button>
+        <div class="exam-reveal" id="r51b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The pattern — reliable at the start and end, dropping from the middle — is the diagnostic signature of the "lost in the middle" effect. The fix: place a condensed key findings overview at position 1 (before any detailed reports) and use explicit section headers. <strong>A incorrectly blames</strong> report quality when the positional pattern is the diagnostic. <strong>C</strong> adds cost but doesn't fix the positional processing pattern — larger windows still exhibit "lost in the middle." <strong>D</strong> addresses format consistency but not positional processing reliability.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 5.1</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your customer support agent handles multi-session customer interactions. Each conversation is stored in a rolling 10-turn window. A customer reports that the agent asked for their account number three times across different sessions, despite the customer providing it each time. What is the root cause of this failure?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q51c')"><span class="option-letter">A</span>The rolling window was too short — increase it to 20 turns.</li>
+          <li class="exam-option" onclick="pick(this,false,'q51c')"><span class="option-letter">B</span>The agent failed to write the account number to its internal state correctly.</li>
+          <li class="exam-option" onclick="pick(this,true,'q51c')"><span class="option-letter">C</span>Account number is critical persistent context that must be stored in a persistent 'active commitments' block outside the rolling window, not in the conversation turns themselves.</li>
+          <li class="exam-option" onclick="pick(this,false,'q51c')"><span class="option-letter">D</span>The agent should summarise each session before closing and prepend the summary to the next session.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r51c')">Show explanation</button>
+        <div class="exam-reveal" id="r51c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> A rolling window discards older turns — if the account number was provided 11+ turns ago, it's gone. Critical persistent context (account number, customer preferences, unresolved issues) must be extracted from the conversation and stored separately in a persistent block that is always prepended to every session. A (longer window) delays the problem but doesn't solve it — eventually the number is still lost. B (write failure) may be a contributing bug, but the structural problem is that conversational turns are the wrong storage mechanism for critical context. D (session summary) is a partial mitigation but summaries can omit specific values unless the prompt explicitly requires their preservation.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════ TS 5.2 ═══════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 5.2</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts52">
+    <div class="ts-number">Task Statement 5.2</div>
+    <h3>Design effective escalation and ambiguity resolution patterns</h3>
+    <div class="ts-desc">Escalation decisions are binary in the wrong way — agents either escalate too readily (55% resolution rate) or too aggressively (attempting policy exceptions autonomously). The exam tests whether you know which signals reliably indicate escalation need and which are unreliable proxies.</div>
+  </div>
+
+  <section class="section" id="ts52-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Calibrated escalation requires explicit decision criteria, not self-reported confidence or sentiment detection. The exam distinguishes between three categories: cases where escalation is mandatory (explicit customer request, policy gaps), cases where the agent should offer to resolve first (straightforward issues within capability), and situations requiring clarification (ambiguous customer identity).</p>
+    <div class="callout callout-orange">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>Official Q3 Pattern:</strong> When an agent has 55% first-contact resolution with incorrect escalation calibration, the correct first fix is always <strong>explicit escalation criteria with few-shot examples</strong> — not confidence scoring, not sentiment analysis, not ML classifiers. These other approaches add infrastructure without addressing the root cause: unclear decision boundaries.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts52-triggers">
+    <h3 class="section-title blue">Correct Escalation Triggers</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🙋</div>
+        <h4>Explicit Customer Request — Immediate</h4>
+        <p>When a customer explicitly asks for a human agent, escalate <strong>immediately</strong> without attempting investigation first. Attempting to resolve despite an explicit request for escalation violates customer trust.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📋</div>
+        <h4>Policy Gap — Escalate</h4>
+        <p>When policy is ambiguous or silent on the specific request (e.g., customer requests competitor price matching when policy only covers own-site adjustments), escalate rather than attempting to extrapolate policy.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔄</div>
+        <h4>No Meaningful Progress — Escalate</h4>
+        <p>When the agent cannot make meaningful progress after reasonable investigation — not just "complex" cases. Complexity alone is insufficient; inability to progress is the correct trigger.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🤝</div>
+        <h4>Frustration + Capability — Acknowledge, Offer to Resolve</h4>
+        <p>When a customer is frustrated but the issue is within the agent's capability: acknowledge the frustration, offer to resolve it. Escalate only if the customer reiterates their preference for a human after the offer.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:1.25rem;">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>Ambiguous Identity:</strong> When a tool lookup returns multiple customer matches, ask for additional identifiers (email, phone, account number) rather than selecting based on heuristics like "most recent order" or "closest name match." Heuristic selection risks operating on the wrong account.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts52-unreliable">
+    <h3 class="section-title red">Unreliable Escalation Proxies</h3>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Self-Reported Confidence Score</div>
+        <div class="compare-body">
+Agent self-reports: "Confidence: 3/10"
+→ escalate if below 5
+
+Why it fails:
+<span class="hl-warn">The agent is already making wrong
+decisions. Its confidence scores
+are equally poorly calibrated.
+An agent confidently doing the
+wrong thing still scores 8/10.</span>
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Sentiment-Based Escalation</div>
+        <div class="compare-body">
+Escalate when negative sentiment
+exceeds a threshold
+
+Why it fails:
+<span class="hl-warn">Sentiment ≠ complexity.
+A customer calmly requesting a
+policy exception needs escalation.
+A furious customer with a standard
+return does not.
+
+Sentiment solves a different
+problem from case complexity.</span>
+        </div>
+      </div>
+    </div>
+    <ul class="skill-list">
+      <li>Add explicit escalation criteria to the system prompt with <strong>few-shot examples</strong> demonstrating when to escalate vs resolve autonomously — directly addresses unclear decision boundaries</li>
+      <li>Honor explicit customer requests for a human agent <strong>immediately</strong> — do not attempt investigation or resolution before transferring</li>
+      <li>Escalate on <strong>policy gaps</strong> (policy is silent on the specific case) rather than attempting to extrapolate or improvise</li>
+      <li>Ask for additional identifiers on multiple customer matches — never use heuristic selection on ambiguous identity</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts52-traps">
+    <h3 class="section-title red">Exam Traps for Task 5.2</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use self-reported confidence scores to trigger escalation</td>
+          <td class="col-why">LLM self-reported confidence is poorly calibrated — the same model making wrong decisions also produces unreliable confidence scores for those decisions</td>
+          <td class="col-correct">Explicit categorical escalation criteria: policy gap, explicit customer request, inability to make progress</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Escalate when sentiment analysis detects high frustration</td>
+          <td class="col-why">Frustration level doesn't correlate with case complexity — a frustrated customer with a standard return doesn't need escalation; a calm customer requesting a policy exception does</td>
+          <td class="col-correct">Escalate on case type (policy gap, explicit request), not emotional state</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Attempt to resolve before transferring when customer explicitly requests a human</td>
+          <td class="col-why">Attempting investigation after an explicit escalation request frustrates the customer further and reduces trust — the explicit request overrides all other considerations</td>
+          <td class="col-correct">Honor explicit requests immediately; offer resolution only when customer hasn't explicitly requested escalation</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Use heuristic selection when multiple customer matches are returned</td>
+          <td class="col-why">Selecting "most recent order" or "closest name match" risks operating on the wrong customer's account — financial and privacy consequences</td>
+          <td class="col-correct">Request additional identifiers (email, phone, account number) to narrow to a single match before proceeding</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Verify the triggering event but not the claimed causal consequence</td>
+          <td class="col-why">Confirming that event X occurred does not confirm that event X caused outcome Y. A shipping delay happened — but did it cause the spoiled groceries, or were they left out for unrelated reasons?</td>
+          <td class="col-correct">Verify both: (1) that the triggering event occurred, and (2) that it causally produced the claimed outcome before taking remedial action</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts52-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T2</div>
+        <h3>Implement Calibrated Escalation with Few-Shot Criteria</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Write explicit escalation criteria covering: explicit human request, policy gap, inability to progress, and the frustration-but-resolvable case — each with a concrete few-shot example</li>
+        <li>Test: send a frustrated customer with a standard return. Verify the agent offers to resolve rather than escalating. Then have the customer reiterate their preference for a human — verify escalation fires.</li>
+        <li>Test: send a request for competitor price matching when policy only covers own-site adjustments. Verify escalation fires due to policy gap, not complexity.</li>
+        <li>Test: simulate multiple customer matches from a lookup. Verify the agent requests additional identifiers rather than selecting the "best" match.</li>
+        <li>Compare the agent's resolution rate before and after adding explicit criteria + few-shot examples. Document the improvement.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts52-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 5.2</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 5.2</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your agent achieves 55% first-contact resolution, well below the 80% target. Logs show it escalates straightforward cases (standard damage replacements with photo evidence) while attempting to autonomously handle complex situations requiring policy exceptions. What is the most effective first step?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,true,'q52a')"><span class="option-letter">A</span>Add explicit escalation criteria to the system prompt with few-shot examples demonstrating when to escalate versus resolve autonomously</li>
+          <li class="exam-option" onclick="pick(this,false,'q52a')"><span class="option-letter">B</span>Have the agent self-report a confidence score (1–10) and automatically escalate when confidence falls below 5</li>
+          <li class="exam-option" onclick="pick(this,false,'q52a')"><span class="option-letter">C</span>Deploy a separate ML classifier trained on historical tickets to predict which requests need escalation</li>
+          <li class="exam-option" onclick="pick(this,false,'q52a')"><span class="option-letter">D</span>Implement sentiment analysis and automatically escalate when negative sentiment exceeds a threshold</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r52a')">Show explanation</button>
+        <div class="exam-reveal" id="r52a">
+          <div class="reveal-label">Correct: A</div>
+          <div class="reveal-text"><strong>A is correct.</strong> This is the official exam question Q3. The root cause is unclear decision boundaries — the agent doesn't know which case types require escalation vs autonomous resolution. Explicit criteria with few-shot examples directly addresses this. <strong>B fails</strong> because self-reported confidence is poorly calibrated — the agent already incorrectly confident on the cases it misclassifies. <strong>C is over-engineered</strong> — it requires labeled training data and ML infrastructure when prompt optimisation hasn't been tried. <strong>D solves a different problem</strong> — sentiment doesn't correlate with case complexity.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 5.2</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A customer writes: "I'm extremely frustrated — I've contacted you 3 times. I just want to speak to a real person." The agent begins investigating the order before transferring. What is wrong with this behaviour and what should the agent do?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q52b')"><span class="option-letter">A</span>The agent should complete its investigation first so the human agent receives a complete case summary</li>
+          <li class="exam-option" onclick="pick(this,true,'q52b')"><span class="option-letter">B</span>The customer explicitly requested a human — the agent must escalate immediately without attempting investigation. Attempting to resolve after an explicit escalation request further damages trust.</li>
+          <li class="exam-option" onclick="pick(this,false,'q52b')"><span class="option-letter">C</span>The agent should acknowledge the frustration and offer to resolve the issue before escalating, since the issue may be straightforward</li>
+          <li class="exam-option" onclick="pick(this,false,'q52b')"><span class="option-letter">D</span>The agent should escalate after one investigation attempt — give it one chance to resolve before transferring</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r52b')">Show explanation</button>
+        <div class="exam-reveal" id="r52b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> An explicit request for a human agent is an unconditional escalation trigger. The agent must transfer immediately. Attempting to investigate first — even with good intentions — directly contradicts the customer's stated preference and increases frustration. <strong>A is wrong:</strong> preparing a case summary is appropriate only when escalation is decided internally, not when the customer has explicitly demanded it. <strong>C</strong> describes the correct behaviour for an <em>implicit</em> frustration signal, not an explicit escalation request. <strong>D</strong> allows one investigation attempt which still violates the explicit request.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 5.2</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your customer support agent has authority to issue credits up to $50 without human approval. A customer claims a delayed shipment cost them $45 in spoiled groceries. The agent verifies the shipping delay, confirms it occurred, and issues a $45 credit. Post-incident review finds the agent skipped a required step. What step did the agent skip?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q52c')"><span class="option-letter">A</span>The agent should have escalated all claims above $25 to a human.</li>
+          <li class="exam-option" onclick="pick(this,true,'q52c')"><span class="option-letter">B</span>The agent issued credit without verifying the customer's claim that the spoiled groceries were caused by the delay — it only verified the delay itself.</li>
+          <li class="exam-option" onclick="pick(this,false,'q52c')"><span class="option-letter">C</span>The agent should have applied a standard processing fee before issuing credit.</li>
+          <li class="exam-option" onclick="pick(this,false,'q52c')"><span class="option-letter">D</span>The agent exceeded its authority because $45 is too close to the $50 limit and requires human review.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r52c')">Show explanation</button>
+        <div class="exam-reveal" id="r52c">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The agent correctly identified that a delay occurred, but incorrectly assumed that confirming the delay was sufficient to verify the customer's claim. The missing step was verifying causation — whether the spoiled groceries were actually caused by the delay. A (escalate at $25) is not a stated policy — the threshold is $50. C (processing fee) is invented. D ($45 near limit) is not a rule — the agent's authority is up to $50, and $45 is within that limit.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════ TS 5.3 ═══════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 5.3</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts53">
+    <div class="ts-number">Task Statement 5.3</div>
+    <h3>Implement error propagation strategies across multi-agent systems</h3>
+    <div class="ts-desc">Two anti-patterns dominate: silently suppressing errors (returning empty results as success) and terminating entire workflows on single failures. Both prevent intelligent recovery. Structured error context enables the coordinator to make informed decisions about how to proceed.</div>
+  </div>
+
+  <section class="section" id="ts53-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>When a subagent fails, the coordinator needs enough information to decide whether to retry, use an alternative source, proceed with partial results, or escalate. A generic <code>"search unavailable"</code> status tells the coordinator nothing useful. A structured error with failure type, what was attempted, partial results, and potential alternatives gives the coordinator everything it needs.</p>
+    <div class="callout callout-orange">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Official Q8 Pattern:</strong> When a web search subagent times out, the correct error propagation approach is to return structured error context — failure type, attempted query, any partial results, and potential alternative approaches — so the coordinator can decide whether to retry with a modified query, try an alternative, or proceed with partial findings.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts53-structured-errors">
+    <h3 class="section-title blue">Structured Error Context</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">python — structured error propagation from subagent to coordinator</span>
+        <span class="code-tag tag-good">CORRECT PATTERN</span>
+      </div>
+      <pre><span class="hl-comment"># ✗ Anti-pattern: generic status hides context</span>
+<span class="hl-warn">return {"status": "search_unavailable"}</span>
+<span class="hl-comment"># Coordinator can't distinguish timeout from rate limit</span>
+<span class="hl-comment"># from invalid query from empty result — all look the same</span>
+
+<span class="hl-comment"># ✓ Structured error context enables intelligent recovery</span>
+<span class="hl-fn">return</span> {
+    <span class="hl-str">"isError"</span>: <span class="hl-key">True</span>,
+    <span class="hl-str">"errorType"</span>: <span class="hl-str">"timeout"</span>,              <span class="hl-comment"># what kind of failure</span>
+    <span class="hl-str">"attemptedQuery"</span>: query,          <span class="hl-comment"># what was tried</span>
+    <span class="hl-str">"partialResults"</span>: partial_data,   <span class="hl-comment"># what was found before failure</span>
+    <span class="hl-str">"alternativeApproaches"</span>: [         <span class="hl-comment"># what coordinator can try next</span>
+        <span class="hl-str">"Retry with shorter query"</span>,
+        <span class="hl-str">"Try document_search instead"</span>,
+        <span class="hl-str">"Use cached results from prior session"</span>
+    ],
+    <span class="hl-str">"isRetryable"</span>: <span class="hl-key">True</span>                <span class="hl-comment"># should coordinator retry?</span>
+}</pre>
+    </div>
+    <ul class="skill-list">
+      <li>Subagents should implement <strong>local recovery</strong> for transient failures — retry with exponential backoff internally. Only propagate errors they cannot resolve locally.</li>
+      <li>When propagating: include what was attempted, any partial results found, and potential alternatives — give the coordinator what it needs to decide.</li>
+      <li>Structure synthesis output with <strong>coverage annotations</strong> — indicate which findings are well-supported vs which topic areas have gaps due to unavailable sources.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts53-empty-vs-error">
+    <h3 class="section-title green">Empty Results vs Access Failures</h3>
+    <p>This distinction appears directly in the exam. A search that finds <strong>no matching documents</strong> is a successful operation with an empty result — the coordinator should not retry it. A search that <strong>timed out</strong> before completing is an access failure — the coordinator may choose to retry.</p>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header good">✓ Valid Empty Result (Success)</div>
+        <div class="compare-body">
+Query: "EU AI Act penalties 2023"
+Result: 0 documents found
+
+Response:
+<span class="hl-ok">{
+  "isError": false,
+  "results": [],
+  "message": "No documents match
+    the query in this corpus"
+}</span>
+
+Coordinator: topic may not be
+covered — try different approach,
+don't blindly retry same query
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Access Failure (Error)</div>
+        <div class="compare-body">
+Query: "EU AI Act penalties 2023"
+Network timeout at 30s
+
+Response:
+<span class="hl-warn">{
+  "isError": true,
+  "errorType": "timeout",
+  "attemptedQuery": "...",
+  "isRetryable": true
+}</span>
+
+Coordinator: retry may succeed,
+possibly with a modified query
+or different source
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts53-traps">
+    <h3 class="section-title red">Exam Traps for Task 5.3</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Return empty results as success to hide the error from the coordinator</td>
+          <td class="col-why">Silently suppressing errors prevents any recovery decision — the coordinator treats empty results as "no findings on this topic" rather than "source was unavailable"</td>
+          <td class="col-correct">Report access failures as errors with structured context; reserve empty results for genuinely successful queries that found no matches</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Terminate the entire research workflow when one subagent fails</td>
+          <td class="col-why">Single source failure doesn't invalidate all research — coordinator can proceed with partial results from other subagents, noting the coverage gap</td>
+          <td class="col-correct">Propagate structured error context to coordinator; coordinator decides to retry, use alternatives, or proceed with partial results and coverage annotation</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Return generic "search unavailable" on timeout</td>
+          <td class="col-why">Generic status hides whether the failure was a timeout (retryable), an invalid query (not retryable), or a rate limit (wait and retry) — coordinator can't decide correctly</td>
+          <td class="col-correct">Include errorType, isRetryable, attemptedQuery, partialResults, and alternativeApproaches in structured error responses</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts53-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T3</div>
+        <h3>Build Structured Error Propagation for a Research Pipeline</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Implement structured error responses in a web search subagent: include errorType, attemptedQuery, partialResults, alternativeApproaches, isRetryable</li>
+        <li>Simulate a timeout: verify the coordinator receives structured context and can decide to retry with a modified query</li>
+        <li>Simulate a valid empty result: verify the coordinator correctly distinguishes it from an access failure and doesn't retry the same query</li>
+        <li>Implement local retry with exponential backoff in the subagent for transient failures — verify errors only propagate to coordinator when local recovery fails</li>
+        <li>Implement coverage annotations in synthesis output: flag which topic areas have gaps due to subagent failures — include the structured gap information in the final report</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts53-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 5.3</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 5.3</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A web search subagent times out while researching a complex topic. You need to design how this failure flows back to the coordinator agent. Which approach best enables intelligent recovery?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,true,'q53a')"><span class="option-letter">A</span>Return structured error context to the coordinator including the failure type, the attempted query, any partial results, and potential alternative approaches</li>
+          <li class="exam-option" onclick="pick(this,false,'q53a')"><span class="option-letter">B</span>Implement automatic retry with exponential backoff within the subagent, returning a generic "search unavailable" status only after all retries are exhausted</li>
+          <li class="exam-option" onclick="pick(this,false,'q53a')"><span class="option-letter">C</span>Catch the timeout within the subagent and return an empty result set marked as successful</li>
+          <li class="exam-option" onclick="pick(this,false,'q53a')"><span class="option-letter">D</span>Propagate the timeout exception directly to a top-level handler that terminates the entire research workflow</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r53a')">Show explanation</button>
+        <div class="exam-reveal" id="r53a">
+          <div class="reveal-label">Correct: A</div>
+          <div class="reveal-text"><strong>A is correct.</strong> This is the official exam question Q8. Structured error context gives the coordinator the information it needs to make intelligent recovery decisions. <strong>B</strong> has the right idea about local retry (handle transient failures locally before propagating) but the generic "search unavailable" status after all retries still hides valuable context — the coordinator can't decide whether to try a modified query or alternative source. <strong>C</strong> is the worst outcome — silently suppressing the error by returning empty results as success prevents any recovery and risks incomplete research being treated as complete. <strong>D</strong> terminates unnecessarily — a single subagent timeout doesn't invalidate the entire research effort.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 5.3</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your multi-agent research pipeline has 6 sub-agents running in parallel. Sub-agent 3 fails partway through its analysis after completing 60% of its assigned sources. The coordinator must produce a partial synthesis using the 5 completed sub-agents plus the 60% partial output from sub-agent 3. What should the coordinator include in the synthesis context to handle this correctly?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q53b')"><span class="option-letter">A</span>Exclude sub-agent 3's output entirely and note the gap in the final report.</li>
+          <li class="exam-option" onclick="pick(this,false,'q53b')"><span class="option-letter">B</span>Include sub-agent 3's completed 60% output but add a structured flag indicating partial completion, which sources were covered, and which were not.</li>
+          <li class="exam-option" onclick="pick(this,true,'q53b')"><span class="option-letter">C</span>Include a structured partial-completion context block for sub-agent 3 that lists completed sources, pending sources, and any preliminary findings — enabling the synthesis to incorporate available findings while clearly attributing what is missing.</li>
+          <li class="exam-option" onclick="pick(this,false,'q53b')"><span class="option-letter">D</span>Re-run sub-agent 3 from the beginning and wait for full completion before synthesising.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r53b')">Show explanation</button>
+        <div class="exam-reveal" id="r53b">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> A structured partial-completion context block gives the synthesis agent everything it needs: what was completed (so findings can be incorporated), what is missing (so the synthesis doesn't over-claim), and the preliminary findings themselves. This is more informative than B's simple flag, which acknowledges the gap but doesn't help the coordinator integrate the partial findings. A (exclude entirely) loses the 60% of valid work already completed. D (re-run) defeats the purpose of partial recovery and adds latency.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 5.3</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your research pipeline processes each topic with three sequential agents: Retrieval → Analysis → Synthesis. In production, the Analysis agent occasionally fails on complex topics, requiring a restart of the entire three-stage pipeline from Retrieval. The Retrieval stage takes 45 minutes. What architectural change most effectively reduces recovery time when Analysis fails?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q53c')"><span class="option-letter">A</span>Run all three stages in parallel and discard whichever fails.</li>
+          <li class="exam-option" onclick="pick(this,false,'q53c')"><span class="option-letter">B</span>Cache Retrieval outputs and add retry logic to the Analysis agent.</li>
+          <li class="exam-option" onclick="pick(this,true,'q53c')"><span class="option-letter">C</span>Implement checkpointing: persist Retrieval outputs to durable storage after completion, so that Analysis failure triggers a resume from the persisted checkpoint rather than a full restart.</li>
+          <li class="exam-option" onclick="pick(this,false,'q53c')"><span class="option-letter">D</span>Merge Retrieval and Analysis into a single agent to eliminate the handoff failure point.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r53c')">Show explanation</button>
+        <div class="exam-reveal" id="r53c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> Checkpointing — persisting the Retrieval output to durable storage — means that when Analysis fails, the pipeline resumes from the checkpoint rather than restarting from Retrieval, eliminating the 45-minute re-run. B (cache + retry) is similar but 'cache' implies in-memory storage that may not survive a crash, while 'durable storage' in C provides true fault tolerance. A (parallel + discard) doesn't make sense for sequential dependencies. D (merge agents) creates a larger single point of failure and makes the combined agent harder to retry selectively.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════ TS 5.4 ═══════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 5.4</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts54">
+    <div class="ts-number">Task Statement 5.4</div>
+    <h3>Manage context effectively in large codebase exploration</h3>
+    <div class="ts-desc">Extended exploration sessions degrade silently — the model starts giving inconsistent answers and referencing "typical patterns" instead of specific classes it discovered earlier. Scratchpad files, subagent delegation, and structured state persistence are the three tools that prevent this.</div>
+  </div>
+
+  <section class="section" id="ts54-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Context degradation in long exploration sessions is insidious — the model doesn't announce that it's losing track of earlier findings. It simply starts answering from training-data patterns rather than from the codebase it was exploring. Scratchpad files externalise key findings so they survive context boundaries.</p>
+  </section>
+
+  <section class="section" id="ts54-scratchpad">
+    <h3 class="section-title blue">Scratchpad Files and Subagent Delegation</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">📝</div>
+        <h4>Scratchpad Files</h4>
+        <p>Agents maintain files recording key findings. When context degrades, reference the scratchpad rather than relying on in-context memory. Files persist across context boundaries — memory does not.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔬</div>
+        <h4>Subagent Delegation</h4>
+        <p>Spawn subagents for focused investigation questions ("find all test files," "trace refund flow dependencies"). Verbose exploration output stays in the subagent context. The main agent receives only structured summaries.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔄</div>
+        <h4>Phase Summaries</h4>
+        <p>Before spawning subagents for the next exploration phase, summarise key findings from the current phase. Inject these summaries into the subagent's initial context — prevents each phase from starting blind.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">⚡</div>
+        <h4>/compact Command</h4>
+        <p>Use <code>/compact</code> during extended sessions when context fills with verbose discovery output. Reduces token usage while preserving the key findings that have been referenced explicitly.</p>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:1.25rem;">
+      <div class="code-header">
+        <span class="code-label">Scratchpad file pattern — persist findings across context boundaries</span>
+        <span class="code-tag tag-orange">CONTEXT PERSISTENCE</span>
+      </div>
+      <pre><span class="hl-comment"># .claude/scratchpad/exploration-state.md</span>
+
+<span class="hl-comment">## Session: Refund Flow Investigation</span>
+<span class="hl-comment">## Last Updated: Phase 2 complete</span>
+
+<span class="hl-comment">### Key Findings</span>
+<span class="hl-ok">- Entry point: src/api/orders/refunds.ts:42 (processRefund)</span>
+<span class="hl-ok">- Validation gate: RefundValidator.validate() must pass first</span>
+<span class="hl-ok">- Amount threshold: $500 hardcoded in RefundPolicy.ts:18</span>
+<span class="hl-ok">- DB write: OrderRepository.updateStatus() is the final step</span>
+<span class="hl-ok">- Test coverage: 0 tests for >$500 threshold path</span>
+
+<span class="hl-comment">### Unresolved Questions</span>
+<span class="hl-warn">- What happens when RefundValidator fails? (not traced yet)</span>
+<span class="hl-warn">- Is OrderRepository.updateStatus() atomic? (check next phase)</span>
+
+<span class="hl-comment">### Files Analysed</span>
+src/api/orders/refunds.ts, src/validators/RefundValidator.ts,
+src/policies/RefundPolicy.ts (partial)</pre>
+    </div>
+  </section>
+
+  <section class="section" id="ts54-crash">
+    <h3 class="section-title green">Crash Recovery with Structured State Exports</h3>
+    <p>Long-running multi-agent exploration can be interrupted. Structured state persistence enables recovery without full re-exploration:</p>
+    <ul class="skill-list">
+      <li>Each agent <strong>exports its state</strong> to a known location at checkpoints — current task, findings so far, unresolved questions</li>
+      <li>A coordinator loads a <strong>manifest</strong> on resume — which agents completed, which were in progress, what each found</li>
+      <li>Inject the manifest into resumed agent prompts — agents continue from where they left off rather than restarting</li>
+      <li>Prefer structured state exports over session resumption when agents were mid-exploration — prior tool results may be stale if files changed</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts54-traps">
+    <h3 class="section-title red">Exam Traps for Task 5.4</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Rely on in-context memory for key findings across a 3-hour exploration session</td>
+          <td class="col-why">Context degrades silently — model starts referencing "typical patterns" instead of specific classes found in phase 1. No warning is given.</td>
+          <td class="col-correct">Maintain scratchpad files recording key findings; reference them explicitly for subsequent questions rather than relying on in-context memory</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Run verbose exploration in the main agent context</td>
+          <td class="col-why">Verbose discovery output fills the main agent's context window, leaving insufficient space for coordination and synthesis</td>
+          <td class="col-correct">Delegate focused exploration questions to subagents; main agent receives structured summaries and maintains high-level coordination context</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Resume a crashed multi-agent session with --resume without checking what changed</td>
+          <td class="col-why">If files changed since the last session, prior tool results are stale — the resumed agent reasons from outdated data</td>
+          <td class="col-correct">Load structured state manifest on resume; identify which findings are still valid; re-explore only what changed</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts54-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T4</div>
+        <h3>Build a Scratchpad-Backed Codebase Explorer</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Create a scratchpad file structure: key findings, unresolved questions, files analysed, session phase</li>
+        <li>After each major discovery, write findings to the scratchpad before continuing. After 10 discoveries, ask a question about finding #3 — verify the agent references the scratchpad correctly</li>
+        <li>Deliberately fill the context with verbose output, then use <code>/compact</code>. Verify key scratchpad-referenced findings are preserved in the compacted context</li>
+        <li>Implement a 3-subagent exploration: each writes its findings to a separate scratchpad file. The coordinator reads all three at synthesis time.</li>
+        <li>Simulate a crash mid-exploration. Implement manifest-based recovery: coordinator reads the manifest, identifies which subagents completed, resumes only the interrupted ones.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts54-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 5.4</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 5.4</span>
+        <span class="exam-scenario">Developer Productivity with Claude</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer uses Claude Code to explore a large legacy codebase over 4 hours. After 3 hours, they notice Claude is giving inconsistent answers — referring to "a typical service layer pattern" instead of the specific <code>OrderService</code> class it analysed in hour 1. What is happening and what is the correct architectural fix?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q54a')"><span class="option-letter">A</span>Claude is making errors — restart the session and re-analyse the problematic files</li>
+          <li class="exam-option" onclick="pick(this,true,'q54a')"><span class="option-letter">B</span>Context degradation — early findings are being pushed out of reliable processing range. Fix by maintaining scratchpad files recording key findings, and having agents reference them explicitly for subsequent questions</li>
+          <li class="exam-option" onclick="pick(this,false,'q54a')"><span class="option-letter">C</span>The model needs a larger context window — switch to a model that can hold 4 hours of exploration in context</li>
+          <li class="exam-option" onclick="pick(this,false,'q54a')"><span class="option-letter">D</span>Use /clear to reset the context and re-ask all questions from scratch with better prompts</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r54a')">Show explanation</button>
+        <div class="exam-reveal" id="r54a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The diagnostic — referencing generic "typical patterns" instead of specific classes that were explicitly analysed — is the context degradation signature described in the exam guide. Scratchpad files externalise findings so they survive context window pressure; the agent references the file rather than relying on in-context memory. <strong>A misdiagnoses</strong> as model error when it's a context management architecture problem. <strong>C delays</strong> the problem — even a 200k token window fills in a long enough session; scratchpad files don't have this limit. <strong>D clears all context</strong> including useful findings from earlier phases — the scratchpad approach preserves what was found while resetting verbose discovery output.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 5.4</span>
+        <span class="exam-scenario">Developer Productivity Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A developer asks your Claude-powered assistant to explain a bug fix in a large codebase. The assistant has already used 80% of its context window loading related files. The developer follows up with 'Can you also check if this pattern appears elsewhere in the codebase?' Claude's response becomes less coherent and misses two obvious file matches. What is the most likely cause?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q54b')"><span class="option-letter">A</span>Claude's temperature was set too high, causing hallucinations.</li>
+          <li class="exam-option" onclick="pick(this,true,'q54b')"><span class="option-letter">B</span>Context degradation — at 80%+ context utilisation, Claude's ability to accurately reference earlier content in the window degrades, causing it to miss patterns it loaded earlier.</li>
+          <li class="exam-option" onclick="pick(this,false,'q54b')"><span class="option-letter">C</span>The search request was too vague for Claude to interpret correctly.</li>
+          <li class="exam-option" onclick="pick(this,false,'q54b')"><span class="option-letter">D</span>Claude cannot perform file pattern matching without a dedicated search tool.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r54b')">Show explanation</button>
+        <div class="exam-reveal" id="r54b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> Claude's ability to recall and cross-reference content earlier in its context window degrades as the window fills. At 80%+, the model may fail to surface patterns it accurately processed earlier in the conversation. A (temperature) affects randomness, not recall quality. C (vague request) might be a factor in an ambiguous case, but the developer asked a clear pattern-matching question — the issue is context saturation. D is wrong — Claude can perform pattern matching given the file content in context, but context saturation is the limiting factor here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 5.4</span>
+        <span class="exam-scenario">Developer Productivity Pipeline</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">You need to audit a monorepo with 2,000 TypeScript files for a specific deprecated API usage pattern. Using a single Claude session to review all files would exhaust the context window. What is the most reliable architecture for exhaustive coverage?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q54c')"><span class="option-letter">A</span>Use Claude with a very large context window model to fit all files at once.</li>
+          <li class="exam-option" onclick="pick(this,false,'q54c')"><span class="option-letter">B</span>Sample 200 representative files and extrapolate the findings to the full codebase.</li>
+          <li class="exam-option" onclick="pick(this,true,'q54c')"><span class="option-letter">C</span>Use Grep to generate an exhaustive list of candidate files matching the pattern, then spawn separate Claude sessions per file (or small batches) so each session has full context for accurate analysis.</li>
+          <li class="exam-option" onclick="pick(this,false,'q54c')"><span class="option-letter">D</span>Ask Claude to scan the directory structure first and self-select which files to examine.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r54c')">Show explanation</button>
+        <div class="exam-reveal" id="r54c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> The two-step approach — Grep for candidate identification, then per-file Claude sessions — provides both exhaustive coverage and full context quality for each analysis. Grep is deterministic and fast; Claude adds semantic judgment (is this usage actually deprecated in this call context?). A (large context model) helps but still has limits at 2,000 files and is expensive. B (sample) is fundamentally non-exhaustive — it misses files outside the sample. D (self-select) introduces coverage gaps because Claude's file selection is based on naming conventions, not a deterministic scan of actual file contents.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════ TS 5.5 ═══════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 5.5</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts55">
+    <div class="ts-number">Task Statement 5.5</div>
+    <h3>Design human review workflows and confidence calibration</h3>
+    <div class="ts-desc">97% overall accuracy sounds production-ready — until you discover it's 99.8% on standard invoices and 71% on handwritten receipts. Aggregate metrics hide segment failures. Calibrated confidence routing prevents both over-automation and under-utilisation of human review capacity.</div>
+  </div>
+
+  <section class="section" id="ts55-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>Human review capacity is finite. Routing all low-confidence extractions to humans wastes capacity on cases where the model is actually reliable. Routing high-confidence extractions without sampling assumes uniform performance — which is rarely true across document types and fields.</p>
+    <div class="callout callout-orange">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>The Exam Principle:</strong> Validate accuracy by <strong>document type and field segment</strong> before reducing human review for high-confidence extractions. Aggregate accuracy (97%) can mask 71% accuracy on a specific segment. Always stratify before automating.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts55-aggregate">
+    <h3 class="section-title red">Aggregate Metric Risk</h3>
+    <p>A system processing 90% standard invoices (99% accuracy) and 10% handwritten receipts (71% accuracy) has an <strong>aggregate accuracy of 96.2%</strong>. That number looks good. But if you use it to justify removing human review, the handwritten receipt segment — which may contain high-value transactions — proceeds with 71% accuracy undetected.</p>
+    <div class="comparison">
+      <div class="compare-block">
+        <div class="compare-header bad">✗ Aggregate Accuracy Report</div>
+        <div class="compare-body">
+Overall: 97% accuracy ✓
+→ Reduce human review threshold
+→ Route high-confidence directly
+→ Save reviewer capacity
+
+Hidden reality:
+<span class="hl-warn">Standard invoices:   99.8% ✓
+Handwritten receipts: 71.0% ✗
+Scanned forms:        88.5% ✓
+Foreign-language:     62.0% ✗</span>
+
+Two segment failures invisible
+in the aggregate number
+        </div>
+      </div>
+      <div class="compare-block">
+        <div class="compare-header good">✓ Stratified Analysis</div>
+        <div class="compare-body">
+By document type:
+<span class="hl-ok">Standard invoices:   99.8% → automate</span>
+<span class="hl-warn">Handwritten receipts: 71.0% → human review</span>
+<span class="hl-ok">Scanned forms:        88.5% → borderline</span>
+<span class="hl-warn">Foreign-language:     62.0% → human review</span>
+
+By field within type:
+<span class="hl-ok">vendor_name:  98% → automate</span>
+<span class="hl-warn">line_items:   73% → human review</span>
+
+Segment-aware routing
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ts55-calibration">
+    <h3 class="section-title blue">Confidence Calibration and Routing</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">🎯</div>
+        <h4>Field-Level Confidence Scores</h4>
+        <p>Have the model output confidence scores per field, not per document. A document may have 98% confidence on vendor_name but 60% on line_items — route only the uncertain fields for review, not the whole document.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📊</div>
+        <h4>Calibrate with Labeled Sets</h4>
+        <p>Raw model confidence scores are not inherently calibrated. Calibrate thresholds using labeled validation sets — find the confidence score above which actual accuracy exceeds your target. Don't assume a 90% confidence score means 90% accuracy.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔍</div>
+        <h4>Stratified Random Sampling</h4>
+        <p>For extractions the model is confident about, implement ongoing stratified random sampling — periodically review a random sample of "high confidence" outputs to detect novel error patterns before they accumulate.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🚥</div>
+        <h4>Routing Priority</h4>
+        <p>When reviewer capacity is limited, prioritise: low-confidence fields first, then document types with known poor performance, then ambiguous/contradictory source documents. High-confidence standard-format documents last.</p>
+      </div>
+    </div>
+    <ul class="skill-list" style="margin-top:1.25rem;">
+      <li>Validate accuracy by document type and field before reducing human review — aggregate metrics mask segment-level failures</li>
+      <li>Implement stratified random sampling of high-confidence extractions — detect novel error patterns before they scale</li>
+      <li>Route ambiguous or contradictory source documents to human review regardless of model confidence score</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts55-traps">
+    <h3 class="section-title red">Exam Traps for Task 5.5</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Use aggregate accuracy (97%) to justify reducing human review</td>
+          <td class="col-why">Aggregate masks segment-level failures — a 71% accuracy segment invisible in the aggregate will proceed without review</td>
+          <td class="col-correct">Stratify by document type and field before making any automation decisions; automate only segments that meet accuracy targets individually</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Route all documents with confidence below X% to human review</td>
+          <td class="col-why">Document-level confidence ignores field-level variation — a document can have 98% confidence on vendor_name and 60% on line_items</td>
+          <td class="col-correct">Use field-level confidence scores; route uncertain fields to review independently from high-confidence fields in the same document</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Stop sampling once a 97% accuracy rate is established</td>
+          <td class="col-why">Novel document formats or data distributions can degrade accuracy silently — ongoing stratified sampling detects new error patterns before they accumulate at scale</td>
+          <td class="col-correct">Maintain ongoing stratified random sampling of high-confidence extractions for continuous error rate measurement</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts55-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T5</div>
+        <h3>Build a Segmented Accuracy Analysis and Routing System</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Run extraction on a mixed document set (standard invoices, scanned forms, handwritten receipts). Compute accuracy both in aggregate and by document type — observe the difference.</li>
+        <li>Implement field-level confidence scores in the extraction schema. Route fields with confidence below threshold to human review independently of other fields in the same document.</li>
+        <li>Calibrate confidence thresholds using a labeled validation set of 50 documents — find the confidence score above which accuracy exceeds 95%.</li>
+        <li>Implement stratified random sampling: route 5% of high-confidence extractions to random review to detect novel error patterns.</li>
+        <li>Build a routing priority queue: low-confidence fields → poor-performance document types → contradictory sources → high-confidence standard formats. Verify routing order under reviewer capacity constraints.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts55-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 5.5</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 5.5</span>
+        <span class="exam-scenario">Structured Data Extraction</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">An extraction pipeline achieves 97% overall accuracy across 10,000 documents. The team proposes routing all high-confidence model outputs directly to downstream systems without human review, relying on the 97% accuracy as justification. What is the primary risk of this approach?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q55a')"><span class="option-letter">A</span>97% accuracy is not high enough for production — target should be 99.5% before removing human review</li>
+          <li class="exam-option" onclick="pick(this,true,'q55a')"><span class="option-letter">B</span>Aggregate accuracy masks poor performance on specific document types or fields — a subset may have 65% accuracy invisible in the 97% overall figure. Accuracy must be validated by segment before reducing review.</li>
+          <li class="exam-option" onclick="pick(this,false,'q55a')"><span class="option-letter">C</span>Model confidence scores are not calibrated — high confidence doesn't mean high accuracy without calibration against a labeled set</li>
+          <li class="exam-option" onclick="pick(this,false,'q55a')"><span class="option-letter">D</span>The system has no mechanism to detect when new document formats appear that reduce accuracy</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r55a')">Show explanation</button>
+        <div class="exam-reveal" id="r55a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The exam guide explicitly states: "aggregate accuracy metrics (e.g., 97% overall) may mask poor performance on specific document types or fields." This is the primary risk of aggregate-based automation decisions. <strong>C is also a real risk</strong> and is mentioned in the exam guide, but it's the secondary concern here — the question is about the primary risk of the proposed approach, which is aggregate-metric blindness. <strong>D is valid</strong> (handled by ongoing stratified sampling) but again secondary to the immediate risk of masking. <strong>A is wrong</strong> — there's no universal accuracy threshold for removing human review; it depends on business stakes and segment performance.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 5.5</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your support agent has been running for 3 months. Based on outcome data, 85% of ticket types are handled correctly without human review. Leadership proposes removing human review entirely for the 85% to reduce costs. Your analysis shows the 15% failure rate is NOT randomly distributed — it clusters around tickets from a specific new customer segment added 6 weeks ago. What is the most appropriate response to leadership's proposal?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q55b')"><span class="option-letter">A</span>Accept the proposal — 85% accuracy is sufficient for cost reduction.</li>
+          <li class="exam-option" onclick="pick(this,true,'q55b')"><span class="option-letter">B</span>Reject blanket removal of human review; instead route by ticket segment, maintaining review for the new segment until the failure rate is resolved for that segment.</li>
+          <li class="exam-option" onclick="pick(this,false,'q55b')"><span class="option-letter">C</span>Accept the proposal but add a post-hoc weekly audit of a 5% random sample.</li>
+          <li class="exam-option" onclick="pick(this,false,'q55b')"><span class="option-letter">D</span>Reject the proposal entirely until accuracy reaches 99% across all segments.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r55b')">Show explanation</button>
+        <div class="exam-reveal" id="r55b">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The 85% accuracy figure masks a distribution mismatch — the 15% failure rate is concentrated in a new customer segment. Removing human review uniformly would eliminate oversight exactly where it is most needed. Segment-specific routing maintains cost reduction for well-performing segments while preserving review for the problematic segment. A (blanket removal) ignores the failure clustering. C (5% post-hoc audit) is not sufficient oversight for a segment with a 15% failure rate. D (99% threshold) ignores that even high overall accuracy can mask concentrated failures.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 5.5</span>
+        <span class="exam-scenario">Customer Support Resolution Agent</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your support automation pipeline was initially scoped for billing and shipping inquiries. After 4 months, leadership expands scope to include product defect claims, which involve potential safety implications and regulatory reporting requirements. Leadership requests reducing human review to maintain throughput. What is the correct response?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q55c')"><span class="option-letter">A</span>Reduce human review for billing and shipping to compensate for the new overhead from defect claims.</li>
+          <li class="exam-option" onclick="pick(this,false,'q55c')"><span class="option-letter">B</span>Accept reduced human review if the existing accuracy threshold is maintained across all ticket types.</li>
+          <li class="exam-option" onclick="pick(this,true,'q55c')"><span class="option-letter">C</span>Reject oversight reduction: scope expansion to a higher-risk domain (safety implications, regulatory requirements) represents a distribution shift that requires re-calibrating human review thresholds, not reducing them.</li>
+          <li class="exam-option" onclick="pick(this,false,'q55c')"><span class="option-letter">D</span>Pause all automation until the pipeline is retrained on defect claim data.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r55c')">Show explanation</button>
+        <div class="exam-reveal" id="r55c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> When system scope expands to a domain with higher stakes (safety, regulatory), the appropriate response is to increase or re-calibrate oversight, not reduce it. The original accuracy thresholds were calibrated for lower-stakes billing and shipping decisions — they do not transfer to defect claims without re-evaluation. A (reduce billing/shipping review) reduces oversight in an already-validated domain to offset new domain costs — the wrong tradeoff direction. B (maintain threshold) assumes the existing threshold is appropriate for the new domain, which hasn't been validated. D (pause all automation) is overly disruptive — the existing billing/shipping scope continues to perform well.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════ TS 5.6 ═══════════════ -->
+  <div class="ts-divider">
+    <div class="ts-divider-line"></div>
+    <div class="ts-divider-label">Task Statement 5.6</div>
+    <div class="ts-divider-line"></div>
+  </div>
+
+  <div class="ts-title-block" id="ts56">
+    <div class="ts-number">Task Statement 5.6</div>
+    <h3>Preserve information provenance and handle uncertainty in multi-source synthesis</h3>
+    <div class="ts-desc">Source attribution is silently lost during summarisation. Conflicting statistics from credible sources require annotation, not arbitrary selection. Temporal differences in data need dates to distinguish genuine contradictions from time-based evolution. These are the provenance preservation skills the exam tests.</div>
+  </div>
+
+  <section class="section" id="ts56-concept">
+    <h3 class="section-title">The Core Concept</h3>
+    <p>When a synthesis agent combines findings from multiple subagents, source attribution can disappear at every summarisation step. A finding that started as "According to WHO 2024 report (p.47): 78% of cases show early onset" becomes "Most cases show early onset" — no source, no statistic, no date. Structured claim-source mappings prevent this.</p>
+  </section>
+
+  <section class="section" id="ts56-claim-source">
+    <h3 class="section-title blue">Claim-Source Mappings</h3>
+    <p>Subagents must output structured mappings that the synthesis agent is required to preserve and merge — not summarise away:</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Structured claim-source mapping — preserved through synthesis</span>
+        <span class="code-tag tag-good">PROVENANCE PATTERN</span>
+      </div>
+      <pre><span class="hl-comment"># ✗ What gets lost with prose summarisation</span>
+<span class="hl-warn">"Web research shows most companies adopted AI by 2023."</span>
+<span class="hl-comment"># No source. No statistic. No date. Unverifiable.</span>
+
+<span class="hl-comment"># ✓ Structured claim-source mapping</span>
+{
+  <span class="hl-str">"claim"</span>: <span class="hl-str">"67% of Fortune 500 companies had deployed AI in production"</span>,
+  <span class="hl-str">"source_url"</span>: <span class="hl-str">"https://mckinsey.com/ai-survey-2023"</span>,
+  <span class="hl-str">"source_name"</span>: <span class="hl-str">"McKinsey Global AI Survey"</span>,
+  <span class="hl-str">"publication_date"</span>: <span class="hl-str">"2023-10-15"</span>,
+  <span class="hl-str">"relevant_excerpt"</span>: <span class="hl-str">"67% of respondents reported..."</span>,
+  <span class="hl-str">"confidence"</span>: <span class="hl-str">"high"</span>
+}
+
+<span class="hl-comment"># ✓ Synthesis agent merges mappings, preserves attribution</span>
+<span class="hl-comment"># Report: "McKinsey (Oct 2023) found 67% of Fortune 500..."</span>
+<span class="hl-comment"># [citation preserved through all synthesis steps]</span></pre>
+    </div>
+    <ul class="skill-list">
+      <li>Require subagents to output <strong>structured claim-source mappings</strong> (source URL, document name, relevant excerpt, publication date) that downstream agents must preserve through synthesis</li>
+      <li>Structure reports with <strong>explicit sections distinguishing well-established findings from contested ones</strong>, preserving original source characterisations</li>
+      <li>Render different content types appropriately: financial data as tables, news as prose, technical findings as structured lists — rather than converting everything to a uniform format</li>
+    </ul>
+  </section>
+
+  <section class="section" id="ts56-conflicts">
+    <h3 class="section-title green">Handling Conflicting Sources and Temporal Data</h3>
+    <div class="knowledge-grid">
+      <div class="k-card">
+        <div class="k-card-icon">⚖️</div>
+        <h4>Conflicting Statistics — Annotate, Don't Choose</h4>
+        <p>When two credible sources report different statistics on the same topic, <strong>annotate the conflict with both sources</strong> rather than arbitrarily selecting one value. The synthesis report should surface the conflict and attribute each figure — the reader decides which to use.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📅</div>
+        <h4>Temporal Differences — Require Dates</h4>
+        <p>Require publication or data collection dates in all structured outputs. Two statistics that look conflicting may simply reflect different time periods — 35% in 2020 and 67% in 2023 are not contradictory. Without dates, temporal evolution looks like a disagreement.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">🔀</div>
+        <h4>Upstream Conflict Passing</h4>
+        <p>Complete document analysis with conflicting values included and explicitly annotated. Let the coordinator decide how to reconcile before passing to synthesis — don't resolve conflicts at the document analysis stage by silently selecting one value.</p>
+      </div>
+      <div class="k-card">
+        <div class="k-card-icon">📊</div>
+        <h4>Methodological Context</h4>
+        <p>Include methodological context in structured outputs — sample size, methodology, geographic scope. Two statistics can disagree because they measure different populations, not because one is wrong. Methodology context enables correct interpretation.</p>
+      </div>
+    </div>
+    <div class="callout callout-info" style="margin-top:1.25rem;">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>Conflict Annotation Pattern:</strong> "Adoption rate: McKinsey (Oct 2023, n=1,500 enterprises, global): 67%. Gartner (Mar 2023, n=800 US companies): 45%. Note: different survey populations and methodologies — figures are not directly comparable." This is better than either silently picking 67% or averaging to 56%.</div>
+    </div>
+  </section>
+
+  <section class="section" id="ts56-traps">
+    <h3 class="section-title red">Exam Traps for Task 5.6</h3>
+    <table class="trap-table">
+      <thead><tr><th>The Trap</th><th>Why It Fails</th><th>Correct Pattern</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="col-trap">Summarise subagent findings into prose before passing to synthesis</td>
+          <td class="col-why">Prose summaries strip source URLs, statistics, and publication dates — attribution is permanently lost once summarised</td>
+          <td class="col-correct">Pass structured claim-source mappings; synthesis agent merges structured data and generates prose with attribution preserved</td>
+        </tr>
+        <tr>
+          <td class="col-trap">When two credible sources conflict, use the higher-quality source and discard the other</td>
+          <td class="col-why">Both sources may be correct in different contexts (time periods, populations, methodologies) — silently discarding one hides genuine uncertainty from the reader</td>
+          <td class="col-correct">Annotate the conflict with both sources, their dates, and methodological context. Let the coordinator or reader decide how to interpret.</td>
+        </tr>
+        <tr>
+          <td class="col-trap">Omit publication dates from structured outputs to save tokens</td>
+          <td class="col-why">Without dates, temporal evolution (35% in 2020, 67% in 2023) looks like a contradiction — the synthesis agent may flag a non-existent disagreement</td>
+          <td class="col-correct">Require publication and data collection dates in all subagent structured outputs — essential for temporal interpretation</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="ts56-task">
+    <h3 class="section-title">🔨 Implementation Task</h3>
+    <div class="task-box">
+      <div class="task-box-header">
+        <div class="task-number">T6</div>
+        <h3>Build a Provenance-Preserving Multi-Source Synthesis Pipeline</h3>
+      </div>
+      <ul class="task-steps">
+        <li>Design a subagent output schema that includes: claim, source_url, source_name, publication_date, relevant_excerpt, methodology_notes, confidence</li>
+        <li>Instruct the synthesis agent to preserve all claim-source mappings when combining findings — verify citations survive through final output</li>
+        <li>Deliberately provide two conflicting statistics from credible sources. Verify the synthesis annotates both with attribution rather than selecting one.</li>
+        <li>Provide findings with different publication years (2020, 2022, 2024). Verify the synthesis correctly interprets temporal differences as evolution, not contradiction.</li>
+        <li>Build a final report with distinct sections: well-established findings, contested findings (with source conflict annotations), and gaps in coverage.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ts56-questions">
+    <h3 class="section-title blue">Exam Simulation — Task 5.6</h3>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 1 — Task 5.6</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A synthesis agent combines findings from a web search agent and a document analysis agent. Each subagent returns prose summaries. The final report contains statistics with no sources, claims without attribution, and no way to trace findings back to original documents. What structural change would fix this?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q56a')"><span class="option-letter">A</span>Instruct the synthesis agent: "Always include source citations in the final report"</li>
+          <li class="exam-option" onclick="pick(this,true,'q56a')"><span class="option-letter">B</span>Require subagents to output structured claim-source mappings (claim, source URL, excerpt, publication date) that the synthesis agent must preserve and merge rather than summarising into prose</li>
+          <li class="exam-option" onclick="pick(this,false,'q56a')"><span class="option-letter">C</span>Instruct subagents to include citations in their prose summaries so the synthesis agent can extract them</li>
+          <li class="exam-option" onclick="pick(this,false,'q56a')"><span class="option-letter">D</span>Run a post-synthesis citation extraction pass that identifies claims and attempts to trace them back to original sources</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r56a')">Show explanation</button>
+        <div class="exam-reveal" id="r56a">
+          <div class="reveal-label">Correct: B</div>
+          <div class="reveal-text"><strong>B is correct.</strong> The root cause is architectural — prose summaries strip attribution at the subagent output stage, before the synthesis agent even sees the data. The fix must be upstream: require structured mappings from subagents so attribution is never lost. <strong>A</strong> instructs the synthesis agent to cite sources it no longer has access to — the attribution was lost before it arrived. <strong>C improves</strong> the prose summaries but attribution embedded in prose is fragile — parsing prose to extract citations is error-prone. <strong>D</strong> attempts to recover attribution that was already lost — expensive and unreliable.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 2 — Task 5.6</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">A research pipeline finds two conflicting statistics: McKinsey reports 67% AI adoption among Fortune 500 companies; Gartner reports 45%. Both are credible, widely-cited analyst reports from the same year. How should the synthesis agent handle this conflict?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q56b')"><span class="option-letter">A</span>Use the McKinsey figure (67%) as it comes from a more established research firm and discard the Gartner figure</li>
+          <li class="exam-option" onclick="pick(this,false,'q56b')"><span class="option-letter">B</span>Average the two figures to report 56% as a balanced estimate</li>
+          <li class="exam-option" onclick="pick(this,true,'q56b')"><span class="option-letter">C</span>Annotate the conflict with both figures, their source attribution, and methodological context (sample size, geography, definition of "AI adoption") — let the report reader interpret based on full context</li>
+          <li class="exam-option" onclick="pick(this,false,'q56b')"><span class="option-letter">D</span>Flag the conflict for human review and omit both statistics from the report pending resolution</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r56b')">Show explanation</button>
+        <div class="exam-reveal" id="r56b">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> The exam guide explicitly states: "annotating conflicts with source attribution rather than arbitrarily selecting one value." Both figures may be correct given different survey methodologies, populations, or definitions of "adoption." The synthesis agent's job is to surface the conflict with full context, not resolve it. <strong>A arbitrarily selects</strong> — brand reputation doesn't resolve methodological differences. <strong>B creates</strong> a figure that neither source reported — mathematically invalid and methodologically meaningless. <strong>D omits potentially valid statistics</strong> — both figures provide useful information even in conflict; the annotation pattern makes them usable.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-question">
+      <div class="exam-header">
+        <span class="exam-q-label">Question 3 — Task 5.6</span>
+        <span class="exam-scenario">Multi-Agent Research System</span>
+      </div>
+      <div class="exam-body">
+        <div class="exam-stem">Your synthesis agent produces a report stating: 'Revenue growth is accelerating, with compound annual growth rates of 23–31% confirmed across three independent sources.' Post-review reveals that Source A reported 23% CAGR for North American operations, Source B reported 31% CAGR for Asia-Pacific, and Source C reported 27% CAGR for digital channels only. The synthesis is factually wrong. What is the root cause of the failure?</div>
+        <ul class="exam-options">
+          <li class="exam-option" onclick="pick(this,false,'q56c')"><span class="option-letter">A</span>The synthesis agent hallucinated the figures — none of the sources reported those exact numbers.</li>
+          <li class="exam-option" onclick="pick(this,false,'q56c')"><span class="option-letter">B</span>The synthesis agent used an incorrect averaging formula to combine regional figures.</li>
+          <li class="exam-option" onclick="pick(this,true,'q56c')"><span class="option-letter">C</span>The synthesis agent conflated figures from different geographic and channel scopes into a single global claim, and lost the source provenance that would have revealed the incompatibility.</li>
+          <li class="exam-option" onclick="pick(this,false,'q56c')"><span class="option-letter">D</span>The three sources are contradictory and should have been excluded from the synthesis.</li>
+        </ul>
+        <button class="show-answer-btn" onclick="showReveal('r56c')">Show explanation</button>
+        <div class="exam-reveal" id="r56c">
+          <div class="reveal-label">Correct: C</div>
+          <div class="reveal-text"><strong>C is correct.</strong> The figures (23%, 31%, 27%) are all accurate within their respective sources — there is no hallucination. The failure is semantic conflation: the synthesis agent treated three figures with different scope definitions (regional, regional, channel-specific) as interchangeable data points about the same metric. Preserving provenance — keeping each figure tagged with its source, scope, and definition — would have made the incompatibility visible before synthesis. A (hallucination) is wrong — all figures appear verbatim in the sources. B (averaging formula) is wrong — no average was computed; the range was directly reported. D (contradictory) is wrong — the sources measure different things and are all accurate within their scope.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-meta">Domain 5 · All 6 Task Statements · Claude Certified Architect – Foundations</div>
+    <div class="complete-badge">✓ All 5 Domains Complete — Ready for Exam Simulation</div>
+  </div>
+
+</main>
+</div>
+
+<script>
+  const _DOMAIN = 5;
+  function saEvent(name, meta) {
+    if (typeof window.sa_event === 'function') window.sa_event(name, meta);
+  }
+  function _taskFromId(id) {
+    const m = id.match(/^[qr](\d)(\d)/);
+    return m ? m[1] + '.' + m[2] : id;
+  }
+
+  function pick(el, correct, qid) {
+    const parent = el.closest('.exam-options');
+    parent.querySelectorAll('.exam-option').forEach(o => o.classList.remove('correct','wrong'));
+    el.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      parent.querySelectorAll('.exam-option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true,')) o.classList.add('correct');
+      });
+    }
+    const reveal = el.closest('.exam-body').querySelector('.exam-reveal');
+    if (reveal) reveal.classList.add('visible');
+    saEvent('domain_question_answered', { domain: _DOMAIN, task: _taskFromId(qid), qid: qid, correct: correct ? 'yes' : 'no' });
+  }
+  function showReveal(id) {
+    document.getElementById(id).classList.add('visible');
+    saEvent('domain_explanation_viewed', { domain: _DOMAIN, task: _taskFromId(id) });
+  }
+  saEvent('domain_opened', { domain: _DOMAIN });
+  const allSections = document.querySelectorAll('[id]');
+  const allLinks = document.querySelectorAll('.sidebar-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    allLinks.forEach(l => {
+      l.classList.remove('active');
+      const href = l.getAttribute('href');
+      if (href && href === '#' + current) l.classList.add('active');
+    });
+  }, { passive: true });
+</script>
+<script>
+function toggleNav() {
+  document.getElementById('nav-links').classList.toggle('open');
+}
+(function(){
+  const page = location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    if (a.getAttribute('href').split('/').pop() === page) a.classList.add('nav-active');
+  });
+})();
+</script>
+</body>
+</html>

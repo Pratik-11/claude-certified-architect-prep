@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Certified Architect – Exam Progress Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2025;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e9eb;
+    --text2: #8a8d94;
+    --text3: #555860;
+    --accent: #4ade80;
+    --accent-dim: rgba(74,222,128,0.12);
+    --accent-border: rgba(74,222,128,0.3);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --d1: #7c8cff;
+    --d2: #ff7c5c;
+    --d3: #ffc95c;
+    --d4: #5cceff;
+    --d5: #c45cff;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { max-width: 760px; margin: 0 auto; }
+
+  header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .logo-line {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  h1 strong { font-weight: 500; }
+
+  .reset-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .reset-btn:hover { border-color: var(--border2); color: var(--text2); background: var(--surface2); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .stat-val {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .stat-val.green { color: var(--accent); }
+
+  .global-bar-wrap {
+    margin-top: 16px;
+    height: 2px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .global-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .domains { display: flex; flex-direction: column; gap: 12px; }
+
+  .domain {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .domain:hover { border-color: var(--border2); }
+
+  .domain-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--surface);
+  }
+
+  .domain-color-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .domain-info { flex: 1; min-width: 0; }
+
+  .domain-title {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .domain-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .domain-bar-wrap {
+    flex: 1;
+    height: 2px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 180px;
+  }
+
+  .domain-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .domain-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+
+  .domain-weight {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+
+  .domain-chevron {
+    color: var(--text3);
+    font-size: 11px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .domain-chevron.open { transform: rotate(180deg); }
+
+  .tasks {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .tasks.open { display: block; }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+
+  .task:last-child { border-bottom: none; }
+  .task:hover { background: var(--surface2); }
+
+  .task.done { background: rgba(74,222,128,0.04); }
+  .task.done:hover { background: rgba(74,222,128,0.07); }
+
+  .cb {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid var(--border2);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .task.done .cb {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkmark {
+    width: 8px;
+    height: 5px;
+    border-left: 1.5px solid #0e0f11;
+    border-bottom: 1.5px solid #0e0f11;
+    transform: rotate(-45deg) translate(1px, -1px);
+    display: none;
+  }
+
+  .task.done .checkmark { display: block; }
+
+  .task-body { flex: 1; min-width: 0; }
+
+  .task-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+
+  .task-title {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+    transition: color 0.15s;
+  }
+
+  .task.done .task-title {
+    color: var(--accent);
+  }
+
+  footer {
+    margin-top: 2.5rem;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="logo-line">Anthropic Certification</div>
+        <h1><strong>Claude Certified Architect</strong> – Foundations<br>Exam Progress Tracker</h1>
+      </div>
+      <button class="reset-btn" onclick="resetAll()">↺ Reset all</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-label">Completed</div>
+        <div class="stat-val green" id="s-done">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total tasks</div>
+        <div class="stat-val">30</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Progress</div>
+        <div class="stat-val" id="s-pct">0%</div>
+      </div>
+    </div>
+    <div class="global-bar-wrap">
+      <div class="global-bar" id="global-bar" style="width:0%"></div>
+    </div>
+  </header>
+
+  <div class="domains" id="domains"></div>
+
+  <footer>State saved to localStorage · Click any task to toggle · Pass score: 720/1000</footer>
+</div>
+
+<script>
+const DOMAINS = [
+  { id:'d1', title:'Domain 1: Agentic Architecture & Orchestration', weight:'27%', color:'#7c8cff', tasks:[
+    {id:'1.1', title:'Design and implement agentic loops for autonomous task execution'},
+    {id:'1.2', title:'Orchestrate multi-agent systems with coordinator-subagent patterns'},
+    {id:'1.3', title:'Configure subagent invocation, context passing, and spawning'},
+    {id:'1.4', title:'Implement multi-step workflows with enforcement and handoff patterns'},
+    {id:'1.5', title:'Apply Agent SDK hooks for tool call interception and data normalization'},
+    {id:'1.6', title:'Design task decomposition strategies for complex workflows'},
+    {id:'1.7', title:'Manage session state, resumption, and forking'},
+  ]},
+  { id:'d2', title:'Domain 2: Tool Design & MCP Integration', weight:'18%', color:'#ff7c5c', tasks:[
+    {id:'2.1', title:'Design effective tool interfaces with clear descriptions and boundaries'},
+    {id:'2.2', title:'Implement structured error responses for MCP tools'},
+    {id:'2.3', title:'Distribute tools appropriately across agents and configure tool choice'},
+    {id:'2.4', title:'Integrate MCP servers into Claude Code and agent workflows'},
+    {id:'2.5', title:'Select and apply built-in tools (Read, Write, Edit, Bash, Grep, Glob) effectively'},
+  ]},
+  { id:'d3', title:'Domain 3: Claude Code Configuration & Workflows', weight:'20%', color:'#ffc95c', tasks:[
+    {id:'3.1', title:'Configure CLAUDE.md files with appropriate hierarchy, scoping, and modular organization'},
+    {id:'3.2', title:'Create and configure custom slash commands and skills'},
+    {id:'3.3', title:'Apply path-specific rules for conditional convention loading'},
+    {id:'3.4', title:'Determine when to use plan mode vs direct execution'},
+    {id:'3.5', title:'Apply iterative refinement techniques for progressive improvement'},
+    {id:'3.6', title:'Integrate Claude Code into CI/CD pipelines'},
+  ]},
+  { id:'d4', title:'Domain 4: Prompt Engineering & Structured Output', weight:'20%', color:'#5cceff', tasks:[
+    {id:'4.1', title:'Design prompts with explicit criteria to improve precision and reduce false positives'},
+    {id:'4.2', title:'Apply few-shot prompting to improve output consistency and quality'},
+    {id:'4.3', title:'Enforce structured output using tool use and JSON schemas'},
+    {id:'4.4', title:'Implement validation, retry, and feedback loops for extraction quality'},
+    {id:'4.5', title:'Design efficient batch processing strategies'},
+    {id:'4.6', title:'Design multi-instance and multi-pass review architectures'},
+  ]},
+  { id:'d5', title:'Domain 5: Context Management & Reliability', weight:'15%', color:'#c45cff', tasks:[
+    {id:'5.1', title:'Manage conversation context to preserve critical information across long interactions'},
+    {id:'5.2', title:'Design effective escalation and ambiguity resolution patterns'},
+    {id:'5.3', title:'Implement error propagation strategies across multi-agent systems'},
+    {id:'5.4', title:'Manage context effectively in large codebase exploration'},
+    {id:'5.5', title:'Design human review workflows and confidence calibration'},
+    {id:'5.6', title:'Preserve information provenance and handle uncertainty in multi-source synthesis'},
+  ]},
+];
+
+const STORAGE_KEY = 'architect_exam_checklist_v1';
+const TOTAL = DOMAINS.reduce((a, d) => a + d.tasks.length, 0);
+const openDomains = {};
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveState(s) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e) {}
+}
+
+let state = loadState();
+
+function toggleTask(id) {
+  state[id] = !state[id];
+  saveState(state);
+  render();
+}
+
+function resetAll() {
+  if (!confirm('Reset all progress?')) return;
+  state = {};
+  saveState(state);
+  render();
+}
+
+function toggleDomain(id) {
+  openDomains[id] = openDomains[id] === false ? true : false;
+  render();
+}
+
+function countDone(tasks) { return tasks.filter(t => state[t.id]).length; }
+function totalDone() { return DOMAINS.reduce((a, d) => a + countDone(d.tasks), 0); }
+
+function render() {
+  const done = totalDone();
+  const pct = Math.round(done / TOTAL * 100);
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-pct').textContent = pct + '%';
+  document.getElementById('global-bar').style.width = pct + '%';
+
+  const container = document.getElementById('domains');
+  container.innerHTML = '';
+
+  DOMAINS.forEach(domain => {
+    const dd = countDone(domain.tasks);
+    const dt = domain.tasks.length;
+    const dpct = Math.round(dd / dt * 100);
+    const isOpen = openDomains[domain.id] !== false;
+
+    const div = document.createElement('div');
+    div.className = 'domain';
+    div.innerHTML = `
+      <div class="domain-header" onclick="toggleDomain('${domain.id}')">
+        <div class="domain-color-dot" style="background:${domain.color}"></div>
+        <div class="domain-info">
+          <div class="domain-title">${domain.title}</div>
+          <div class="domain-meta">
+            <div class="domain-bar-wrap">
+              <div class="domain-bar" style="width:${dpct}%;background:${domain.color}"></div>
+            </div>
+            <span class="domain-count">${dd}/${dt}</span>
+          </div>
+        </div>
+        <span class="domain-weight">${domain.weight}</span>
+        <span class="domain-chevron ${isOpen ? 'open' : ''}">▾</span>
+      </div>
+      <div class="tasks ${isOpen ? 'open' : ''}">
+        ${domain.tasks.map(t => `
+          <div class="task ${state[t.id] ? 'done' : ''}" onclick="toggleTask('${t.id}')">
+            <div class="cb"><div class="checkmark"></div></div>
+            <div class="task-body">
+              <div class="task-id">${t.id}</div>
+              <div class="task-title">${t.title}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
