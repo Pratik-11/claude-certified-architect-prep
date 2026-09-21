@@ -1,5 +1,5 @@
 const fs = require('fs');
-let src = fs.readFileSync('moises_questions.js','utf8');
+let src = fs.readFileSync('sources/moises/questions.js','utf8');
 // neutralize browser/module export tails if any, then expose via eval
 const sandbox = {};
 const code = src + '\n;module.exports={QUESTION_BANK,SCENARIO_META};';
@@ -27,6 +27,6 @@ const out = QUESTION_BANK.map(q => ({
   explanation: strip(q.explanation)
 }));
 
-fs.writeFileSync('moises_parsed.json', JSON.stringify(out,null,2));
+fs.writeFileSync('parsed/moises.json', JSON.stringify(out,null,2));
 console.log('moises parsed:', out.length);
 console.log('domains:', JSON.stringify(out.reduce((a,q)=>{a[q.domain]=(a[q.domain]||0)+1;return a;},{})));

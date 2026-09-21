@@ -7,15 +7,17 @@ Filenames sort by domain then number so they scroll in a sensible order in a
 phone gallery: cards/d1_001_q-csa-001.png
 
 Usage:
-  python3 make_cards.py                # all questions
-  python3 make_cards.py --no-explain   # hide explanations (Q + answer only)
-  python3 make_cards.py --path 1       # only Path 1 questions
-  python3 make_cards.py --domain 3     # only domain 3
-  python3 make_cards.py --limit 3      # first N (handy for a quick preview)
-  python3 make_cards.py --id q-csa-001 # a single question by id
+  python3 src/make_cards.py                # all questions -> cards/
+  python3 src/make_cards.py --no-explain   # hide explanations (Q + answer only)
+  python3 src/make_cards.py --path 1       # only Path 1 questions
+  python3 src/make_cards.py --domain 3     # only domain 3
+  python3 src/make_cards.py --limit 3      # first N (handy for a quick preview)
+  python3 src/make_cards.py --id q-csa-001 # a single question by id
 """
 import argparse, json, os, re, textwrap
 from PIL import Image, ImageDraw, ImageFont
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repo root
 
 FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 REG  = os.path.join(FONT_DIR, "DejaVuSans.ttf")
@@ -182,10 +184,10 @@ def main():
     ap.add_argument("--domain", type=int)
     ap.add_argument("--limit", type=int)
     ap.add_argument("--id")
-    ap.add_argument("--out", default="cards")
+    ap.add_argument("--out", default=os.path.join(ROOT, "cards"))
     args = ap.parse_args()
 
-    qs = json.load(open("questions.json"))
+    qs = json.load(open(os.path.join(ROOT, "data", "questions.json"), encoding="utf-8"))
     if args.path:   qs = [q for q in qs if q["path"] == args.path]
     if args.domain: qs = [q for q in qs if q["domain"] == args.domain]
     if args.id:     qs = [q for q in qs if q["id"] == args.id]

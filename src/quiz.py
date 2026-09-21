@@ -3,18 +3,18 @@
 Claude Certified Architect — Foundations  |  CLI Practice Quiz
 =============================================================
 
-A dependency-free terminal quiz over the practice questions in questions.json
+A dependency-free terminal quiz over the practice questions in data/questions.json
 (collected from community study repos — see README.md). Every question shows
 the correct answer AND the explanation ("why") after you answer.
 
 Usage:
-    python3 quiz.py                 # interactive menu
-    python3 quiz.py --exam          # 40-question timed-style mock exam
-    python3 quiz.py --domain 1      # only Domain 1 questions
-    python3 quiz.py --num 20        # 20 random questions
-    python3 quiz.py --source moisesprat
-    python3 quiz.py --review        # read-only: show every Q with answer+why
-    python3 quiz.py --no-color
+    python3 src/quiz.py                 # interactive menu
+    python3 src/quiz.py --exam          # 40-question timed-style mock exam
+    python3 src/quiz.py --domain 1      # only Domain 1 questions
+    python3 src/quiz.py --num 20        # 20 random questions
+    python3 src/quiz.py --source moisesprat
+    python3 src/quiz.py --review        # read-only: show every Q with answer+why
+    python3 src/quiz.py --no-color
 
 Controls during a quiz:
     A / B / C / D   answer
@@ -33,9 +33,9 @@ import shutil
 import sys
 import textwrap
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-BANK_PATH = os.path.join(HERE, "questions.json")
-RESULTS_DIR = os.path.join(HERE, "results")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repo root
+BANK_PATH = os.path.join(ROOT, "data", "questions.json")
+RESULTS_DIR = os.path.join(ROOT, "results")
 
 DOMAINS = {
     1: "Agent Architecture and Orchestration (27%)",
@@ -217,7 +217,7 @@ def run_quiz(questions, mode_name, exam=False, feedback=True):
     summary(results, exam=exam)
     path = write_result_md(results, mode_name, exam=exam)
     if path:
-        print(C.cyan(f"  📄 Results saved: {os.path.relpath(path, HERE)}\n"))
+        print(C.cyan(f"  📄 Results saved: {os.path.relpath(path, ROOT)}\n"))
 
 
 def _md_question(f, q, chosen):

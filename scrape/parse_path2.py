@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse the four Path-2 sources into a single list of questions.
+"""Parse the Path-2 sources under sources/ into parsed/path2.json.
 Sources: OlivierAlter (77), dnacenta (16), SGridworks topic tests (100) + full exam (50).
 hamzafarooq is intentionally skipped (bare stems, no options/answers).
 """
@@ -18,7 +18,7 @@ results = []
 
 # ---------------------------------------------------------------- OLIVIER (77)
 def parse_olivier():
-    txt = open('src_olivier/exam.md', encoding='utf-8').read()
+    txt = open('sources/olivier/exam.md', encoding='utf-8').read()
     # map line -> (domain, task) using header positions
     dom_hdr = [(m.start(), int(m.group(1))) for m in re.finditer(r'\n## Domain (\d+):', txt)]
     task_hdr = [(m.start(), m.group(1)) for m in re.finditer(r'\n### Task (\d+\.\d+):', txt)]
@@ -69,7 +69,7 @@ def _opts_from_lines(lines, dash=False):
 # ---------------------------------------------------------------- DNACENTA (16)
 def parse_dnacenta():
     n = 0
-    for f in sorted(glob.glob('src_dnacenta/d*.md')):
+    for f in sorted(glob.glob('sources/dnacenta/d*.md')):
         dom = int(re.search(r'd(\d)\.md', f).group(1))
         txt = open(f, encoding='utf-8').read()
         idx = txt.find('Practice Questions')
@@ -110,7 +110,7 @@ def _split_answer(block_text):
 # ----------------------------------------------- SGRID topic tests (100)
 def parse_sgrid_topic():
     n = 0
-    for f in sorted(glob.glob('src_sgrid/test-*.md')):
+    for f in sorted(glob.glob('sources/sgrid/test-*.md')):
         txt = open(f, encoding='utf-8').read()
         # header is "Task Statement 1.1" or "Task Statements 1.2, 1.3" / "1.4-1.7"
         hdr = re.search(r'Domain (\d+):[^\n]*Task Statements? (\d+\.\d+)([^\n]*)', txt)
@@ -135,7 +135,7 @@ def parse_sgrid_topic():
 
 # ----------------------------------------------- SGRID full exam (50)
 def parse_sgrid_full():
-    txt = open('src_sgrid/full-exam-01.md', encoding='utf-8').read()
+    txt = open('sources/sgrid/full-exam-01.md', encoding='utf-8').read()
     scen_hdr = [(m.start(), norm(m.group(1))) for m in re.finditer(r'\n## Scenario [A-Z]:\s*([^\n]*)', txt)]
     def scen_at(pos):
         s = None
@@ -169,7 +169,7 @@ counts = {
     'sgrid_topic': parse_sgrid_topic(),
     'sgrid_full': parse_sgrid_full(),
 }
-json.dump(results, open('path2_parsed.json', 'w'), indent=2)
+json.dump(results, open('parsed/path2.json', 'w'), indent=2)
 print('Path-2 parsed counts:', counts, '| total:', len(results))
 # integrity
 bad = [q['id'] for q in results if not q['explanation'] or not q['stem'] or not (0 <= q['correct'] < len(q['options']))]

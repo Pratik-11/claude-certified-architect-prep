@@ -1,8 +1,8 @@
 # Claude Certified Architect — All-Questions Review Sheet
 
-> Every one of the **388 questions** in `questions.json`, grouped by domain, with the correct answer marked (✅) and a one-line **Remember** hook distilled from the explanation.
+> Every one of the **388 questions** in `data/questions.json`, grouped by domain, with the correct answer marked (✅) and a one-line **Remember** hook distilled from the explanation.
 
-> Read top-to-bottom the night before, or jump to a weak domain. For the interactive version (scoring, result files) use `python3 quiz.py`.
+> Read top-to-bottom the night before, or jump to a weak domain. For the interactive version (scoring, result files) use `python3 src/quiz.py`.
 
 **How to read each entry:** the question → options (✅ = correct) → **Remember:** *what it tests → the answer → the thing to notice.*
 

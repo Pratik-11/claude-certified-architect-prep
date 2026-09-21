@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """Merge Path-1 (moisesprat + paullarionov) and Path-2 (olivier + dnacenta + sgrid)
-into ../questions.json, tagging each question with `path` (1 or 2) and removing
+into ../data/questions.json, tagging each question with `path` (1 or 2) and removing
 Path-2 questions that duplicate anything already kept (fuzzy match).
 
-Any other scrape/*_parsed.json is picked up automatically as Path 2 — that is how
+Any other scrape/parsed/*.json is picked up automatically as Path 2 — that is how
 new sources are added (see ../CONTRIBUTING.md)."""
 import glob, json, re
 from difflib import SequenceMatcher
 from collections import Counter
 
-p1 = json.load(open('moises_parsed.json')) + json.load(open('paul_parsed.json'))
+p1 = json.load(open('parsed/moises.json')) + json.load(open('parsed/paul.json'))
 for q in p1:
     q['path'] = 1
-p2 = json.load(open('path2_parsed.json'))   # already path=2
-CORE = {'moises_parsed.json', 'paul_parsed.json', 'path2_parsed.json'}
-for f in sorted(set(glob.glob('*_parsed.json')) - CORE):   # contributed sources
+p2 = json.load(open('parsed/path2.json'))   # already path=2
+CORE = {'parsed/moises.json', 'parsed/paul.json', 'parsed/path2.json'}
+for f in sorted(set(glob.glob('parsed/*.json')) - CORE):   # contributed sources
     extra = json.load(open(f))
     for q in extra:
         q['path'] = 2
@@ -63,7 +63,7 @@ if bad or dup_ids:
         print(f'  INVALID {i}: {why}')
     if dup_ids:
         print('  DUPLICATE ids:', dup_ids)
-    raise SystemExit('questions.json NOT written — fix the entries above and re-run')
+    raise SystemExit('data/questions.json NOT written — fix the entries above and re-run')
 
 kept, kept_sigs, removed = [], [], []
 for q in p1 + p2:                       # path1 first → authoritative, never dropped
@@ -75,7 +75,7 @@ for q in p1 + p2:                       # path1 first → authoritative, never d
     kept.append(q)
     kept_sigs.append((s, q))
 
-json.dump(kept, open('../questions.json', 'w'), indent=2)
+json.dump(kept, open('../data/questions.json', 'w'), indent=2)
 print('FINAL bank:', len(kept))
 print(' by path  :', dict(Counter(q['path'] for q in kept)))
 print(' by source:', dict(Counter(q['source'] for q in kept)))

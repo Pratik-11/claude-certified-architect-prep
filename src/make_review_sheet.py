@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Build REVIEW_SHEET.md — every question in one doc, grouped by domain,
+"""Build docs/REVIEW_SHEET.md — every question in one doc, grouped by domain,
 with the answer labelled and a 1-2 line 'remember this' takeaway per question."""
 import json, re, os
 from collections import defaultdict
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-BANK = json.load(open(os.path.join(HERE, '..', 'questions.json'), encoding='utf-8'))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repo root
+BANK = json.load(open(os.path.join(ROOT, 'data', 'questions.json'), encoding='utf-8'))
 
 DOMAINS = {
     1: "Agent Architecture & Orchestration (27%)",
@@ -63,10 +63,10 @@ out = []
 W = out.append
 
 W("# Claude Certified Architect — All-Questions Review Sheet\n")
-W(f"> Every one of the **{len(BANK)} questions** in `questions.json`, grouped by domain, with the "
+W(f"> Every one of the **{len(BANK)} questions** in `data/questions.json`, grouped by domain, with the "
   "correct answer marked (✅) and a one-line **Remember** hook distilled from the explanation.\n")
 W("> Read top-to-bottom the night before, or jump to a weak domain. For the interactive version "
-  "(scoring, result files) use `python3 quiz.py`.\n")
+  "(scoring, result files) use `python3 src/quiz.py`.\n")
 W("**How to read each entry:** the question → options (✅ = correct) → **Remember:** *what it tests → the answer → the thing to notice.*\n")
 
 # table of contents
@@ -109,7 +109,7 @@ for scen in sorted(scenario_only):
         render(q, f"S-{n}")
 
 doc = "\n".join(out)
-path = os.path.join(HERE, '..', 'REVIEW_SHEET.md')
+path = os.path.join(ROOT, 'docs', 'REVIEW_SHEET.md')
 open(path, 'w', encoding='utf-8').write(doc)
 print(f"Wrote {path}")
 print(f"  {len(BANK)} questions · {len(doc.splitlines())} lines · {len(doc)} chars")

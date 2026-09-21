@@ -1,6 +1,6 @@
 # Claude Certified Architect — Foundations · Study Guide
 
-> A condensed, exam-focused companion to the practice quiz (`quiz.py`).
+> A condensed, exam-focused companion to the practice quiz (`src/quiz.py`).
 > Sources (6 community repos): moisesprat, paullarionov (Path 1) + OlivierAlter, SGridworks, dnacenta (Path 2).
 > **388 practice questions** are in `questions.json` — Path 1 = 163, Path 2 = 225. Run them separately (`--path 1` / `--path 2`) or together (`--path all`).
 
@@ -258,4 +258,4 @@ moisesprat and olivier additionally tag each question with a **task** (e.g. 1.1�
 
 ---
 
-*Generated from the two community guides. Pair this with `python3 quiz.py` — aim to clear the 40-question mock exam at ≥720 several times, then drill your weakest domain with `python3 quiz.py --domain N`.*
+*Generated from the two community guides. Pair this with `python3 src/quiz.py` — aim to clear the 40-question mock exam at ≥720 several times, then drill your weakest domain with `python3 quiz.py --domain N`.*

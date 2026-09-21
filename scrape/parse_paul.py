@@ -1,6 +1,6 @@
 import re, json
 
-text = open('paul_guide.md', encoding='utf-8').read()
+text = open('sources/paul/guide_en.md', encoding='utf-8').read()
 # Only the question sections (from "Examples of Exam Questions" onward)
 start = text.index('# Examples of Exam Questions')
 qtext = text[start:]
@@ -66,7 +66,7 @@ for m in re.finditer(r'\n## Question (\d+) \(Scenario: ([^)]+)\)\n(.*?)(?=\n## Q
         'explanation': explanation
     })
 
-json.dump(results, open('paul_parsed.json','w'), indent=2)
+json.dump(results, open('parsed/paul.json','w'), indent=2)
 print('paul parsed:', len(results))
 from collections import Counter
 print('by section:', Counter(r['id'].split('-')[1] for r in results))

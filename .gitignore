@@ -1,7 +1,7 @@
 __pycache__/
 .claude/
 results/
-# generated — rebuild with make_cards.py / make_pdf.py (PDF ships as a release asset)
+# generated — rebuild with src/make_cards.py / src/make_pdf.py (PDF ships as a release asset)
 cards/
 flashcards.pdf
 scrape/_moises_tmp.cjs

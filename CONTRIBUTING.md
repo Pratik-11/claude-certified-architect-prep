@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping other people pass this exam. The most valuable contribution is **more good questions**, and adding them needs no code changes — this guide is mostly about that. For how the code fits together, read [EXPLANATION.md](EXPLANATION.md) first (or point your AI agent at it).
+Thanks for helping other people pass this exam. The most valuable contribution is **more good questions**, and adding them needs no code changes — this guide is mostly about that. For how the code fits together, read [docs/EXPLANATION.md](docs/EXPLANATION.md) first (or point your AI agent at it).
 
 ## Ground rules
 
@@ -15,7 +15,7 @@ Thanks for helping other people pass this exam. The most valuable contribution i
 ```bash
 git clone https://github.com/Pratik-11/claude-certified-architect-prep.git
 cd claude-certified-architect-prep
-python3 quiz.py --num 3        # that's it — nothing to install
+python3 src/quiz.py --num 3    # that's it — nothing to install
 ```
 
 Optional: `pip install pillow` for the flashcard scripts; Node.js only if you re-run `scrape/parse_moises.cjs`.
@@ -24,13 +24,13 @@ Optional: `pip install pillow` for the flashcard scripts; Node.js only if you re
 
 ## Adding questions
 
-However the questions reach you — a GitHub repo, a blog post, a course PDF, a YouTube transcript, your own head — the pipeline only cares that they end up in **one file: `scrape/<name>_parsed.json`**. `merge_bank.py` picks up every file matching that pattern automatically, validates it, tags it as Path 2, drops anything that duplicates an existing question, and rebuilds `questions.json`.
+However the questions reach you — a GitHub repo, a blog post, a course PDF, a YouTube transcript, your own head — the pipeline only cares that they end up in **one file: `scrape/parsed/<name>.json`**. `scrape/merge_bank.py` picks up every file in that folder automatically, validates it, tags it as Path 2, drops anything that duplicates an existing question, and rebuilds `data/questions.json`.
 
 Pick a short lowercase `<name>` for your source (`acmeblog`, `janedoe`, …). It is used in the filename, in every question's `source` field, and as the id prefix.
 
 ### The format
 
-`scrape/<name>_parsed.json` is a JSON array of objects like this:
+`scrape/parsed/<name>.json` is a JSON array of objects like this:
 
 ```json
 [
@@ -61,9 +61,9 @@ Pick a short lowercase `<name>` for your source (`acmeblog`, `janedoe`, …). It
 | `options` | ✅ | 2–8 strings, **without** `A)` / `B)` prefixes. Four is the exam norm. |
 | `correct` | ✅ | **0-based index** of the right option (`0` = A, `1` = B, …). |
 | `explanation` | ✅ | Why the answer is right, ideally why the distractors are wrong. |
-| `domain` | optional | `1`–`5`, or `null`/omitted if unknown. Please fill it in — untagged questions are invisible to `--domain N` drills. Domains are listed in [EXPLANATION.md §4](EXPLANATION.md#4-the-question-schema). |
+| `domain` | optional | `1`–`5`, or `null`/omitted if unknown. Please fill it in — untagged questions are invisible to `--domain N` drills. Domains are listed in [EXPLANATION.md §4](docs/EXPLANATION.md#4-the-question-schema). |
 | `task` | optional | Task statement as a **string**: `"1.1"` … `"5.6"`. |
-| `scenario` | optional | Scenario name, e.g. `"Customer Support Resolution Agent"`. Reuse an existing name where one fits: `python3 -c "import json;print(*sorted({q['scenario'] for q in json.load(open('questions.json')) if q['scenario']}),sep='\n')"` |
+| `scenario` | optional | Scenario name, e.g. `"Customer Support Resolution Agent"`. Reuse an existing name where one fits: `python3 -c "import json;print(*sorted({q['scenario'] for q in json.load(open('data/questions.json')) if q['scenario']}),sep='\n')"` |
 
 Do **not** set `path` — the merge script does.
 
@@ -71,7 +71,7 @@ Do **not** set `path` — the merge script does.
 
 Best for: your own questions, a handful from a web page, anything under ~30 questions.
 
-1. Create `scrape/<name>_parsed.json` in the format above.
+1. Create `scrape/parsed/<name>.json` in the format above.
 2. Go to [Build, check, submit](#build-check-submit).
 
 ### Route B — write a parser (for a big, consistently formatted source)
@@ -80,22 +80,22 @@ Best for: a repo or site with dozens of questions in a regular markdown/HTML/JSO
 
 1. **Save the raw source into the repo** so the build is reproducible:
    ```bash
-   mkdir scrape/src_<name>
-   curl -sL "https://raw.githubusercontent.com/<owner>/<repo>/main/questions.md" -o scrape/src_<name>/questions.md
-   # web page:  curl -sL "https://example.com/quiz" -o scrape/src_<name>/quiz.html
-   # PDF:       pdftotext -layout course.pdf scrape/src_<name>/course.txt
+   mkdir scrape/sources/<name>
+   curl -sL "https://raw.githubusercontent.com/<owner>/<repo>/main/questions.md" -o scrape/sources/<name>/questions.md
+   # web page:  curl -sL "https://example.com/quiz" -o scrape/sources/<name>/quiz.html
+   # PDF:       pdftotext -layout course.pdf scrape/sources/<name>/course.txt
    ```
-2. **Write `scrape/parse_<name>.py`** that reads those files and writes `<name>_parsed.json`. Skeleton (adjust the regexes to your format — `parse_paul.py` and `parse_path2.py` have four worked examples):
+2. **Write `scrape/parse_<name>.py`** that reads those files and writes `parsed/<name>.json`. Skeleton (adjust the regexes to your format — `parse_paul.py` and `parse_path2.py` have four worked examples):
    ```python
    #!/usr/bin/env python3
-   """Parse <name> (<url>) into <name>_parsed.json. Run from scrape/."""
+   """Parse <name> (<url>) into parsed/<name>.json. Run from scrape/."""
    import json, re
 
    LET = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4}
-   txt = open('src_<name>/questions.md', encoding='utf-8').read()
+   txt = open('sources/<name>/questions.md', encoding='utf-8').read()
 
    out = []
-   for block in re.split(r'\n## Question \d+\s*\n', txt)[1:]:
+   for block in re.split(r'^## Question \d+\s*$', txt, flags=re.M)[1:]:
        opts = re.findall(r'^[A-E]\)\s*(.+)$', block, re.M)
        ans = re.search(r'\*\*Answer:\s*([A-E])\*\*\s*(.*)', block, re.S)
        stem = block.split('\nA)')[0].strip()
@@ -108,17 +108,17 @@ Best for: a repo or site with dozens of questions in a regular markdown/HTML/JSO
            'correct': LET[ans.group(1)], 'explanation': ans.group(2).strip(),
        })
 
-   json.dump(out, open('<name>_parsed.json', 'w'), indent=2)
+   json.dump(out, open('parsed/<name>.json', 'w'), indent=2)
    print('<name> parsed:', len(out))                 # compare with the count you expect!
    ```
 3. Run it: `cd scrape && python3 parse_<name>.py`. **Check the printed count against the number of questions in the source** — parsers skip silently, so a low count means a regex is missing a variant.
-4. Commit the raw files, the parser, *and* the `_parsed.json`.
+4. Commit the raw files, the parser, *and* `parsed/<name>.json`.
 
 ### Route C — let an AI agent do it
 
 Give your coding agent (Claude Code, Cursor, Codex, …) this prompt from the repo root:
 
-> Read EXPLANATION.md and CONTRIBUTING.md. Add the practice questions from `<URL or file>` as a new source named `<name>`. Follow Route B if the format is regular, otherwise Route A. Tag `domain` (and `task` where clear) for every question using the domain list in EXPLANATION.md §4. Then run the full "Build, check, submit" section, show me the merge output including any `~=` duplicate lines, and spot-check five random questions against the original source. Do not edit `questions.json` by hand and do not change any existing question id.
+> Read docs/EXPLANATION.md and CONTRIBUTING.md. Add the practice questions from `<URL or file>` as a new source named `<name>`. Follow Route B if the format is regular, otherwise Route A. Tag `domain` (and `task` where clear) for every question using the domain list in EXPLANATION.md §4. Then run the full "Build, check, submit" section, show me the merge output including any `~=` duplicate lines, and spot-check five random questions against the original source. Do not edit `data/questions.json` by hand and do not change any existing question id.
 
 Then **review what it produced** — especially `correct` indexes (off-by-one between A–D and 0–3 is the classic mistake) and any explanations the agent wrote itself. If questions or explanations are AI-generated rather than taken from a source, say so in the PR and verify each one against the [Claude docs](https://docs.claude.com); a confident wrong answer in a study kit is worse than no question.
 
@@ -126,24 +126,24 @@ Then **review what it produced** — especially `correct` indexes (off-by-one be
 
 ```bash
 cd scrape
-python3 merge_bank.py              # validate + dedupe + rebuild ../questions.json
+python3 merge_bank.py                  # validate + dedupe + rebuild ../data/questions.json
 cd ..
-python3 scrape/make_review_sheet.py        # regenerate REVIEW_SHEET.md
-python3 quiz.py --source <name> --review   # read your questions as users will see them
+python3 src/make_review_sheet.py           # regenerate docs/REVIEW_SHEET.md
+python3 src/quiz.py --source <name> --review   # read your questions as users will see them
 ```
 
 Reading the `merge_bank.py` output:
 
-- `+ <name>_parsed.json: N questions` — your file was found.
-- `INVALID <id>: <reason>` / `DUPLICATE ids` + `questions.json NOT written` — fix and re-run; nothing was changed.
+- `+ parsed/<name>.json: N questions` — your file was found.
+- `INVALID <id>: <reason>` / `DUPLICATE ids` + `data/questions.json NOT written` — fix and re-run; nothing was changed.
 - `<your-id>  ~=  <existing-id>` — your question was judged a duplicate of an existing one and **dropped**. Expected when sources copy from each other. If it is a false positive (genuinely different question), reword the stem slightly or mention it in the PR.
 - `by source: {... '<name>': K}` — `K` is how many of yours made it in.
 
 Then:
 
 1. Add your source to **"Sources & credit"** in `README.md` (link + question count) and update the totals there.
-2. Run the checks in [EXPLANATION.md §10](EXPLANATION.md#10-verifying-a-change).
-3. Commit `scrape/<name>_parsed.json` (+ `scrape/src_<name>/` and the parser for Route B), `questions.json`, `REVIEW_SHEET.md`, `README.md`. Do **not** commit `cards/`, `results/`, or `flashcards.pdf`.
+2. Run the checks in [EXPLANATION.md §10](docs/EXPLANATION.md#10-verifying-a-change).
+3. Commit `scrape/parsed/<name>.json` (+ `scrape/sources/<name>/` and the parser for Route B), `data/questions.json`, `docs/REVIEW_SHEET.md`, `README.md`. Do **not** commit `cards/`, `results/`, or `flashcards.pdf`.
 4. Open a PR saying where the questions came from, their license/permission status, and how many were added vs. dropped as duplicates.
 
 ### What makes a good question
@@ -160,20 +160,20 @@ Then:
 
 Found a question whose marked answer or explanation is wrong? Open an issue with the question `id`, or fix it:
 
-- **Contributed source (Route A file):** edit `scrape/<name>_parsed.json` directly.
-- **Parsed source:** `*_parsed.json` would be overwritten by the next parser run, so edit our committed copy of the raw file under `scrape/` (`src_*/…`, `paul_guide.md`, `moises_questions.js`), re-run that parser, and say in the PR what you changed and why (with a docs link). Consider reporting it upstream too.
+- **Contributed source (Route A file):** edit `scrape/parsed/<name>.json` directly.
+- **Parsed source:** `scrape/parsed/*.json` would be overwritten by the next parser run, so edit our committed copy of the raw file under `scrape/sources/<source>/`, re-run that parser, and say in the PR what you changed and why (with a docs link). Consider reporting it upstream too.
 
-Then run [Build, check, submit](#build-check-submit). Never patch `questions.json` itself — it's regenerated.
+Then run [Build, check, submit](#build-check-submit). Never patch `data/questions.json` itself — it's regenerated.
 
 ## Code contributions
 
 Bug fixes and features are welcome. Keep the spirit of the repo: small, readable, no dependencies, no frameworks.
 
 - One file per tool; plain functions; match the surrounding style.
-- `quiz.py`: standard library only, must keep working without a TTY (`--no-color`, piped stdin).
+- `src/quiz.py`: standard library only, must keep working without a TTY (`--no-color`, piped stdin).
 - New quiz options need both a CLI flag (`main()`) and, where it makes sense, a menu entry (`menu()`), plus a line in `README.md`.
-- Anything that changes the question schema must update all three consumers (`quiz.py`, `make_cards.py`, `scrape/make_review_sheet.py`), the validator in `merge_bank.py`, and EXPLANATION.md §4.
-- Before opening a PR, run the commands in [EXPLANATION.md §10](EXPLANATION.md#10-verifying-a-change) and check `git diff --stat` contains only what you meant to change.
+- Anything that changes the question schema must update all three consumers (`src/quiz.py`, `src/make_cards.py`, `src/make_review_sheet.py`), the validator in `scrape/merge_bank.py`, and docs/EXPLANATION.md §4.
+- Before opening a PR, run the commands in [EXPLANATION.md §10](docs/EXPLANATION.md#10-verifying-a-change) and check `git diff --stat` contains only what you meant to change.
 
 ### Ideas looking for an owner
 
@@ -182,9 +182,9 @@ Bug fixes and features are welcome. Keep the spirit of the repo: small, readable
 - **Weak-spot stats** — aggregate all of `results/` into per-domain / per-task accuracy over time.
 - **Domain-weighted mock exam** — sample 40 questions in the official 27/18/20/20/15 proportions instead of uniformly.
 - **Timer** for mock exams.
-- **Anki / CSV export** from `questions.json`.
-- **Cross-platform fonts** in `make_cards.py` (currently a hard-coded Linux path); lower-memory `make_pdf.py`.
-- **A tiny static web UI** that reads `questions.json` (GitHub Pages friendly).
+- **Anki / CSV export** from `data/questions.json`.
+- **Cross-platform fonts** in `src/make_cards.py` (currently a hard-coded Linux path); lower-memory `make_pdf.py`.
+- **A tiny static web UI** that reads `data/questions.json` (GitHub Pages friendly).
 - **Freshness review** — check explanations against current Claude docs and fix drift.
 
 ## Commits and PRs
